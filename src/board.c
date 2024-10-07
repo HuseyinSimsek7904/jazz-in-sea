@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 
@@ -5,10 +6,12 @@
 #include "position.h"
 
 char get_piece(board_t* board, int pos) {
+  assert(is_valid_pos(pos));
   return board->board_array[pos];
 }
 
 void set_piece(board_t* board, int pos, char piece) {
+  assert(is_valid_pos(pos));
   board->board_array[pos] = piece;
 }
 
