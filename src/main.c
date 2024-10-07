@@ -5,11 +5,8 @@
 
 int
 main() {
-  printf("Hello, world!\n");
   board_t board;
-  if (load_fen("np4PN/pp4PP/8/8/8/8/PP4pp/NP4pn", &board)) {
-    printf("Successfully loaded FEN.\n");
-  } else {
+  if (!load_fen("1n6/8/4P3/8/PP6/8/p6p/8", &board)) {
     printf("Could not load FEN.\n");
     exit(1);
   }
