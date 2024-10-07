@@ -1,0 +1,36 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-O2",
+      "-Wall",
+      "-Werror",
+      "-I",
+      "include",
+      "-c",
+      "-o",
+      "src/main.o",
+      "src/main.c"
+    ],
+    "directory": "/home/huseyin/work/jazz-in-sea",
+    "file": "/home/huseyin/work/jazz-in-sea/src/main.c",
+    "output": "/home/huseyin/work/jazz-in-sea/src/main.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-O2",
+      "-Wall",
+      "-Werror",
+      "-I",
+      "include",
+      "-c",
+      "-o",
+      "src/board.o",
+      "src/board.c"
+    ],
+    "directory": "/home/huseyin/work/jazz-in-sea",
+    "file": "/home/huseyin/work/jazz-in-sea/src/board.c",
+    "output": "/home/huseyin/work/jazz-in-sea/src/board.o"
+  }
+]
