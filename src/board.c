@@ -63,13 +63,26 @@ bool load_fen(const char* fen, board_t* board) {
   return true;
 }
 
+int perspective_row(int row, bool reverse) {
+  // if reverse is true : perspective of the white player
+  // if reverse is false: perspective of the black player
+  return reverse ? row : 7 - row;
+}
+
+int perspective_col(int col, bool reverse) {
+  // if reverse is true : perspective of the white player
+  // if reverse is false: perspective of the black player
+  return reverse ? 7 - col : col;
+}
+
 void print_board(board_t* board, bool reverse) {
+  printf(reverse ? " hgfedcba\n" : " abcdefgh\n");
   for (int row=0; row<8; row++) {
-    int board_row = reverse ? row : 7 - row;
+    int board_row = perspective_row(row, reverse);
     printf("%c", '0' + board_row + 1);
 
     for (int col=0; col<8; col++) {
-      int board_col = reverse ? 7 - col : col;
+      int board_col = perspective_col(col, reverse);
 
       char piece = get_piece(board, board_row, board_col);
 
