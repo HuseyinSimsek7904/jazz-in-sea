@@ -2,13 +2,14 @@
 #include <stdio.h>
 
 #include "board.h"
+#include "position.h"
 
-char get_piece(board_t* board, int row, int column) {
-  return board->board_array[row][column];
+char get_piece(board_t* board, int pos) {
+  return board->board_array[pos];
 }
 
-void set_piece(board_t* board, int row, int column, char piece) {
-  board->board_array[row][column] = piece;
+void set_piece(board_t* board, int pos, char piece) {
+  board->board_array[pos] = piece;
 }
 
 bool load_fen(const char* fen, board_t* board) {
@@ -40,7 +41,7 @@ bool load_fen(const char* fen, board_t* board) {
         return false;
 
       while (spaces--)
-        set_piece(board, row, col++, ' ');
+        set_piece(board, to_position(row, col++), ' ');
 
       break;
 
@@ -52,7 +53,7 @@ bool load_fen(const char* fen, board_t* board) {
       if (row > 7 || col > 7)
         return false;
 
-      board->board_array[row][col++] = *fen;
+      set_piece(board, to_position(row, col++), *fen);
       break;
     }
   }
@@ -61,18 +62,6 @@ bool load_fen(const char* fen, board_t* board) {
   }
 
   return true;
-}
-
-int perspective_row(int row, bool reverse) {
-  // if reverse is true : perspective of the white player
-  // if reverse is false: perspective of the black player
-  return reverse ? row : 7 - row;
-}
-
-int perspective_col(int col, bool reverse) {
-  // if reverse is true : perspective of the white player
-  // if reverse is false: perspective of the black player
-  return reverse ? 7 - col : col;
 }
 
 void print_board(board_t* board, bool reverse) {
@@ -84,13 +73,12 @@ void print_board(board_t* board, bool reverse) {
     for (int col=0; col<8; col++) {
       int board_col = perspective_col(col, reverse);
 
-      char piece = get_piece(board, board_row, board_col);
+      char piece = get_piece(board, to_position(board_row, board_col));
 
-      if (piece == ' ') {
+      if (piece == ' ')
         printf("%c", (board_col + board_row) % 2 ? ' ' : '_');
-      } else {
+      else
         printf("%c", piece);
-      }
     }
     printf("\n");
   }
