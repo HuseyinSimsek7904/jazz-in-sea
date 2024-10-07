@@ -16,7 +16,7 @@ bool load_fen(const char* fen, board_t* board) {
   int row = 0;
   int col = 0;
 
-  for (; *fen != ' '; fen++) {
+  for (; *fen != '\0'; fen++) {
     switch (*fen) {
       // Skip to next row.
     case '/':
@@ -55,6 +55,8 @@ bool load_fen(const char* fen, board_t* board) {
 
       set_piece(board, to_position(row, col++), *fen);
       break;
+    default:
+      return false;
     }
   }
   if (row != 7 || col != 8) {
