@@ -5,16 +5,21 @@
 #include "board.h"
 #include "position.h"
 
+// Get a piece at a position.
+// Asserts if position is invalid.
 char get_piece(board_t* board, int pos) {
   assert(is_valid_pos(pos));
   return board->board_array[pos];
 }
 
+// Set a piece at a position.
+// Asserts if position is invalid.
 void set_piece(board_t* board, int pos, char piece) {
   assert(is_valid_pos(pos));
   board->board_array[pos] = piece;
 }
 
+// Load board from FEN string.
 bool load_fen(const char* fen, board_t* board) {
   int row = 0;
   int col = 0;
