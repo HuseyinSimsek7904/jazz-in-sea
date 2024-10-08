@@ -15,3 +15,5 @@ typedef struct {
   // Does not matter if no capture.
   int piece;
 } move_t;
+
+void print_move(move_t move);
