@@ -93,3 +93,6 @@ void print_board(board_t* board, bool reverse) {
     printf("\n");
   }
 }
+
+// Change the turn of the board to the other player, and return the new turn.
+bool next_turn(board_t *board) { return board->turn = !board->turn; }

@@ -11,8 +11,10 @@ typedef struct {
   // This extra space in positions are used for checking whether a position is valid.
   // So checking if (POS & 0x88) == 0 is enough to check if the position is out of the bounds of the board.
   // This will hopefully allow for fast checking of bounds.
-
   char board_array[16 * 16];
+
+  // false -> black, true -> white
+  bool turn;
 } board_t;
 
 
@@ -21,3 +23,5 @@ void set_piece(board_t*, int, char);
 
 bool load_fen(const char*, board_t*);
 void print_board(board_t*, bool);
+
+bool next_turn(board_t*);
