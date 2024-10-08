@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdbool.h>
 
 #define DEFAULT_BOARD "np4PN/pp4PP/8/8/8/8/PP4pp/NP4pn"

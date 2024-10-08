@@ -1,4 +1,7 @@
-#include <stdint.h>
+#pragma once
+
+#include "board.h"
+
 
 typedef struct {
   // The position from where the piece moved.
@@ -13,7 +16,12 @@ typedef struct {
 
   // The type of the piece that the moving piece captured.
   // Does not matter if no capture.
-  int piece;
+  int capture_piece;
 } move_t;
 
-void print_move(move_t move);
+void print_move(move_t);
+
+void do_move(board_t*, move_t);
+void undo_move(board_t*, move_t);
+
+bool is_capture(move_t);

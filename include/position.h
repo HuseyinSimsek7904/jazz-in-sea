@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdbool.h>
 
 #define INV_POSITION 0x88
