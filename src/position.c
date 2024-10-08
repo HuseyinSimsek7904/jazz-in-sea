@@ -3,7 +3,7 @@
 #include "position.h"
 
 // Convert from (row, col) to position.
-int to_position(int row, int col) {
+inline unsigned int to_position(int row, int col) {
   // Encode position as:
   // 7  6  5  4  3  2  1  0
   // r3 r2 r1 r0 c3 c2 c1 c0
@@ -11,18 +11,14 @@ int to_position(int row, int col) {
 }
 
 // Convert from position to row.
-int to_row(int pos) {
-  return (pos & 0xf0) >> 4;
-}
+inline int to_row(unsigned int pos) { return (pos & 0x70) >> 4; }
 
 // Convert from position to column.
-int to_col(int pos) {
-  return pos & 0xf0;
-}
+inline int to_col(unsigned int pos) { return pos & 0x0f; }
 
 // Convert from regular row to perspective row or vice verca.
 // Perspective row means the row that the player sees.
-int perspective_row(int row, bool reverse) {
+inline int perspective_row(int row, bool reverse) {
   // if reverse is true : perspective of the white player
   // if reverse is false: perspective of the black player
   return reverse ? row : 7 - row;
@@ -30,13 +26,25 @@ int perspective_row(int row, bool reverse) {
 
 // Convert from regular column to perspective column or vice versa.
 // Perspective col means the column that the player sees.
-int perspective_col(int col, bool reverse) {
+inline int perspective_col(int col, bool reverse) {
   // if reverse is true : perspective of the white player
   // if reverse is false: perspective of the black player
   return reverse ? 7 - col : col;
 }
 
 // Check if a position is valid aka it is in the bounds.
-bool is_valid_pos(int pos) {
-  return (pos & 0x88) == 0;
+inline bool is_valid_pos(unsigned int pos) { return (pos & 0x88) == 0; }
+
+// Get the column name from a column number.
+// aka 0->a, 1->b ...  7->h
+inline char col_name(int col) { return 'a' + col; }
+
+// Get the row name from a row number.
+// aka 0->1, 1->2, ... 7->8
+inline char row_name(int row) { return '1' + row; }
+
+// Print a position.
+// The notation is: <column-name><row-number>
+inline void print_position(unsigned int pos) {
+  printf("%c%c", col_name(to_col(pos)), row_name(to_row(pos)));
 }

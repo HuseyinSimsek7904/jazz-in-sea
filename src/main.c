@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "board.h"
+#include "position.h"
 
 int
 main() {
@@ -16,6 +17,12 @@ main() {
 
   printf("\nBoard from black's perspective: \n");
   print_board(&board, true);
+
+  printf("\nMaking move from ");
+  print_position(0x24);
+  printf(" to ");
+  print_position(0x34);
+  printf(".\n ");
 
   return 0;
 }
