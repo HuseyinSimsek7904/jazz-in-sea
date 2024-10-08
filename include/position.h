@@ -1,5 +1,7 @@
 #include <stdbool.h>
 
+#define INV_POSITION 0x88
+
 int to_position(int, int);
 int to_row(int);
 int to_col(int);
