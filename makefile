@@ -17,19 +17,17 @@ $(LDLIBS)		\
 
 .PHONY: build-all link install clean
 
-all: clean build-all link install
+all: build-all link install
 
 build-all: $(OBJ)
 
 link: $(SRC-DIR)/main
 
-install: $(BUILD-DIR)/main
+install: $(BUILD-DIR)
+	cp $(SRC-DIR)/main $(BUILD-DIR)/main
 
 clean:
 	rm -f $(SRC-DIR)/main $(OBJ)
 
 $(BUILD-DIR):
 	mkdir $(BUILD-DIR)
-
-$(BUILD-DIR)/main: $(BUILD-DIR)
-	cp $(SRC-DIR)/main $(BUILD-DIR)/main
