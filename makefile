@@ -27,7 +27,6 @@ install: $(BUILD-DIR)/main
 
 clean:
 	rm -f $(SRC-DIR)/main $(OBJ)
-	rm -rf $(BUILD-DIR)
 
 $(BUILD-DIR):
 	mkdir $(BUILD-DIR)
