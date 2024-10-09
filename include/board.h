@@ -27,3 +27,6 @@ bool load_fen(const char*, board_t*);
 void print_board(board_t*, bool);
 
 bool next_turn(board_t*);
+
+inline bool whites_turn(board_t *board) { return  board->turn; }
+inline bool blacks_turn(board_t *board) { return !board->turn; }

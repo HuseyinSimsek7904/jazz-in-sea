@@ -1,54 +1,68 @@
 #include <assert.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "board.h"
 #include "position.h"
 #include "move.h"
-
-#define make_move(move)                           \
-  printf("\nMaking move ");                       \
-  print_move(move);                               \
-  printf(".\n");                                  \
-  do_move(&board, (move));                        \
-  printf("New position:\n");                      \
-  print_board(&board, false);
+#include "rules.h"
 
 
-#define unmake_move(move)                         \
-  printf("\nUnmaking move ");                     \
-  print_move(move);                               \
-  printf(".\n");                                  \
-  undo_move(&board, (move));                      \
-  printf("New position:\n");                      \
-  print_board(&board, false);                     \
+void search_depth(board_t* board, int depth) {
+  if (depth == 0) return;
+
+  move_t moves[256];
+  printf("Trying to generate moves...\n");
+  int length = generate_moves(board, moves);
+
+  if (!length) {
+    print_board(board, false);
+    printf("No moves available, going back.\n");
+    return;
+  }
+
+  for (int i=0; i<length - 1; i++) {
+    print_move(moves[i]);
+    printf(", ");
+  }
+
+  printf("%u available moves: ", length);
+  print_move(moves[length - 1]);
+  printf("\n");
+
+  move_t move = moves[rand() % length];
+
+  printf("Making move ");
+  print_move(move);
+  printf(".\n");
+
+  do_move(board, move);
+
+  search_depth(board, depth - 1);
+
+  printf("Unmaking move ");
+  print_move(move);
+  printf(".\n");
+
+  undo_move(board, move);
+}
 
 
 int
 main() {
   board_t board;
+  board.turn = true;
 
-  assert(load_fen("1n1P4/8/4P3/8/PP6/8/p6p/8", &board));
+  srand(time(NULL));
+
+  assert(load_fen(DEFAULT_BOARD, &board));
   printf("Successfully loaded FEN.\n");
 
   print_board(&board, false);
 
-  move_t move1;
-  move1.capture = INV_POSITION;
-  move1.from = 0x24;
-  move1.to = 0x34;
-  move1.capture_piece = ' ';
-
-  move_t move2;
-  move2.from = 0x01;
-  move2.capture = 0x03;
-  move2.to = 0x04;
-  move2.capture_piece = 'P';
-
-  make_move(move1);
-  make_move(move2);
-  unmake_move(move2);
-  unmake_move(move1);
+  search_depth(&board, -1);
 
   return 0;
 }

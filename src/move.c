@@ -5,6 +5,7 @@
 #include "board.h"
 #include "move.h"
 #include "position.h"
+#include "piece.h"
 
 // Print a move.
 // The notation for regular moves is: <from_position> > <to_row_or_col_name>
@@ -32,10 +33,9 @@ void print_move(move_t move) {
 // performed.
 void do_move(board_t* board, move_t move) {
   // Take the piece from the origin position.
-  // The piece must not be empty.
-  // TODO: Add check for opposite color.
+  // The piece must not be empty or of opposite color.
   char piece = get_piece(board, move.from);
-  assert(piece != ' ');
+  assert(is_piece_color(piece, board->turn));
 
   // Clear the origin position.
   set_piece(board, move.from, ' ');
@@ -51,15 +51,17 @@ void do_move(board_t* board, move_t move) {
     assert(get_piece(board, move.capture) == move.capture_piece);
     set_piece(board, move.capture, ' ');
   }
+
+  // Update the board turn.
+  next_turn(board);
 }
 
 // Undo a move on the board.
 void undo_move(board_t* board, move_t move) {
   // Take the piece from the destination position.
-  // The piece must not be empty.
-  // TODO: Add check for opposite color.
+  // The piece must not be empty or of opposite color.
   char piece = get_piece(board, move.to);
-  assert(piece != ' ');
+  assert(is_piece_color(piece, !board->turn));
 
   // Clear the destination position.
   set_piece(board, move.to, ' ');
@@ -72,9 +74,12 @@ void undo_move(board_t* board, move_t move) {
   // If the move is a capture move, add the piece.
   // There must be no piece where we are going to add the piece.
   if (is_capture(move)) {
-    assert(get_piece(board, move.capture_piece) == ' ');
+    assert(get_piece(board, move.capture) == ' ');
     set_piece(board, move.capture, move.capture_piece);
   }
+
+  // Update the board turn.
+  next_turn(board);
 }
 
 // Returns if the move is a capture move.

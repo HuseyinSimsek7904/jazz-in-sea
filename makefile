@@ -10,6 +10,8 @@ LDLIBS		:=	\
 src/board.o		\
 src/position.o		\
 src/move.o		\
+src/piece.o		\
+src/rules.o		\
 
 OBJ		:=	\
 $(SRC-DIR)/main.o	\
