@@ -1,6 +1,7 @@
-SRC-DIR		:= src
-INC-DIR		:= include
-BUILD-DIR	:= build
+SRC-DIR		:= ./src
+INC-DIR		:= ./include
+BUILD-DIR	:= ./build
+SCRIPTS-DIR	:= ./scripts
 
 CC		:= gcc
 CFLAGS		:= -O2 -Wall -Werror
@@ -30,6 +31,9 @@ install: $(BUILD-DIR)
 
 clean:
 	rm -f $(SRC-DIR)/main $(OBJ)
+
+test:
+	$(SCRIPTS-DIR)/tests.sh
 
 $(BUILD-DIR):
 	mkdir $(BUILD-DIR)
