@@ -48,10 +48,25 @@ void search_depth(board_t* board, int depth) {
   undo_move(board, move);
 }
 
+int count_branches(board_t* board, int depth) {
+  if (depth == 0) return 1;
+
+  move_t moves[256];
+  int length = generate_moves(board, moves);
+
+  int total = 0;
+  for (int i=0; i<length; i++) {
+    do_move(board, moves[i]);
+    total += count_branches(board, depth - 1);
+    undo_move(board, moves[i]);
+  }
+  return total;
+}
+
 void depth_test(int argc, const char** argv) {
   int depth = -1;
-  if (argc > 1) {
-    depth = atoi(argv[1]);
+  if (argc >= 3) {
+    depth = atoi(argv[2]);
   }
 
   printf("Trying to print a branch from root to a leaf with depth %i...\n", depth);
@@ -81,16 +96,44 @@ void depth_test(int argc, const char** argv) {
   }
 }
 
+void count_test(int argc, const char** argv) {
+  if (argc < 3) {
+    printf("Count test requires at least one argument.\n");
+    exit(1);
+  }
+
+  int depth = atoi(argv[2]);
+
+  const char* fen = DEFAULT_BOARD;
+  if (argc >= 4) {
+    fen = argv[3];
+  }
+
+  board_t board;
+  board.turn = true;
+
+  if (!load_fen(fen, &board)) {
+    printf("Could not load FEN.\n");
+    exit(1);
+  }
+
+  int branches = count_branches(&board, depth);
+  printf("%u\n", branches);
+
+  exit(0);
+}
+
 int main(int argc, const char** argv) {
   srand(time(NULL));
 
   int option = 0;
-  if (argc > 0) {
-    option = atoi(argv[0]);
+  if (argc >= 2) {
+    option = atoi(argv[1]);
   }
 
   switch (option) {
   case 0: depth_test(argc, argv); break;
+  case 1: count_test(argc, argv); break;
   default:
     break;
       }
