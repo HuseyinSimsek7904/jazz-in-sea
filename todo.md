@@ -1,0 +1,13 @@
+# todo:
+- [ ] #1   (feat) add position parser
+- [ ] #2   (feat) add move parser (requires #1)
+- [ ] #3   (feat) add game state check functions
+- [ ] #4   (test) update the tests to check for game states
+- [ ] #5   (feat) game state from the previous position can be cached
+- [ ] #6   (feat) available moves from the previous position can be cached
+- [ ] #7   (feat) implement a very simplified evaluation function where the pieces are scored according to their distance to the center
+- [ ] #8   (feat) implement the simplest kind of ai, where the ai uses the minmax algorithm to find an "optimal" move
+- [ ] #9   (feat) implement alpha-beta pruning
+- [ ] #10  (test) add info messages about the test commands
+- [ ] #11  (test) implement better command system that allows subcommands like 'test', 'load-fen' etc.
+- [ ] #12  (test) depth tests do not create random moves as the test takes not more than few milliseconds, so the seed for the srand function is almost always the same
