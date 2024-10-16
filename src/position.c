@@ -3,7 +3,7 @@
 #include "position.h"
 
 // Convert from (row, col) to position.
-inline unsigned int to_position(int row, int col) {
+inline pos_t to_position(int row, int col) {
   // Encode position as:
   // 7  6  5  4  3  2  1  0
   // r3 r2 r1 r0 c3 c2 c1 c0
@@ -11,10 +11,10 @@ inline unsigned int to_position(int row, int col) {
 }
 
 // Convert from position to row.
-inline int to_row(unsigned int pos) { return (pos & 0x70) >> 4; }
+inline int to_row(pos_t pos) { return (pos & 0x70) >> 4; }
 
 // Convert from position to column.
-inline int to_col(unsigned int pos) { return pos & 0x0f; }
+inline int to_col(pos_t pos) { return pos & 0x0f; }
 
 // Convert from regular row to perspective row or vice verca.
 // Perspective row means the row that the player sees.
@@ -33,7 +33,7 @@ inline int perspective_col(int col, bool reverse) {
 }
 
 // Check if a position is valid aka it is in the bounds.
-inline bool is_valid_pos(unsigned int pos) { return (pos & 0x88) == 0; }
+inline bool is_valid_pos(pos_t pos) { return (pos & 0x88) == 0; }
 
 // Get the column name from a column number.
 // aka 0->a, 1->b ...  7->h
@@ -45,6 +45,6 @@ inline char row_name(int row) { return '1' + row; }
 
 // Print a position.
 // The notation is: <column-name><row-number>
-inline void print_position(unsigned int pos) {
+inline void print_position(pos_t pos) {
   printf("%c%c", col_name(to_col(pos)), row_name(to_row(pos)));
 }

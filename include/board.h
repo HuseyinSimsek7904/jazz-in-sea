@@ -1,5 +1,6 @@
 #pragma once
 
+#include "position.h"
 #include <stdbool.h>
 
 typedef struct {
@@ -22,8 +23,8 @@ typedef struct {
 } board_t;
 
 
-char get_piece(board_t*, int);
-void set_piece(board_t*, int, char);
+char get_piece(board_t*, pos_t);
+void set_piece(board_t*, pos_t, char);
 
 void print_board(board_t*, bool);
 

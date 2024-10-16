@@ -7,7 +7,7 @@
 
 // Get a piece at a position.
 // Asserts if position is invalid.
-char get_piece(board_t* board, int pos) {
+char get_piece(board_t* board, pos_t pos) {
 #ifndef NDEBUG
   assert(board->initialized);
 #endif
@@ -18,7 +18,7 @@ char get_piece(board_t* board, int pos) {
 
 // Set a piece at a position.
 // Asserts if position is invalid.
-void set_piece(board_t* board, int pos, char piece) {
+void set_piece(board_t* board, pos_t pos, char piece) {
   assert(is_valid_pos(pos));
   board->board_array[pos] = piece;
 }
@@ -57,7 +57,7 @@ void copy_board(board_t* src, board_t* dest) {
   // Copy the board contents.
   for (int row=0; row<8; row++) {
     for (int col=0; col<8; col++) {
-      int position = to_position(row, col);
+      pos_t position = to_position(row, col);
       set_piece(dest, position, get_piece(src, position));
     }
   }
@@ -75,7 +75,7 @@ bool compare(board_t* board1, board_t* board2) {
 
   for (int row=0; row<8; row++) {
     for (int col=0; col<8; col++) {
-      int position = to_position(row, col);
+      pos_t position = to_position(row, col);
       
       if (get_piece(board1, position) != get_piece(board2, position)) return false;
     }
