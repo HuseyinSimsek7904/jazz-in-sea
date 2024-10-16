@@ -8,6 +8,7 @@
 #include "position.h"
 #include "move.h"
 #include "rules.h"
+#include "fen.h"
 
 
 void search_depth(board_t* board, int depth) {
@@ -72,10 +73,12 @@ void depth_test(int argc, const char** argv) {
   printf("Trying to print a branch from root to a leaf with depth %i...\n", depth);
 
   board_t board;
-  board.turn = true;
   board_t board_original;
 
-  assert(load_fen(DEFAULT_BOARD, &board));
+  if (!load_fen(DEFAULT_BOARD, &board)) {
+    printf("Could not load FEN.\n");
+    exit(1);
+  }
   copy_board(&board, &board_original);
 
   printf("Successfully loaded FEN.\n");
@@ -110,7 +113,6 @@ void count_test(int argc, const char** argv) {
   }
 
   board_t board;
-  board.turn = true;
 
   if (!load_fen(fen, &board)) {
     printf("Could not load FEN.\n");
@@ -130,7 +132,6 @@ void state_test(int argc, const char** argv) {
   }
 
   board_t board;
-  board.turn = true;
 
   if (!load_fen(fen, &board)) {
     printf("Could not load FEN.\n");

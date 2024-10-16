@@ -11,6 +11,6 @@
 - [ ] #10  (test) add info messages about the test commands
 - [ ] #11  (test) implement better command system that allows subcommands like 'test', 'load-fen' etc.
 - [ ] #12  (test) depth tests do not create random moves as the test takes not more than few milliseconds, so the seed for the srand function is almost always the same
-- [ ] #13  (feat) add all of the remaining parts of the fen loader
+- [x] #13  (feat) add all of the remaining parts of the fen loader
 - [ ] #14  (feat) add fen saver
 - [ ] #15  (feat) implement `DRAW_BY_REPETITION` and `DRAW_BY_NO_MOVES`

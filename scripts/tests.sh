@@ -32,14 +32,14 @@ echo 'Count tests succeeded!'
 # Try checking the get_board_state function.
 echo 'Attempting to do state tests...'
 STATE_TEST_BOARDS=(
-    '8/8/8/8/8/8/8/8'
-    '8/8/8/8/8/8/p7/8'
-    '8/8/8/8/8/8/P7/8'
-    'np4PN/pp4PP/8/8/8/8/PP4pp/NP4pn'
-    '7p/8/PPPPPPP1/3P4/8/8/8/8'
-    '7P/8/ppppppp1/3p4/8/8/8/8'
-    '7p/8/PPPPPPP1/3P4/8/8/8/7P'
-    '7p/8/ppppppp1/3p4/8/8/8/8'
+    '8/8/8/8/8/8/8/8 w'
+    '8/8/8/8/8/8/p7/8 w'
+    '8/8/8/8/8/8/P7/8 w'
+    'np4PN/pp4PP/8/8/8/8/PP4pp/NP4pn w'
+    '7p/8/PPPPPPP1/3P4/8/8/8/8 w'
+    '7P/8/ppppppp1/3p4/8/8/8/8 w'
+    '7p/8/PPPPPPP1/3P4/8/8/8/7P w'
+    '7p/8/ppppppp1/3p4/8/8/8/8 w'
 )
 STATE_TEST_RESULTS=(
     'draw by both sides have insufficient material'
@@ -54,10 +54,10 @@ STATE_TEST_RESULTS=(
 
 for i in ${!STATE_TEST_BOARDS[@]}
 do
-    board=${STATE_TEST_BOARDS[i]}
-    expect=${STATE_TEST_RESULTS[i]}
+    board="${STATE_TEST_BOARDS[i]}"
+    expect="${STATE_TEST_RESULTS[i]}"
 
-    result=$($BINARY 2 $board)
+    result=$($BINARY 2 "$board")
 
     if [ "$?" != 0 ]; then
         echo "Getting state for #$i failed:"

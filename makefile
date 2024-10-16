@@ -13,6 +13,7 @@ src/position.o		\
 src/move.o		\
 src/piece.o		\
 src/rules.o		\
+src/fen.o		\
 
 OBJ		:=	\
 $(SRC-DIR)/main.o	\

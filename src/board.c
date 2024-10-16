@@ -23,62 +23,6 @@ void set_piece(board_t* board, int pos, char piece) {
   board->board_array[pos] = piece;
 }
 
-// Load board from FEN string.
-bool load_fen(const char* fen, board_t* board) {
-  int row = 0;
-  int col = 0;
-
-  for (; *fen != '\0'; fen++) {
-    switch (*fen) {
-      // Skip to next row.
-    case '/':
-      if (col != 8 || row >= 8)
-        return false;
-
-      row++;
-      col = 0;
-      break;
-
-      // Add spaces.
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':;
-      int spaces = *fen - '0';
-      if (col + spaces > 8)
-        return false;
-
-      while (spaces--)
-        set_piece(board, to_position(row, col++), ' ');
-
-      break;
-
-      // Add the corresponding piece.
-    case 'p':
-    case 'n':
-    case 'P':
-    case 'N':
-      if (row > 7 || col > 7)
-        return false;
-
-      set_piece(board, to_position(row, col++), *fen);
-      break;
-    default:
-      return false;
-    }
-  }
-  if (row != 7 || col != 8) {
-    return false;
-  }
-
-  board->initialized = true;
-  return true;
-}
-
 void print_board(board_t* board, bool reverse) {
   printf(reverse ? " hgfedcba\n" : " abcdefgh\n");
   for (int row=0; row<8; row++) {

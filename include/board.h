@@ -2,8 +2,6 @@
 
 #include <stdbool.h>
 
-#define DEFAULT_BOARD "np4PN/pp4PP/8/8/8/8/PP4pp/NP4pn"
-
 typedef struct {
   #ifndef NDEBUG
   bool initialized;
@@ -27,7 +25,6 @@ typedef struct {
 char get_piece(board_t*, int);
 void set_piece(board_t*, int, char);
 
-bool load_fen(const char*, board_t*);
 void print_board(board_t*, bool);
 
 bool next_turn(board_t*);
