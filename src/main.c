@@ -123,6 +123,26 @@ void count_test(int argc, const char** argv) {
   exit(0);
 }
 
+void state_test(int argc, const char** argv) {
+  const char* fen = DEFAULT_BOARD;
+  if (argc >= 3) {
+    fen = argv[2];
+  }
+
+  board_t board;
+  board.turn = true;
+
+  if (!load_fen(fen, &board)) {
+    printf("Could not load FEN.\n");
+    exit(1);
+  }
+
+  state_t state = get_board_state(&board);
+  printf("%s\n", board_state_text(state));
+
+  exit(0);
+}
+
 int main(int argc, const char** argv) {
   srand(time(NULL));
 
@@ -134,6 +154,7 @@ int main(int argc, const char** argv) {
   switch (option) {
   case 0: depth_test(argc, argv); break;
   case 1: count_test(argc, argv); break;
+  case 2: state_test(argc, argv); break;
   default:
     break;
       }

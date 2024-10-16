@@ -28,3 +28,48 @@ if [ $result != 482432 ]; then
 fi
 
 echo 'Count tests succeeded!'
+
+# Try checking the get_board_state function.
+echo 'Attempting to do state tests...'
+STATE_TEST_BOARDS=(
+    '8/8/8/8/8/8/8/8'
+    '8/8/8/8/8/8/p7/8'
+    '8/8/8/8/8/8/P7/8'
+    'np4PN/pp4PP/8/8/8/8/PP4pp/NP4pn'
+    '7p/8/PPPPPPP1/3P4/8/8/8/8'
+    '7P/8/ppppppp1/3p4/8/8/8/8'
+    '7p/8/PPPPPPP1/3P4/8/8/8/7P'
+    '7p/8/ppppppp1/3p4/8/8/8/8'
+)
+STATE_TEST_RESULTS=(
+    'draw by both sides have insufficient material'
+    'black won as opponent has insufficient material'
+    'white won as opponent has insufficient material'
+    'continue'
+    'white won by islands'
+    'black won by islands'
+    'continue'
+    'black won as opponent has insufficient material'
+)
+
+for i in ${!STATE_TEST_BOARDS[@]}
+do
+    board=${STATE_TEST_BOARDS[i]}
+    expect=${STATE_TEST_RESULTS[i]}
+
+    result=$($BINARY 2 $board)
+
+    if [ "$?" != 0 ]; then
+        echo "Getting state for #$i failed:"
+        echo $result
+        exit 1
+    fi
+
+    if [ "$result" != "$expect" ]; then
+        echo "Getting state for #$i failed"
+        echo "expected: \"$expect\""
+        echo "got: \"$result\""
+        exit 1
+    fi
+done
+echo 'State tests succeeded!'
