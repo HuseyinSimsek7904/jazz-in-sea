@@ -117,5 +117,22 @@
     "directory": "/home/huseyin/work/jazz-in-sea",
     "file": "/home/huseyin/work/jazz-in-sea/src/fen.c",
     "output": "/home/huseyin/work/jazz-in-sea/src/fen.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-O2",
+      "-Wall",
+      "-Werror",
+      "-I",
+      "./include",
+      "-c",
+      "-o",
+      "src/ai.o",
+      "src/ai.c"
+    ],
+    "directory": "/home/huseyin/work/jazz-in-sea",
+    "file": "/home/huseyin/work/jazz-in-sea/src/ai.c",
+    "output": "/home/huseyin/work/jazz-in-sea/src/ai.o"
   }
 ]

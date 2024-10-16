@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include "ai.h"
 #include "board.h"
 #include "position.h"
 #include "move.h"
@@ -144,6 +145,30 @@ void state_test(int argc, const char** argv) {
   exit(0);
 }
 
+void distance_test(int argc, const char** argv) {
+  printf("Pawn distance:\n");
+  for (int prow=0; prow<8; prow++) {
+    for (int pcol=0; pcol<8; pcol++) {
+      pos_t pos = to_position(perspective_row(prow, false),
+                              perspective_col(pcol, false));
+
+      printf("%c", '0' + pawn_dist_to_center(pos));
+    }
+    printf("\n");
+  }
+
+  printf("Knight distance:\n");
+  for (int prow=0; prow<8; prow++) {
+    for (int pcol=0; pcol<8; pcol++) {
+      pos_t pos = to_position(perspective_row(prow, false),
+                              perspective_col(pcol, false));
+
+      printf("%c", '0' + knight_dist_to_center(pos));
+    }
+    printf("\n");
+  }
+}
+
 int main(int argc, const char** argv) {
   srand(time(NULL));
 
@@ -156,6 +181,7 @@ int main(int argc, const char** argv) {
   case 0: depth_test(argc, argv); break;
   case 1: count_test(argc, argv); break;
   case 2: state_test(argc, argv); break;
+  case 3: distance_test(argc, argv); break;
   default:
     break;
       }

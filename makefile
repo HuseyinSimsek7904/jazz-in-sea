@@ -14,6 +14,7 @@ src/move.o		\
 src/piece.o		\
 src/rules.o		\
 src/fen.o		\
+src/ai.o		\
 
 OBJ		:=	\
 $(SRC-DIR)/main.o	\
