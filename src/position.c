@@ -48,3 +48,8 @@ inline char row_name(int row) { return '1' + row; }
 inline void print_position(pos_t pos) {
   printf("%c%c", col_name(to_col(pos)), row_name(to_row(pos)));
 }
+
+inline bool is_center(pos_t pos) {
+  int row = to_row(pos), col = to_col(pos);
+  return (col == 3 || col == 4) && (row == 3 || row == 4);
+}

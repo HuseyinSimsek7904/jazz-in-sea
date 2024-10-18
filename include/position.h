@@ -18,3 +18,5 @@ bool is_valid_pos(pos_t);
 char col_name(int);
 char row_name(int);
 void print_position(pos_t);
+
+bool is_center(pos_t);
