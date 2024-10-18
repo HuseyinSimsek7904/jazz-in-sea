@@ -11,7 +11,7 @@
 typedef struct {
   // Type of evaluation, explains what is the result of the line.
   enum {
-    CONTINUE, DRAW, WHITE_WINS, BLACK_WINS
+    CONTINUE, DRAW, WHITE_WINS, BLACK_WINS, INVALID
   } type;
 
   // For "CONTINUE" type evaluation, explains how much favorable this position is for white.

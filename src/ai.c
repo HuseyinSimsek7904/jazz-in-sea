@@ -28,10 +28,13 @@ eval_t _switch_eval_turn(eval_t eval) {
     return (eval_t) { .type=BLACK_WINS, .strength=eval.strength };
   case BLACK_WINS:
     return (eval_t) { .type=WHITE_WINS, .strength=eval.strength };
-  case DRAW:
-    return (eval_t) { .type=DRAW, .strength=eval.strength };
   case CONTINUE:
-    return (eval_t) { .type=CONTINUE, .strength=-eval.strength };
+    return (eval_t){.type = CONTINUE, .strength = -eval.strength};
+
+  case INVALID:
+    assert(false);
+  case DRAW:
+    return eval;
   }
   return (eval_t) {};
 }
@@ -49,6 +52,10 @@ void print_eval(eval_t eval, board_t* board) {
     break;
   case CONTINUE:
     printf("continue with advantage %i\n", eval.strength);
+    break;
+  case INVALID:
+    assert(false);
+    printf("<invalid eval>\n");
     break;
   }
 }
@@ -89,6 +96,9 @@ int compare_favor(eval_t eval1, eval_t eval2, bool turn) {
     case DRAW: return eval2.strength - eval1.strength;
       // If eval2 is CONTINUE, check for the evaluation.
     case CONTINUE: return eval2.strength;
+    case INVALID:
+      assert(false);
+      break;
     }
 
   case CONTINUE:
@@ -101,7 +111,12 @@ int compare_favor(eval_t eval1, eval_t eval2, bool turn) {
     case DRAW: return eval1.strength;
       // If eval2 is CONTINUE, check for the evaluation difference.
     case CONTINUE: return eval1.strength - eval2.strength;
+    case INVALID:
+      assert(false); break;
     }
+  case INVALID:
+    assert(false);
+    break;
   }
 
   return 0;
@@ -228,20 +243,11 @@ _evaluate(board_t* board,
     return moves[0];
   }
 
-  // Calculate the starting evaluation using the first move.
-  move_t best_move = moves[0];
-  do_move(board, moves[0]);
-  _evaluate(board, max_depth - 1, evaluation, false);
-  undo_move(board, moves[0]);
-
-  // If found a mate for the current player, select this move automatically and stop iterating.
-  if (quick_mate_optimisation &&
-      ((board->turn && evaluation->type == WHITE_WINS) ||
-       (!board->turn && evaluation->type == BLACK_WINS)))
-    return moves[0];
+  move_t best_move;
+  *evaluation = (eval_t) { .type=INVALID };
 
   // Loop through all of the available moves except the first, and recursively get the next moves.
-  for (int i=1; i<length; i++) {
+  for (int i=0; i<length; i++) {
     move_t move = moves[i];
     do_move(board, move);
     eval_t new_evaluation;
@@ -253,16 +259,16 @@ _evaluate(board_t* board,
     undo_move(board, move);
 
     // If the found move is better than the latest best move, update it.
-    if (compare_favor(new_evaluation, *evaluation, board->turn) > 0) {
+    if (evaluation->type == INVALID || compare_favor(new_evaluation, *evaluation, board->turn) >= 0) {
       *evaluation = new_evaluation;
       best_move = move;
-    }
 
-    // If found a mate for the current player, select this move automatically and stop iterating.
-    if (quick_mate_optimisation &&
-        ((board->turn && evaluation->type == WHITE_WINS) ||
-         (!board->turn && evaluation->type == BLACK_WINS)))
-      return move;
+      // If found a mate for the current player, select this move automatically and stop iterating.
+      if (quick_mate_optimisation &&
+          ((board->turn && evaluation->type == WHITE_WINS) ||
+           (!board->turn && evaluation->type == BLACK_WINS)))
+        return move;
+    }
   }
 
   return best_move;
