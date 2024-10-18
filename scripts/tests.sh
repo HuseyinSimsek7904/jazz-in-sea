@@ -91,6 +91,8 @@ AI_TEST_BOARDS=(
     '7P/8/8/3P1p2/8/8/8/8 w'
     '7P/8/8/8/8/8/8/p7 w'
     '7P/8/8/8/8/8/8/p7 b'
+    '5P1p/8/8/3p1P2/8/8/8/8 w'
+    '5P1p/8/8/3p1P2/8/8/8/8 b'
 )
 
 AI_TEST_RESULTS=(
@@ -106,6 +108,8 @@ AI_TEST_RESULTS=(
     'black mates in 2'
     'white mates in 11'
     'black mates in 11'
+    'white mates in 3'
+    'black mates in 2'
 )
 
 AI_TEST_DEPTHS=(
@@ -121,6 +125,8 @@ AI_TEST_DEPTHS=(
     3
     12
     12
+    3
+    3
 )
 
 for i in ${!AI_TEST_BOARDS[@]}
@@ -133,14 +139,14 @@ do
     printf "Testing '$board' with depth $depth -> '$expect'\e[100G- "
 
     if [ "$?" != 0 ]; then
-        echo "Failed\n"
+        echo "Failed"
         echo "Getting evaluation for #$i failed:"
         echo $result
         exit 1
     fi
 
     if [ "$result" != "$expect" ]; then
-        echo "Failed\n"
+        echo "Failed"
         echo "Getting evaluation for #$i failed"
         echo "expected: \"$expect\""
         echo "got: \"$result\""
