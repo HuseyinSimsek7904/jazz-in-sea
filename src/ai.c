@@ -118,7 +118,11 @@ move_t _evaluate(board_t* board, size_t max_depth, int* evaluation, bool startin
     move_t move = moves[i];
     do_move(board, move);
     int new_evaluation;
-    evaluate(board, max_depth - 1, &new_evaluation);
+
+    // If the move was a capture move, do not decrement the depth.
+    size_t new_depth = max_depth - (is_valid_pos(move.capture) ? 0 : 1);
+
+    evaluate(board, new_depth, &new_evaluation);
     undo_move(board, move);
 
     // If the found move is better than the latest best move, update it.
