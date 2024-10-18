@@ -105,6 +105,16 @@ int knight_dist_to_center(pos_t pos) {
   return (col <= 3 ? (4 - col) / 2 : (col - 3) / 2) + (row <= 3 ? (4 - row) / 2 : (row - 3) / 2);
 }
 
+int _pawn_pos_adv(pos_t pos) {
+  int dist = pawn_dist_to_center(pos);
+  return -dist * dist;
+}
+
+int _knight_pos_adv(pos_t pos) {
+  int dist = knight_dist_to_center(pos);
+  return -dist * dist;
+}
+
 // Evaluate the board.
 eval_t evaluate_board(board_t* board) {
   // Check for the board state.
@@ -127,9 +137,9 @@ eval_t evaluate_board(board_t* board) {
       // Calculate the evaluation for the piece.
       int piece_eval;
       if (is_piece_pawn(piece))
-        piece_eval = PAWN_BASE - pawn_dist_to_center(pos);
+        piece_eval = PAWN_BASE + _pawn_pos_adv(pos);
       else
-        piece_eval = KNIGHT_BASE - knight_dist_to_center(pos);
+        piece_eval = KNIGHT_BASE + _knight_pos_adv(pos);
 
       // If the piece is black, then negate the evaluation.
       if (is_piece_black(piece))
