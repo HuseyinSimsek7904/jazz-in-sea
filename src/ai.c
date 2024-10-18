@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdio.h>
 
 #include "ai.h"
 #include "board.h"
@@ -141,7 +140,7 @@ eval_t evaluate_board(board_t* board) {
   }
 
   // Return the generated strength object as a continue evaluation.
-  return (eval_t) { .type=CONTINUE, .strength=eval };
+  return (eval_t) { .type=CONTINUE, .strength=eval};
 }
 
 
@@ -182,7 +181,7 @@ _evaluate(board_t* board,
 
   // If this move is the first move and if there are only one possible moves, return the only move.
   // No need to search recursively.
-  if (length == 1) {
+  if (starting_move && length == 1) {
     *evaluation = (eval_t) { .type=CONTINUE, .strength=0 };
     return moves[0];
   }
@@ -190,7 +189,7 @@ _evaluate(board_t* board,
   // Calculate the starting evaluation using the first move.
   move_t best_move = moves[0];
   do_move(board, moves[0]);
-  evaluate(board, max_depth - 1, evaluation);
+  _evaluate(board, max_depth - 1, evaluation, false);
   undo_move(board, moves[0]);
 
   // If found a mate for the current player, select this move automatically and stop iterating.
@@ -208,7 +207,7 @@ _evaluate(board_t* board,
     // If the move was a capture move, do not decrement the depth.
     size_t new_depth = max_depth - (is_valid_pos(move.capture) ? 0 : 1);
 
-    evaluate(board, new_depth, &new_evaluation);
+    _evaluate(board, new_depth, &new_evaluation, false);
     undo_move(board, move);
 
     // If the found move is better than the latest best move, update it.
