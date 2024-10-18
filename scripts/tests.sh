@@ -41,6 +41,7 @@ STATE_TEST_BOARDS=(
     '7p/8/PPPPPPP1/3P4/8/8/8/7P w'
     '7p/8/ppppppp1/3p4/8/8/8/8 w'
 )
+
 STATE_TEST_RESULTS=(
     'draw by both sides have insufficient material'
     'black won as opponent has insufficient material'
@@ -73,3 +74,81 @@ do
     fi
 done
 echo 'State tests succeeded!'
+
+
+# Try checking the evaluate function.
+echo 'Attempting to do AI tests...'
+AI_TEST_BOARDS=(
+    '8/8/8/8/8/8/8/8 w'
+    '8/8/8/8/8/8/p7/8 w'
+    '8/8/8/8/8/8/P7/8 w'
+    '7p/8/PPPPPPP1/3P4/8/8/8/8 w'
+    '7P/8/ppppppp1/3p4/8/8/8/8 w'
+    '7p/8/ppppppp1/3p4/8/8/8/8 w'
+    '7p/8/8/3p1P2/8/8/8/8 w'
+    '7P/8/8/3P1p2/8/8/8/8 b'
+    '7p/8/8/3p1P2/8/8/8/8 b'
+    '7P/8/8/3P1p2/8/8/8/8 w'
+    '7P/8/8/8/8/8/8/p7 w'
+    '7P/8/8/8/8/8/8/p7 b'
+)
+
+AI_TEST_RESULTS=(
+    'draw in 0'
+    'black mates in 0'
+    'white mates in 0'
+    'white mates in 0'
+    'black mates in 0'
+    'black mates in 0'
+    'white mates in 1'
+    'black mates in 1'
+    'white mates in 2'
+    'black mates in 2'
+    'white mates in 11'
+    'black mates in 11'
+)
+
+AI_TEST_DEPTHS=(
+    1
+    1
+    1
+    1
+    1
+    1
+    2
+    2
+    3
+    3
+    12
+    12
+)
+
+for i in ${!AI_TEST_BOARDS[@]}
+do
+    board="${AI_TEST_BOARDS[i]}"
+    expect="${AI_TEST_RESULTS[i]}"
+    depth="${AI_TEST_DEPTHS[i]}"
+
+    result=$($BINARY 5 "$board" $depth)
+    printf "Testing '$board' with depth $depth -> '$expect'\e[100G- "
+
+    if [ "$?" != 0 ]; then
+        echo "Failed\n"
+        echo "Getting evaluation for #$i failed:"
+        echo $result
+        exit 1
+    fi
+
+    if [ "$result" != "$expect" ]; then
+        echo "Failed\n"
+        echo "Getting evaluation for #$i failed"
+        echo "expected: \"$expect\""
+        echo "got: \"$result\""
+        echo "board: $board"
+        echo "depth: $depth"
+        exit 1
+    fi
+
+    printf "Done\n"
+done
+echo 'AI tests succeeded!'

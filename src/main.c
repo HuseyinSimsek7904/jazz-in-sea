@@ -170,7 +170,7 @@ void distance_test(int argc, const char** argv) {
   }
 }
 
-void ai_test(int argc, const char** argv) {
+void iterative_ai_test(int argc, const char** argv) {
   const char* fen = DEFAULT_BOARD;
   size_t depth = 3;
 
@@ -194,13 +194,13 @@ void ai_test(int argc, const char** argv) {
     move_t move = evaluate(&board, depth, &evaluation);
 
     if (evaluation.type == WHITE_WINS) {
-      printf("Evaluation: white mates in %d\n", evaluation.strength - board.move_count);
+      printf("white mates in %d\n", evaluation.strength - board.move_count);
     } else if (evaluation.type == BLACK_WINS) {
-      printf("Evaluation: black mates in %d\n", evaluation.strength - board.move_count);
+      printf("black mates in %d\n", evaluation.strength - board.move_count);
     } else if (evaluation.type == DRAW) {
-      printf("Evaluation: draws in %u\n", evaluation.strength);
+      printf("draw in %u\n", evaluation.strength);
     } else {
-      printf("Evaluation: %i\n", evaluation.strength);
+      printf("evaluation: %i\n", evaluation.strength);
     }
 
     if (is_valid_move(move)) {
@@ -226,6 +226,38 @@ void ai_test(int argc, const char** argv) {
   }
 }
 
+void ai_test(int argc, const char** argv) {
+  const char* fen = DEFAULT_BOARD;
+  size_t depth = 3;
+  if (argc >= 3) {
+    fen = argv[2];
+    if (argc >= 4) {
+      depth = atoi(argv[3]);
+    }
+  }
+
+  board_t board;
+  if (!load_fen(fen, &board)) {
+    printf("Could not load FEN.\n");
+    exit(1);
+  }
+
+  eval_t evaluation;
+  evaluate(&board, depth, &evaluation);
+
+  if (evaluation.type == WHITE_WINS) {
+    printf("white mates in %d\n", evaluation.strength - board.move_count);
+  } else if (evaluation.type == BLACK_WINS) {
+    printf("black mates in %d\n", evaluation.strength - board.move_count);
+  } else if (evaluation.type == DRAW) {
+    printf("draw in %u\n", evaluation.strength);
+  } else {
+    printf("evaluation: %i\n", evaluation.strength);
+  }
+
+  exit(0);
+}
+
 int main(int argc, const char** argv) {
   srand(time(NULL));
 
@@ -239,7 +271,8 @@ int main(int argc, const char** argv) {
   case 1: count_test(argc, argv); break;
   case 2: state_test(argc, argv); break;
   case 3: distance_test(argc, argv); break;
-  case 4: ai_test(argc, argv); break;
+  case 4: iterative_ai_test(argc, argv); break;
+  case 5: ai_test(argc, argv); break;
   default:
     break;
       }

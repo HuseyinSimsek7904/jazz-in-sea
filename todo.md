@@ -14,3 +14,4 @@
 - [x] #13  (feat) add all of the remaining parts of the fen loader
 - [ ] #14  (feat) add fen saver
 - [ ] #15  (feat) implement `DRAW_BY_REPETITION` and `DRAW_BY_NO_MOVES`
+- [ ] #16  (feat) implement quick mate search when either players are down to only 1 pieces
