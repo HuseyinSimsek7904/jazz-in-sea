@@ -4,7 +4,7 @@ BUILD-DIR	:= ./build
 SCRIPTS-DIR	:= ./scripts
 
 CC		:= gcc
-CFLAGS		:= -O2 -Wall -Werror
+CFLAGS		:= -O2 -Wall -Werror -DEVALCOUNT
 CPPFLAGS	:= -I $(INC-DIR)
 
 LDLIBS		:=	\

@@ -203,6 +203,10 @@ void iterative_ai_test(int argc, const char** argv) {
       printf("evaluation: %i\n", evaluation.strength);
     }
 
+    #ifdef EVALCOUNT
+    printf("total %u calls to eval\n", get_evaluate_count());
+    #endif
+
     if (is_valid_move(move)) {
       printf("Best move: ");
       print_move(move);

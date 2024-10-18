@@ -115,6 +115,15 @@ int _knight_pos_adv(pos_t pos) {
   return -dist * dist;
 }
 
+
+#ifdef EVALCOUNT
+unsigned int evaluate_count = 0;
+
+unsigned int get_evaluate_count() {
+  return evaluate_count;
+}
+#endif
+
 // Evaluate the board.
 eval_t evaluate_board(board_t* board) {
   // Check for the board state.
@@ -160,6 +169,11 @@ _evaluate(board_t* board,
           size_t max_depth,
           eval_t* evaluation,
           bool starting_move) {
+
+  // Can be used to debug whilst trying to optimise the evaluate function.
+  #ifdef EVALCOUNT
+  evaluate_count++;
+  #endif
 
   // Check if we reached the end of the best_line buffer.
   // If so, just return the evaluation.
@@ -237,5 +251,9 @@ _evaluate(board_t* board,
 }
 
 move_t evaluate(board_t* board, size_t max_depth, eval_t* evaluation) {
+  #ifdef EVALCOUNT
+  evaluate_count = 0;
+  #endif
+
   return _evaluate(board, max_depth, evaluation, true);
 }

@@ -24,6 +24,10 @@ bool compare_eval(bool, eval_t, eval_t);
 int pawn_dist_to_center(pos_t);
 int knight_dist_to_center(pos_t);
 
+#ifdef EVALCOUNT
+unsigned int get_evaluate_count();
+#endif
+
 eval_t evaluate_board(board_t*);
 move_t evaluate(board_t*, size_t, eval_t*);
 
