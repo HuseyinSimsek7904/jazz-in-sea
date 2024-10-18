@@ -2,6 +2,7 @@
 
 #include "board.h"
 
+#define INV_MOVE (move_t) { .from=INV_POSITION }
 
 typedef struct {
   // The position from where the piece moved.
@@ -18,6 +19,8 @@ typedef struct {
   // Does not matter if no capture.
   int capture_piece;
 } move_t;
+
+bool is_valid_move(move_t);
 
 void print_move(move_t);
 

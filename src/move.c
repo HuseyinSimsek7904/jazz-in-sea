@@ -13,6 +13,12 @@
 // If the piece moved horizontally, <to_row_or_col_name> is the to column name.
 // If the piece moved vertically, <to_row_or_col_name> is the to row name.
 void print_move(move_t move) {
+  // Check if the move is valid.
+  if (!is_valid_move(move)) {
+    printf("<invalid move>");
+    return;
+  }
+
   print_position(move.from);
   printf("%c", is_valid_pos(move.capture) ? 'x' : '>');
 
@@ -26,6 +32,12 @@ void print_move(move_t move) {
 
     printf("%c", col_name(to_col(move.to)));
   }
+}
+
+// Check if a move is valid.
+// This can be checked by checking if the from position is valid.
+bool is_valid_move(move_t move) {
+  return is_valid_pos(move.from);
 }
 
 // Make a move on the board.

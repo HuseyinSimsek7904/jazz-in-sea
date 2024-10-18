@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -169,6 +170,53 @@ void distance_test(int argc, const char** argv) {
   }
 }
 
+void ai_test(int argc, const char** argv) {
+  const char* fen = DEFAULT_BOARD;
+  size_t depth = 3;
+
+  if (argc >= 3) {
+    depth = atoi(argv[2]);
+    if (argc >= 4) {
+      fen = argv[3];
+    }
+  }
+
+  board_t board;
+  if (!load_fen(fen, &board)) {
+    printf("Could not load fen.\n");
+    exit(1);
+  }
+  print_board(&board, false);
+
+  while (true) {
+    // Wait for the user to press enter.
+    if (getc(stdin) != '\n') exit(1);
+
+    int evaluation;
+    move_t move = evaluate(&board, depth, &evaluation);
+
+    if (evaluation == WHITE_WON_EVAL) {
+      printf("Evaluation: white mates\n");
+    } else if (evaluation == BLACK_WON_EVAL) {
+      printf("Evaluation: black mates\n");
+    } else {
+      printf("Evaluation: %i\n", evaluation);
+    }
+
+    if (is_valid_move(move)) {
+      printf("Best move: ");
+      print_move(move);
+      printf("\n");
+    } else {
+      printf("Game ended\n");
+      exit(0);
+    }
+
+    do_move(&board, move);
+    print_board(&board, false);
+  }
+}
+
 int main(int argc, const char** argv) {
   srand(time(NULL));
 
@@ -182,6 +230,7 @@ int main(int argc, const char** argv) {
   case 1: count_test(argc, argv); break;
   case 2: state_test(argc, argv); break;
   case 3: distance_test(argc, argv); break;
+  case 4: ai_test(argc, argv); break;
   default:
     break;
       }
