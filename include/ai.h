@@ -7,12 +7,21 @@
 #include <limits.h>
 #include <stddef.h>
 
-#define DRAW_EVAL 0
-#define WHITE_WON_EVAL INT_MAX
-#define BLACK_WON_EVAL INT_MIN
+typedef struct {
+  // Type of evaluation, explains what is the result of the line.
+  enum {
+    CONTINUE, DRAW, WHITE_WINS, BLACK_WINS
+  } type;
+
+  // For "CONTINUE" type evaluation, explains how much favorable this position is for white.
+  // For "DRAW", "WHITE_WINS", "BLACK_WINS", explains on which move the game will end.
+  int strength;
+} eval_t;
+
+bool compare_eval(bool, eval_t, eval_t);
 
 int pawn_dist_to_center(pos_t);
 int knight_dist_to_center(pos_t);
 
-int evaluate_board(board_t*);
-move_t evaluate(board_t*, size_t, int*);
+eval_t evaluate_board(board_t*);
+move_t evaluate(board_t*, size_t, eval_t*);

@@ -64,8 +64,9 @@ void do_move(board_t* board, move_t move) {
     set_piece(board, move.capture, ' ');
   }
 
-  // Update the board turn.
+  // Update the board turn and increment the move counter.
   next_turn(board);
+  board->move_count++;
 }
 
 // Undo a move on the board.
@@ -90,8 +91,9 @@ void undo_move(board_t* board, move_t move) {
     set_piece(board, move.capture, move.capture_piece);
   }
 
-  // Update the board turn.
+  // Update the board turn and decrement the move counter.
   next_turn(board);
+  board->move_count--;
 }
 
 // Returns if the move is a capture move.

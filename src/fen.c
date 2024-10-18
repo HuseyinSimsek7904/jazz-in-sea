@@ -70,5 +70,8 @@ bool load_fen(const char* fen, board_t* board) {
   board->initialized = true;
   #endif
 
+  // Reset the move count.
+  board->move_count = 0;
+
   return true;
 }

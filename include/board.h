@@ -2,6 +2,7 @@
 
 #include "position.h"
 #include <stdbool.h>
+#include <stddef.h>
 
 typedef struct {
   #ifndef NDEBUG
@@ -20,6 +21,8 @@ typedef struct {
 
   // false -> black, true -> white
   bool turn;
+
+  unsigned int move_count;
 } board_t;
 
 

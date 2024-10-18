@@ -186,21 +186,21 @@ void ai_test(int argc, const char** argv) {
     printf("Could not load fen.\n");
     exit(1);
   }
-  print_board(&board, false);
 
   while (true) {
-    // Wait for the user to press enter.
-    if (getc(stdin) != '\n') exit(1);
+    print_board(&board, false);
 
-    int evaluation;
+    eval_t evaluation;
     move_t move = evaluate(&board, depth, &evaluation);
 
-    if (evaluation == WHITE_WON_EVAL) {
-      printf("Evaluation: white mates\n");
-    } else if (evaluation == BLACK_WON_EVAL) {
-      printf("Evaluation: black mates\n");
+    if (evaluation.type == WHITE_WINS) {
+      printf("Evaluation: white mates in %d\n", evaluation.strength - board.move_count);
+    } else if (evaluation.type == BLACK_WINS) {
+      printf("Evaluation: black mates in %d\n", evaluation.strength - board.move_count);
+    } else if (evaluation.type == DRAW) {
+      printf("Evaluation: draws in %u\n", evaluation.strength);
     } else {
-      printf("Evaluation: %i\n", evaluation);
+      printf("Evaluation: %i\n", evaluation.strength);
     }
 
     if (is_valid_move(move)) {
@@ -212,8 +212,17 @@ void ai_test(int argc, const char** argv) {
       exit(0);
     }
 
+    // Wait for the user to press enter.
+    if (getc(stdin) != '\n') exit(1);
+
     do_move(&board, move);
-    print_board(&board, false);
+
+    state_t state = get_board_state(&board);
+    if (state) {
+      print_board(&board, false);
+      printf("%s\n", board_state_text(state));
+      exit(0);
+    }
   }
 }
 

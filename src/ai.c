@@ -13,6 +13,79 @@
 const int PAWN_BASE = 4;
 const int KNIGHT_BASE = 2;
 
+// Returns the copy of eval from the opponent's POV.
+// WHITE_WINS => BLACK_WINS
+// BLACK_WINS => WHITE_WINS
+// DRAW => DRAW
+// CONTINUE(x) => CONTINUE(-x)
+eval_t _switch_eval_turn(eval_t eval) {
+  switch (eval.type) {
+  case WHITE_WINS:
+    return (eval_t) { .type=BLACK_WINS, .strength=eval.strength };
+  case BLACK_WINS:
+    return (eval_t) { .type=WHITE_WINS, .strength=eval.strength };
+  case DRAW:
+    return (eval_t) { .type=DRAW, .strength=eval.strength };
+  case CONTINUE:
+    return (eval_t) { .type=CONTINUE, .strength=-eval.strength };
+  }
+  return (eval_t) {};
+}
+
+// Compare eval1 and eval2 by whether they are favorable for the player.
+// <0 => eval2 is more favorable than eval1
+// =0 => neither is more favorable
+// >0 => eval1 is more favorable than eval2
+int compare_favor(eval_t eval1, eval_t eval2, bool turn) {
+  // Convert the eval structs to whites POV to simplify the function.
+  // This way, for all player these can be used to mean the same thing.
+  // WHITE_WINS => WINS
+  // BLACK_WINS => LOSES
+  if (!turn) {
+    eval1 = _switch_eval_turn(eval1);
+    eval2 = _switch_eval_turn(eval2);
+  }
+
+  switch (eval1.type) {
+  case WHITE_WINS:
+    // Unless eval2 is WHITE_WINS, always eval1.
+    // Otherwise compare the depths.
+    return eval2.type != WHITE_WINS ? 1 : eval2.strength - eval1.strength;
+
+  case BLACK_WINS:
+    // Unless eval2 is BLACK_WINS, always eval2.
+    // Otherwise compare the depths.
+    return eval2.type != BLACK_WINS ? -1 : eval2.strength - eval1.strength;
+
+  case DRAW:
+    switch (eval2.type) {
+      // If eval2 is WHITE_WINS, always eval2.
+    case WHITE_WINS: return -1;
+      // If eval2 is BLACK_WINS, always eval1.
+    case BLACK_WINS: return 1;
+      // If eval2 is DRAW, check for moves.
+      // This comparison is not actually necessary, we are just trying to make the AI choose the simpler lines.
+    case DRAW: return eval2.strength - eval1.strength;
+      // If eval2 is CONTINUE, check for the evaluation.
+    case CONTINUE: return eval2.strength;
+    }
+
+  case CONTINUE:
+    switch (eval2.type) {
+      // If eval2 is WHITE_WINS, always eval2.
+    case WHITE_WINS: return -1;
+      // If eval2 is BLACK_WINS, always eval1.
+    case BLACK_WINS: return 1;
+      // If eval2 is DRAW, check for the evaluation.
+    case DRAW: return eval1.strength;
+      // If eval2 is CONTINUE, check for the evaluation difference.
+    case CONTINUE: return eval1.strength - eval2.strength;
+    }
+  }
+
+  return 0;
+}
+
 // Returns how many regular pawn moves it would take for the pawn to walk to the
 // center of the board.
 int pawn_dist_to_center(pos_t pos) {
@@ -30,13 +103,13 @@ int knight_dist_to_center(pos_t pos) {
 }
 
 // Evaluate the board.
-int evaluate_board(board_t* board) {
+eval_t evaluate_board(board_t* board) {
   // Check for the board state.
   state_t state = get_board_state(board);
   switch (state & 0x30) {
-  case 1: return 0;
-  case 2: return WHITE_WON_EVAL;
-  case 3: return BLACK_WON_EVAL;
+  case 1: return (eval_t) { .type=DRAW,       .strength=board->move_count };
+  case 2: return (eval_t) { .type=WHITE_WINS, .strength=board->move_count };
+  case 3: return (eval_t) { .type=BLACK_WINS, .strength=board->move_count };
   }
 
   // If the game did not end yet, look for the positions of pieces.
@@ -62,12 +135,14 @@ int evaluate_board(board_t* board) {
       eval += piece_eval;
     }
   }
-  return eval;
+
+  // Return the generated strength object as a continue evaluation.
+  return (eval_t) { .type=CONTINUE, .strength=eval };
 }
 
 
 // Find the best continuing move available and its evaluation.
-move_t _evaluate(board_t* board, size_t max_depth, int* evaluation, bool starting_move) {
+move_t _evaluate(board_t* board, size_t max_depth, eval_t* evaluation, bool starting_move) {
   // Check if we reached the end of the best_line buffer.
   // If so, just return the evaluation.
   if (!max_depth) {
@@ -80,13 +155,13 @@ move_t _evaluate(board_t* board, size_t max_depth, int* evaluation, bool startin
   state_t state = get_board_state(board);
   switch (state & 0x30) {
   case 0x10:
-    *evaluation = DRAW_EVAL;
+    *evaluation = (eval_t) { .type=DRAW,       .strength=board->move_count };
     return INV_MOVE;
   case 0x20:
-    *evaluation = WHITE_WON_EVAL;
+    *evaluation = (eval_t) { .type=WHITE_WINS, .strength=board->move_count };
     return INV_MOVE;
   case 0x30:
-    *evaluation = BLACK_WON_EVAL;
+    *evaluation = (eval_t) { .type=BLACK_WINS, .strength=board->move_count };
     return INV_MOVE;
   }
 
@@ -99,7 +174,7 @@ move_t _evaluate(board_t* board, size_t max_depth, int* evaluation, bool startin
   // If this move is the first move and if there are only one possible moves, return the only move.
   // No need to search recursively.
   if (length == 1) {
-    *evaluation = 0;
+    *evaluation = (eval_t) { .type=CONTINUE, .strength=0 };
     return moves[0];
   }
 
@@ -110,14 +185,15 @@ move_t _evaluate(board_t* board, size_t max_depth, int* evaluation, bool startin
   undo_move(board, moves[0]);
 
   // If found a mate for the current player, select this move automatically and stop iterating.
-  if ((board->turn && *evaluation == INT_MAX) || (!board->turn && *evaluation == INT_MIN))
+  if ((board->turn && evaluation->type == WHITE_WINS) ||
+      (!board->turn && evaluation->type == BLACK_WINS))
     return moves[0];
 
   // Loop through all of the available moves except the first, and recursively get the next moves.
   for (int i=1; i<length; i++) {
     move_t move = moves[i];
     do_move(board, move);
-    int new_evaluation;
+    eval_t new_evaluation;
 
     // If the move was a capture move, do not decrement the depth.
     size_t new_depth = max_depth - (is_valid_pos(move.capture) ? 0 : 1);
@@ -126,19 +202,20 @@ move_t _evaluate(board_t* board, size_t max_depth, int* evaluation, bool startin
     undo_move(board, move);
 
     // If the found move is better than the latest best move, update it.
-    if ((board->turn && new_evaluation >= *evaluation) || (!board->turn && new_evaluation <= *evaluation)) {
+    if (compare_favor(new_evaluation, *evaluation, board->turn) > 0) {
       *evaluation = new_evaluation;
       best_move = move;
     }
 
     // If found a mate for the current player, select this move automatically and stop iterating.
-    if ((board->turn && new_evaluation == INT_MAX) || (!board->turn && new_evaluation == INT_MIN))
+    if ((board->turn && evaluation->type == WHITE_WINS) ||
+        (!board->turn && evaluation->type == BLACK_WINS))
       return move;
   }
 
   return best_move;
 }
 
-move_t evaluate(board_t* board, size_t max_depth, int* evaluation) {
+move_t evaluate(board_t* board, size_t max_depth, eval_t* evaluation) {
   return _evaluate(board, max_depth, evaluation, true);
 }
