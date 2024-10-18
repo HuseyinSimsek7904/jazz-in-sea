@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _BOARD_H
+#define _BOARD_H
 
 #include "position.h"
 #include <stdbool.h>
@@ -39,3 +40,5 @@ inline bool blacks_turn(board_t *board) { return !board->turn; }
 void copy_board(board_t*, board_t*);
 
 bool compare(board_t*, board_t*);
+
+#endif

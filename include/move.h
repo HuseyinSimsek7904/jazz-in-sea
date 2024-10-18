@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _MOVE_H
+#define _MOVE_H
 
 #include "board.h"
 
@@ -28,3 +29,5 @@ void do_move(board_t*, move_t);
 void undo_move(board_t*, move_t);
 
 bool is_capture(move_t);
+
+#endif

@@ -1,3 +1,6 @@
+#ifndef _RULES_H
+#define _RULES_H
+
 #include <stddef.h>
 
 #include "board.h"
@@ -18,3 +21,5 @@ typedef enum {
 size_t generate_moves(board_t*, move_t[256]);
 state_t get_board_state(board_t*);
 const char* board_state_text(state_t);
+
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _POSITION_H
+#define _POSITION_H
 
 #include <stdbool.h>
 
@@ -20,3 +21,5 @@ char row_name(int);
 void print_position(pos_t);
 
 bool is_center(pos_t);
+
+#endif

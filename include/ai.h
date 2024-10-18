@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _AI_H
+#define _AI_H
 
 #include "board.h"
 #include "move.h"
@@ -25,3 +26,5 @@ int knight_dist_to_center(pos_t);
 
 eval_t evaluate_board(board_t*);
 move_t evaluate(board_t*, size_t, eval_t*);
+
+#endif

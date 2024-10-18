@@ -1,3 +1,6 @@
+#ifndef _PIECE_H
+#define _PIECE_H
+
 #include <stdbool.h>
 
 #define BLACK  false
@@ -13,3 +16,5 @@ bool is_piece_black(char);
 bool is_piece_type(char, bool);
 bool is_piece_pawn(char);
 bool is_piece_knight(char);
+
+#endif
