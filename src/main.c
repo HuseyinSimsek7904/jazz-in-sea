@@ -193,15 +193,7 @@ void iterative_ai_test(int argc, const char** argv) {
     eval_t evaluation;
     move_t move = evaluate(&board, depth, &evaluation);
 
-    if (evaluation.type == WHITE_WINS) {
-      printf("white mates in %d\n", evaluation.strength - board.move_count);
-    } else if (evaluation.type == BLACK_WINS) {
-      printf("black mates in %d\n", evaluation.strength - board.move_count);
-    } else if (evaluation.type == DRAW) {
-      printf("draw in %u\n", evaluation.strength);
-    } else {
-      printf("evaluation: %i\n", evaluation.strength);
-    }
+    print_eval(evaluation, &board);
 
     #ifdef EVALCOUNT
     printf("total %u calls to eval\n", get_evaluate_count());
@@ -249,15 +241,7 @@ void ai_test(int argc, const char** argv) {
   eval_t evaluation;
   evaluate(&board, depth, &evaluation);
 
-  if (evaluation.type == WHITE_WINS) {
-    printf("white mates in %d\n", evaluation.strength - board.move_count);
-  } else if (evaluation.type == BLACK_WINS) {
-    printf("black mates in %d\n", evaluation.strength - board.move_count);
-  } else if (evaluation.type == DRAW) {
-    printf("draw in %u\n", evaluation.strength);
-  } else {
-    printf("evaluation: %i\n", evaluation.strength);
-  }
+  print_eval(evaluation, &board);
 
   exit(0);
 }

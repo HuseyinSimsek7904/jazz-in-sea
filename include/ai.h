@@ -19,6 +19,8 @@ typedef struct {
   int strength;
 } eval_t;
 
+void print_eval(eval_t, board_t*);
+
 bool compare_eval(bool, eval_t, eval_t);
 
 int pawn_dist_to_center(pos_t);
