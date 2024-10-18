@@ -13,6 +13,10 @@
 const int PAWN_BASE = 4;
 const int KNIGHT_BASE = 2;
 
+// Can cause the AI to always play moves that guarantee mates but never actually
+// mate. Could be a fun way to play against the game actually.
+const bool quick_mate_optimisation = false;
+
 // Returns the copy of eval from the opponent's POV.
 // WHITE_WINS => BLACK_WINS
 // BLACK_WINS => WHITE_WINS
@@ -142,7 +146,12 @@ eval_t evaluate_board(board_t* board) {
 
 
 // Find the best continuing move available and its evaluation.
-move_t _evaluate(board_t* board, size_t max_depth, eval_t* evaluation, bool starting_move) {
+move_t
+_evaluate(board_t* board,
+          size_t max_depth,
+          eval_t* evaluation,
+          bool starting_move) {
+
   // Check if we reached the end of the best_line buffer.
   // If so, just return the evaluation.
   if (!max_depth) {
@@ -185,8 +194,9 @@ move_t _evaluate(board_t* board, size_t max_depth, eval_t* evaluation, bool star
   undo_move(board, moves[0]);
 
   // If found a mate for the current player, select this move automatically and stop iterating.
-  if ((board->turn && evaluation->type == WHITE_WINS) ||
-      (!board->turn && evaluation->type == BLACK_WINS))
+  if (quick_mate_optimisation &&
+      ((board->turn && evaluation->type == WHITE_WINS) ||
+       (!board->turn && evaluation->type == BLACK_WINS)))
     return moves[0];
 
   // Loop through all of the available moves except the first, and recursively get the next moves.
@@ -208,8 +218,9 @@ move_t _evaluate(board_t* board, size_t max_depth, eval_t* evaluation, bool star
     }
 
     // If found a mate for the current player, select this move automatically and stop iterating.
-    if ((board->turn && evaluation->type == WHITE_WINS) ||
-        (!board->turn && evaluation->type == BLACK_WINS))
+    if (quick_mate_optimisation &&
+        ((board->turn && evaluation->type == WHITE_WINS) ||
+         (!board->turn && evaluation->type == BLACK_WINS)))
       return move;
   }
 
