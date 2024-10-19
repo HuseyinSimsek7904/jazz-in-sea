@@ -201,6 +201,8 @@ move_t
 _evaluate(board_t* board,
           size_t max_depth,
           eval_t* evaluation,
+          eval_t alpha,
+          eval_t beta,
           bool starting_move) {
 
   // Can be used to debug whilst trying to optimise the evaluate function.
@@ -212,6 +214,7 @@ _evaluate(board_t* board,
   // If so, just return the evaluation.
   if (!max_depth) {
     *evaluation = evaluate_board(board);
+    assert(evaluation->type != INVALID);
     return INV_MOVE;
   }
 
@@ -255,11 +258,11 @@ _evaluate(board_t* board,
     // If the move was a capture move, do not decrement the depth.
     size_t new_depth = max_depth - (is_valid_pos(move.capture) ? 0 : 1);
 
-    _evaluate(board, new_depth, &new_evaluation, false);
+    _evaluate(board, new_depth, &new_evaluation, alpha, beta, false);
     undo_move(board, move);
 
     // If the found move is better than the latest best move, update it.
-    if (evaluation->type == INVALID || compare_favor(new_evaluation, *evaluation, board->turn) >= 0) {
+    if (evaluation->type == INVALID || compare_favor(new_evaluation, *evaluation, board->turn) > 0) {
       *evaluation = new_evaluation;
       best_move = move;
 
@@ -269,8 +272,22 @@ _evaluate(board_t* board,
            (!board->turn && evaluation->type == BLACK_WINS)))
         return move;
     }
+
+    // Update the limit variables alpha and beta.
+    if (board->turn) {
+      if (compare_favor(new_evaluation, alpha, board->turn))
+        alpha = new_evaluation;
+    } else {
+      if (compare_favor(new_evaluation, beta, board->turn))
+        beta = new_evaluation;
+    }
+
+    // If found a move better than beta or alpha, break.
+    if (compare_favor(new_evaluation, board->turn ? beta : alpha, board->turn) > 0)
+      break;
   }
 
+  assert(evaluation->type != INVALID);
   return best_move;
 }
 
@@ -279,5 +296,10 @@ move_t evaluate(board_t* board, size_t max_depth, eval_t* evaluation) {
   evaluate_count = 0;
   #endif
 
-  return _evaluate(board, max_depth, evaluation, true);
+  return _evaluate(board,
+                   max_depth,
+                   evaluation,
+                   (eval_t) { .type=BLACK_WINS, .strength=0 },  // best possible evaluation for black
+                   (eval_t) { .type=WHITE_WINS, .strength=0 },  // best possible evaluation for white
+                   true);
 }
