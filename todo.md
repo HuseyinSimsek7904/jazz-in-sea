@@ -15,3 +15,15 @@
 - [ ] #14  (feat) add fen saver
 - [ ] #15  (feat) implement `DRAW_BY_REPETITION` and `DRAW_BY_NO_MOVES`
 - [ ] #16  (feat) implement quick mate search when either players are down to only 1 pieces
+- [ ] #17  (feat) implement game history and loading and storing game history
+- [ ] #18  (feat) eval should return an array of best moves
+- [ ] #19  (feat) imlement cli like commands (requires #1, #2)
+- [ ] #20  (feat) implement pvp, pvb and bvb (requires #1, #2, #19)
+- [ ] #21  (feat) `generate_moves` should generate moves in the order that would help the alpha-beta pruning algorithm, aka best moves first (best moves are usually the moves that get the piece closer to the center or moves that forces the opponent to take the piece)
+- [ ] #22  (chore) some frequently used functions should be placed in headers as inline functions
+- [ ] #23  (feat) create a database of all the <=n piece boards and their evaluations, which can also be used for optimising the ai
+- [ ] #24  (feat) implement memoisation for the ai
+- [ ] #25  (feat) implement long term memoisation for absolute evaluations like `WHITE_WINS` and `BLACK_WINS`
+- [ ] #26  (chore) convert the recursive ai to iterative ai, which will make it possible to find the mate in 6 without having to check 10 nodes deep branches
+- [ ] #27  (chore) replace `_pawn_pos_adv` and `_knight_pos_adv` with prebuilt arrays of advantage values
+- [ ] #28  (feat) eval should not recalculate the board evaluation and instead should always look for the evaluation difference
