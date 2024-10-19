@@ -15,7 +15,7 @@ const char BLACK_CELL_CENTER = '.';
 const char WHITE_PAWN = 'P';
 const char WHITE_KNIGHT = 'N';
 const char BLACK_PAWN = 'p';
-const char BLACK_KNIGHT = 'P';
+const char BLACK_KNIGHT = 'n';
 const char ERROR = 'E';
 
 // Get a piece at a position.
