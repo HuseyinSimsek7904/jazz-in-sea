@@ -1,6 +1,5 @@
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdio.h>
 
 #include "rules.h"
 #include "board.h"

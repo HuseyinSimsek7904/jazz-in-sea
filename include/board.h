@@ -30,8 +30,6 @@ typedef struct {
 char get_piece(board_t*, pos_t);
 void set_piece(board_t*, pos_t, char);
 
-void print_board(board_t*, bool);
-
 bool next_turn(board_t*);
 
 inline bool whites_turn(board_t *board) { return  board->turn; }

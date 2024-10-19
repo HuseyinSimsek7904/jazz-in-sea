@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdio.h>
 
 #include "ai.h"
 #include "board.h"
@@ -38,30 +37,6 @@ eval_t _switch_eval_turn(eval_t eval) {
     return eval;
   }
   return (eval_t) {};
-}
-
-void print_eval(eval_t eval, board_t* board) {
-  switch (eval.type) {
-  case WHITE_WINS:
-    printf("white mates in %d\n", eval.strength - board->move_count);
-    break;
-  case BLACK_WINS:
-    printf("black mates in %d\n", eval.strength - board->move_count);
-    break;
-  case DRAW:
-    printf("draw in %u\n", eval.strength);
-    break;
-  case CONTINUE:
-    printf("continue with advantage %i\n", eval.strength);
-    break;
-  case NOT_CALCULATED:
-    printf("not calculated\n");
-    break;
-  case INVALID:
-    assert(false);
-    printf("<invalid eval>\n");
-    break;
-  }
 }
 
 // Compare eval1 and eval2 by whether they are favorable for the player.

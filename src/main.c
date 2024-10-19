@@ -11,6 +11,7 @@
 #include "move.h"
 #include "rules.h"
 #include "fen.h"
+#include "io.h"
 
 
 void search_depth(board_t* board, int depth) {

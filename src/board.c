@@ -1,22 +1,8 @@
 #include <assert.h>
 #include <stdbool.h>
-#include <stdio.h>
 
 #include "board.h"
 #include "position.h"
-
-const char *TOP_ROW;
-const char *TOP_ROW_INV;
-
-const char WHITE_CELL = '_';
-const char BLACK_CELL = ' ';
-const char WHITE_CELL_CENTER = '.';
-const char BLACK_CELL_CENTER = '.';
-const char WHITE_PAWN = 'P';
-const char WHITE_KNIGHT = 'N';
-const char BLACK_PAWN = 'p';
-const char BLACK_KNIGHT = 'n';
-const char ERROR = 'E';
 
 // Get a piece at a position.
 // Asserts if position is invalid.
@@ -34,51 +20,6 @@ char get_piece(board_t *board, pos_t pos) {
 void set_piece(board_t *board, pos_t pos, char piece) {
   assert(is_valid_pos(pos));
   board->board_array[pos] = piece;
-}
-
-void print_board(board_t *board, bool reverse) {
-  printf(reverse ? " hgfedcba\n" : " abcdefgh\n");
-  for (int prow = 0; prow < 8; prow++) {
-    int row = perspective_row(prow, reverse);
-    printf("%c", '0' + row + 1);
-
-    for (int pcol = 0; pcol < 8; pcol++) {
-      int col = perspective_col(pcol, reverse);
-
-      pos_t position = to_position(row, col);
-      char piece = get_piece(board, position);
-
-      char character;
-      switch (piece) {
-      case ' ':
-        if (is_center(position)) {
-          character = (col + row) % 2 ? WHITE_CELL_CENTER : BLACK_CELL_CENTER;
-        } else {
-          character = (col + row) % 2 ? WHITE_CELL : BLACK_CELL;
-        }
-        break;
-          
-      case 'P':
-        character = WHITE_PAWN;
-        break;
-      case 'N':
-        character = WHITE_KNIGHT;
-        break;
-      case 'p':
-        character = BLACK_PAWN;
-        break;
-      case 'n':
-        character = BLACK_KNIGHT;
-        break;
-      default:
-        character = ERROR;
-        break;
-      }
-
-      printf("%c", character);
-    }
-    printf("\n");
-  }
 }
 
 // Change the turn of the board to the other player, and return the new turn.

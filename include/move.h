@@ -23,8 +23,6 @@ typedef struct {
 
 bool is_valid_move(move_t);
 
-void print_move(move_t);
-
 void do_move(board_t*, move_t);
 void undo_move(board_t*, move_t);
 
