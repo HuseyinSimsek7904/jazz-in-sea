@@ -12,10 +12,6 @@
 const int PAWN_BASE = 4;
 const int KNIGHT_BASE = 2;
 
-// Can cause the AI to always play moves that guarantee mates but never actually
-// mate. Could be a fun way to play against the game actually.
-const bool quick_mate_optimisation = false;
-
 // Returns the copy of eval from the opponent's POV.
 // WHITE_WINS => BLACK_WINS
 // BLACK_WINS => WHITE_WINS
@@ -182,10 +178,11 @@ eval_t evaluate_board(board_t* board) {
 }
 
 
-// Find the best continuing move available and its evaluation.
-move_t
+// Find the best continuing moves available and its evaluation.
+size_t
 _evaluate(board_t* board,
           size_t max_depth,
+          move_t* best_moves,
           eval_t* evaluation,
           eval_t alpha,
           eval_t beta,
@@ -201,7 +198,7 @@ _evaluate(board_t* board,
   if (!max_depth) {
     *evaluation = evaluate_board(board);
     assert(evaluation->type != INVALID);
-    return INV_MOVE;
+    return 0;
   }
 
   // Check for the board state.
@@ -210,53 +207,71 @@ _evaluate(board_t* board,
   switch (state & 0x30) {
   case 0x10:
     *evaluation = (eval_t) { .type=DRAW,       .strength=board->move_count };
-    return INV_MOVE;
+    return 0;
   case 0x20:
     *evaluation = (eval_t) { .type=WHITE_WINS, .strength=board->move_count };
-    return INV_MOVE;
+    return 0;
   case 0x30:
     *evaluation = (eval_t) { .type=BLACK_WINS, .strength=board->move_count };
-    return INV_MOVE;
+    return 0;
   }
 
   move_t moves[256];
-  int length = generate_moves(board, moves);
+  int moves_length = generate_moves(board, moves);
 
   // There must be at least 1 moves, otherwise we should not pass the state check step.
-  assert(length);
+  assert(moves_length);
 
   // If this move is the first move and if there are only one possible moves, return the only move.
   // No need to search recursively.
-  if (starting_move && length == 1) {
+  if (starting_move && moves_length == 1) {
     *evaluation = (eval_t) { .type=NOT_CALCULATED };
-    return moves[0];
+    *best_moves = moves[0];
+    return 1;
   }
 
-  move_t best_move;
-  *evaluation = (eval_t) { .type=INVALID };
+  size_t found_moves = 0;
+  *evaluation = (eval_t) {};
 
   // Loop through all of the available moves except the first, and recursively get the next moves.
-  for (int i=0; i<length; i++) {
+  for (int i=0; i<moves_length; i++) {
     // If the move was a capture move, do not decrement the depth.
     move_t move = moves[i];
     eval_t new_evaluation;
     size_t new_depth = max_depth - (is_valid_pos(move.capture) ? 0 : 1);
+    move_t new_moves[256];
 
     do_move(board, move);
-    _evaluate(board, new_depth, &new_evaluation, alpha, beta, false);
+    _evaluate(board, new_depth, new_moves, &new_evaluation, alpha, beta, false);
+
     undo_move(board, move);
 
-    // If the move is not worse than the found moves, continue.
-    if (evaluation->type != INVALID && compare_favor(new_evaluation, *evaluation, board->turn) <= 0) continue;
+    // If this move is not the first move, compare this move with the best move.
+    if (found_moves) {
+      // Compare this move and the old best move.
+      int cmp = compare_favor(new_evaluation, *evaluation, board->turn);
 
-    *evaluation = new_evaluation;
-    best_move = move;
+      if (cmp < 0) {
+        // If this move is worse than the found moves, continue.
+        continue;
 
-    // If found a mate for the current player, select this move automatically and stop iterating.
-    if (quick_mate_optimisation &&
-        ((board->turn && evaluation->type == WHITE_WINS) ||
-         (!board->turn && evaluation->type == BLACK_WINS)))
-      return move;
+      } else if (cmp == 0) {
+        // If this move is equally as good as the best move, add this move to the list.
+        best_moves[found_moves++] = move;
+        continue;
+
+      } else {
+        // If this move is better than the found moves, remove them and update the evaluation.
+        *evaluation = new_evaluation;
+        found_moves = 1;
+        *best_moves = move;
+      }
+
+    } else {
+      *evaluation = new_evaluation;
+      found_moves = 1;
+      *best_moves = move;
+    }
 
     // If found a move better than beta or alpha, break.
     if (compare_favor(new_evaluation, board->turn ? beta : alpha, board->turn) > 0)
@@ -273,16 +288,17 @@ _evaluate(board_t* board,
   }
 
   assert(evaluation->type != INVALID);
-  return best_move;
+  return found_moves;
 }
 
-move_t evaluate(board_t* board, size_t max_depth, eval_t* evaluation) {
+size_t evaluate(board_t* board, size_t max_depth, move_t* moves, eval_t* evaluation) {
   #ifdef EVALCOUNT
   evaluate_count = 0;
   #endif
 
   return _evaluate(board,
                    max_depth,
+                   moves,
                    evaluation,
                    (eval_t) { .type=BLACK_WINS, .strength=0 },  // best possible evaluation for black
                    (eval_t) { .type=WHITE_WINS, .strength=0 },  // best possible evaluation for white

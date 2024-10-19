@@ -191,8 +191,19 @@ void iterative_ai_test(int argc, const char** argv) {
   while (true) {
     print_board(&board, false);
 
+    // Check if the game ended.
+    state_t state = get_board_state(&board);
+    if (state) {
+      printf("%s\n", board_state_text(state));
+      exit(0);
+    }
+
     eval_t evaluation;
-    move_t move = evaluate(&board, depth, &evaluation);
+    move_t moves[256];
+    size_t length = evaluate(&board, depth, moves, &evaluation);
+
+    // Since we checked whether or not the game ended, we know that there must be at least one move available.
+    assert(length);
 
     print_eval(evaluation, &board);
 
@@ -200,26 +211,24 @@ void iterative_ai_test(int argc, const char** argv) {
     printf("total %u calls to eval\n", get_evaluate_count());
     #endif
 
-    if (is_valid_move(move)) {
-      printf("Best move: ");
-      print_move(move);
-      printf("\n");
-    } else {
-      printf("Game ended\n");
-      exit(0);
+    // List the moves.
+    printf("best moves: ");
+    print_move(moves[0]);
+    for (int i=1; i<length; i++) {
+      printf(", ");
+      print_move(moves[i]);
     }
+    printf(" (%zu moves)\n", length);
 
     // Wait for the user to press enter.
     if (getc(stdin) != '\n') exit(1);
 
-    do_move(&board, move);
-
-    state_t state = get_board_state(&board);
-    if (state) {
-      print_board(&board, false);
-      printf("%s\n", board_state_text(state));
-      exit(0);
-    }
+    // Select a random move.
+    move_t selected_move = moves[rand() % length];
+    printf("making move ");
+    print_move(selected_move);
+    printf("\n");
+    do_move(&board, selected_move);
   }
 }
 
@@ -239,8 +248,9 @@ void ai_test(int argc, const char** argv) {
     exit(1);
   }
 
+  move_t moves[256];
   eval_t evaluation;
-  evaluate(&board, depth, &evaluation);
+  evaluate(&board, depth, moves, &evaluation);
 
   print_eval(evaluation, &board);
 

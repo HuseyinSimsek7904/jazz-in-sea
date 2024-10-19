@@ -16,7 +16,7 @@
 - [ ] #15  (feat) implement `DRAW_BY_REPETITION` and `DRAW_BY_NO_MOVES`
 - [ ] #16  (feat) implement quick mate search when either players are down to only 1 pieces
 - [ ] #17  (feat) implement game history and loading and storing game history
-- [ ] #18  (feat) eval should return an array of best moves
+- [x] #18  (feat) eval should return an array of best moves
 - [ ] #19  (feat) imlement cli like commands (requires #1, #2)
 - [ ] #20  (feat) implement pvp, pvb and bvb (requires #1, #2, #19)
 - [ ] #21  (feat) `generate_moves` should generate moves in the order that would help the alpha-beta pruning algorithm, aka best moves first (best moves are usually the moves that get the piece closer to the center or moves that forces the opponent to take the piece)

@@ -31,6 +31,6 @@ unsigned int get_evaluate_count();
 #endif
 
 eval_t evaluate_board(board_t*);
-move_t evaluate(board_t*, size_t, eval_t*);
+size_t evaluate(board_t*, size_t, move_t*, eval_t*);
 
 #endif
