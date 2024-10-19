@@ -1,6 +1,6 @@
 # todo:
-- [ ] #1   (feat) add position parser
-- [ ] #2   (feat) add move parser (requires #1)
+- [x] #1   (feat) add position parser
+- [x] #2   (feat) add move parser (requires #1)
 - [x] #3   (feat) add game state check functions
 - [x] #4   (test) update the tests to check for game states
 - [ ] #5   (feat) game state from the previous position can be cached

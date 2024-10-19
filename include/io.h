@@ -3,6 +3,11 @@
 
 #include "board.h"
 #include "move.h"
+#include "position.h"
+
+bool string_to_position(const char*, pos_t*);
+
+bool string_to_move(const char*, move_t*);
 
 void print_board(board_t *, bool);
 

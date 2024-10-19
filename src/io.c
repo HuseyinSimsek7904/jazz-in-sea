@@ -1,10 +1,85 @@
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "ai.h"
 #include "board.h"
 #include "io.h"
 #include "move.h"
+#include "position.h"
+
+// Try to convert a string to a position.
+bool string_to_position(const char* s, pos_t* pos) {
+  char col_name = *s++;
+  if (col_name < 'a' || col_name > 'h') return false;
+
+  char row_name = *s++;
+  if (row_name < '1' || row_name > '8') return false;
+
+  if (*s != '\n') return false;
+
+  *pos = to_position(row_name - '1', col_name - 'a');
+  return true;
+}
+
+// Given the delta multiplier of a move's capture position, return the move's regular delta multiplier.
+int _capture_delta_to_regular_delta(int dist) {
+  switch (dist) {
+  case -3: return -2;
+  case -2: return -1;
+  case  2: return  1;
+  case  3: return  2;
+  default:
+    assert(false);
+    return  0;
+  }
+}
+
+// Try to convert a string to a move.
+bool string_to_move(const char* s, move_t* move) {
+  char row_name = *s++;
+  if (row_name < 'a' || row_name > 'h') return false;
+
+  char col_name = *s++;
+  if (col_name < '1' || col_name > '8') return false;
+
+  char move_type = *s++;
+  if (move_type != '>' && move_type != 'x') return false;
+
+  char to_name = *s++;
+  if ((to_name < '1' || to_name > '9') && (to_name <'a' && to_name > 'h')) return false;
+
+  if (*s != '\0') return false;
+
+  int from_column = row_name - 'a';
+  int from_row    = col_name - '1';
+  int dist;
+
+  move->from = to_position(from_row, from_column);
+
+  if (to_name >= '1' && to_name <= '8') {
+    // Vertical move.
+    int to_row = to_name - '1';
+    dist = to_row - from_row;
+    move->to = to_position(to_row, from_column);
+
+  } else {
+    // Horizontal move..
+    int to_column = to_name - 'a';
+    dist = to_column - from_column;
+    move->to = to_position(from_row, to_column);
+  }
+
+  if (move_type == 'x') {
+    if (abs(dist) != 2 && abs(dist) != 3) return false;
+    move->capture = move->from + _capture_delta_to_regular_delta(dist) * (move->to - move->from) / dist;
+  } else {
+    if (abs(dist) != 1 && abs(dist) != 2) return false;
+    move->capture = INV_POSITION;
+  }
+
+  return true;
+}
 
 // Convert from regular row to perspective row or vice verca.
 // Perspective row means the row that the player sees.
