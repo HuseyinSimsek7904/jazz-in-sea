@@ -12,6 +12,22 @@
 const int PAWN_BASE = 4;
 const int KNIGHT_BASE = 2;
 
+// As x increases, distance from center in x decreases.
+// Same for y.
+const int PAWN_ADV_TABLE[4][4] = {
+  {-36, -25, -16,  -9},
+  {-25, -16,  -9,  -4},
+  {-16,  -9,  -4,  -1},
+  { -9,  -4,  -1,  -0},
+};
+
+const int KNIGHT_ADV_TABLE[4][4] = {
+  {-16,  -9,  -9,  -4},
+  { -9,  -4,  -4,  -1},
+  { -9,  -4,  -4,  -1},
+  { -4,  -1,  -1,  -0}
+};
+
 // Returns the copy of eval from the opponent's POV.
 // WHITE_WINS => BLACK_WINS
 // BLACK_WINS => WHITE_WINS
@@ -121,15 +137,20 @@ int knight_dist_to_center(pos_t pos) {
 }
 
 int _pawn_pos_adv(pos_t pos) {
-  int dist = pawn_dist_to_center(pos);
-  return -dist * dist;
+  int col = to_col(pos);
+  int row = to_row(pos);
+  if (col >= 4) col = 7 - col;
+  if (row >= 4) row = 7 - row;
+  return PAWN_ADV_TABLE[row][col];
 }
 
 int _knight_pos_adv(pos_t pos) {
-  int dist = knight_dist_to_center(pos);
-  return -dist * dist;
+  int col = to_col(pos);
+  int row = to_row(pos);
+  if (col >= 4) col = 7 - col;
+  if (row >= 4) row = 7 - row;
+  return KNIGHT_ADV_TABLE[row][col];
 }
-
 
 #ifdef EVALCOUNT
 unsigned int evaluate_count = 0;

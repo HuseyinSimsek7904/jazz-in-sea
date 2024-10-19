@@ -25,6 +25,6 @@
 - [ ] #24  (feat) implement memoisation for the ai
 - [ ] #25  (feat) implement long term memoisation for absolute evaluations like `WHITE_WINS` and `BLACK_WINS`
 - [ ] #26  (chore) convert the recursive ai to iterative ai, which will make it possible to find the mate in 6 without having to check 10 nodes deep branches
-- [ ] #27  (chore) replace `_pawn_pos_adv` and `_knight_pos_adv` with prebuilt arrays of advantage values
+- [x] #27  (chore) replace `_pawn_pos_adv` and `_knight_pos_adv` with prebuilt arrays of advantage values
 - [ ] #28  (feat) eval should not recalculate the board evaluation and instead should always look for the evaluation difference
 - [ ] #29  (chore) create `piece_t`
