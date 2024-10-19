@@ -12,7 +12,7 @@
 - [ ] #11  (test) implement better command system that allows subcommands like 'test', 'load-fen' etc.
 - [ ] #12  (test) depth tests do not create random moves as the test takes not more than few milliseconds, so the seed for the srand function is almost always the same
 - [x] #13  (feat) add all of the remaining parts of the fen loader
-- [ ] #14  (feat) add fen saver
+- [x] #14  (feat) add fen saver
 - [ ] #15  (feat) implement `DRAW_BY_REPETITION` and `DRAW_BY_NO_MOVES`
 - [ ] #16  (feat) implement quick mate search when either players are down to only 1 pieces
 - [ ] #17  (feat) implement game history and loading and storing game history
@@ -27,3 +27,4 @@
 - [ ] #26  (chore) convert the recursive ai to iterative ai, which will make it possible to find the mate in 6 without having to check 10 nodes deep branches
 - [ ] #27  (chore) replace `_pawn_pos_adv` and `_knight_pos_adv` with prebuilt arrays of advantage values
 - [ ] #28  (feat) eval should not recalculate the board evaluation and instead should always look for the evaluation difference
+- [ ] #29  (chore) create `piece_t`
