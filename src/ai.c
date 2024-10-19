@@ -34,6 +34,7 @@ eval_t _switch_eval_turn(eval_t eval) {
   case INVALID:
     assert(false);
   case DRAW:
+  case NOT_CALCULATED:
     return eval;
   }
   return (eval_t) {};
@@ -53,6 +54,9 @@ void print_eval(eval_t eval, board_t* board) {
   case CONTINUE:
     printf("continue with advantage %i\n", eval.strength);
     break;
+  case NOT_CALCULATED:
+    printf("not calculated\n");
+    break;
   case INVALID:
     assert(false);
     printf("<invalid eval>\n");
@@ -64,6 +68,7 @@ void print_eval(eval_t eval, board_t* board) {
 // <0 => eval2 is more favorable than eval1
 // =0 => neither is more favorable
 // >0 => eval1 is more favorable than eval2
+// NOT_CALCULATED evals can not be compared.
 int compare_favor(eval_t eval1, eval_t eval2, bool turn) {
   // Convert the eval structs to whites POV to simplify the function.
   // This way, for all player these can be used to mean the same thing.
@@ -96,6 +101,8 @@ int compare_favor(eval_t eval1, eval_t eval2, bool turn) {
     case DRAW: return eval2.strength - eval1.strength;
       // If eval2 is CONTINUE, check for the evaluation.
     case CONTINUE: return eval2.strength;
+
+    case NOT_CALCULATED:
     case INVALID:
       assert(false);
       break;
@@ -111,9 +118,13 @@ int compare_favor(eval_t eval1, eval_t eval2, bool turn) {
     case DRAW: return eval1.strength;
       // If eval2 is CONTINUE, check for the evaluation difference.
     case CONTINUE: return eval1.strength - eval2.strength;
+
+    case NOT_CALCULATED:
     case INVALID:
       assert(false); break;
     }
+
+  case NOT_CALCULATED:
   case INVALID:
     assert(false);
     break;
@@ -242,7 +253,7 @@ _evaluate(board_t* board,
   // If this move is the first move and if there are only one possible moves, return the only move.
   // No need to search recursively.
   if (starting_move && length == 1) {
-    *evaluation = (eval_t) { .type=CONTINUE, .strength=0 };
+    *evaluation = (eval_t) { .type=NOT_CALCULATED };
     return moves[0];
   }
 
