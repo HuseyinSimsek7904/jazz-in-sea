@@ -113,20 +113,20 @@ AI_TEST_RESULTS=(
 )
 
 AI_TEST_DEPTHS=(
-    1
-    1
-    1
-    1
+    0
+    0
+    0
+    0
+    0
+    0
     1
     1
     2
     2
-    3
-    3
-    12
-    12
-    3
-    3
+    11
+    11
+    2
+    2
 )
 
 for i in ${!AI_TEST_BOARDS[@]}

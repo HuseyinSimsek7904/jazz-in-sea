@@ -214,14 +214,6 @@ _evaluate(board_t* board,
   evaluate_count++;
   #endif
 
-  // Check if we reached the end of the best_line buffer.
-  // If so, just return the evaluation.
-  if (!max_depth) {
-    *evaluation = evaluate_board(board);
-    assert(evaluation->type != INVALID);
-    return 0;
-  }
-
   // Check for the board state.
   // If the game should not continue, return the evaluation.
   state_t state = get_board_state(board);
@@ -234,6 +226,14 @@ _evaluate(board_t* board,
     return 0;
   case 0x30:
     *evaluation = (eval_t) { .type=BLACK_WINS, .strength=board->move_count };
+    return 0;
+  }
+
+  // Check if we reached the end of the best_line buffer.
+  // If so, just return the evaluation.
+  if (!max_depth) {
+    *evaluation = evaluate_board(board);
+    assert(evaluation->type != INVALID);
     return 0;
   }
 
