@@ -237,40 +237,39 @@ _evaluate(board_t* board,
 
   // Loop through all of the available moves except the first, and recursively get the next moves.
   for (int i=0; i<length; i++) {
-    move_t move = moves[i];
-    do_move(board, move);
-    eval_t new_evaluation;
-
     // If the move was a capture move, do not decrement the depth.
+    move_t move = moves[i];
+    eval_t new_evaluation;
     size_t new_depth = max_depth - (is_valid_pos(move.capture) ? 0 : 1);
 
+    do_move(board, move);
     _evaluate(board, new_depth, &new_evaluation, alpha, beta, false);
     undo_move(board, move);
 
-    // If the found move is better than the latest best move, update it.
-    if (evaluation->type == INVALID || compare_favor(new_evaluation, *evaluation, board->turn) > 0) {
-      *evaluation = new_evaluation;
-      best_move = move;
+    // If the move is not worse than the found moves, continue.
+    if (evaluation->type != INVALID && compare_favor(new_evaluation, *evaluation, board->turn) <= 0) continue;
 
-      // If found a mate for the current player, select this move automatically and stop iterating.
-      if (quick_mate_optimisation &&
-          ((board->turn && evaluation->type == WHITE_WINS) ||
-           (!board->turn && evaluation->type == BLACK_WINS)))
-        return move;
-    }
+    *evaluation = new_evaluation;
+    best_move = move;
 
-    // Update the limit variables alpha and beta.
-    if (board->turn) {
-      if (compare_favor(new_evaluation, alpha, board->turn))
-        alpha = new_evaluation;
-    } else {
-      if (compare_favor(new_evaluation, beta, board->turn))
-        beta = new_evaluation;
-    }
+    // If found a mate for the current player, select this move automatically and stop iterating.
+    if (quick_mate_optimisation &&
+        ((board->turn && evaluation->type == WHITE_WINS) ||
+         (!board->turn && evaluation->type == BLACK_WINS)))
+      return move;
 
     // If found a move better than beta or alpha, break.
     if (compare_favor(new_evaluation, board->turn ? beta : alpha, board->turn) > 0)
       break;
+
+    // Update the limit variables alpha and beta.
+    if (board->turn) {
+      if (compare_favor(new_evaluation, alpha, board->turn) > 0)
+        alpha = new_evaluation;
+    } else {
+      if (compare_favor(new_evaluation, beta, board->turn) > 0)
+        beta = new_evaluation;
+    }
   }
 
   assert(evaluation->type != INVALID);
