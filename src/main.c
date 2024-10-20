@@ -42,6 +42,7 @@ void command_help(int argc, char** argv) {
     cli printf("commands:\n"
                "    help              get information about commands\n"
                "    loadfen           load a board from its FEN\n"
+               "    savefen           get the FEN string of the current board\n"
                "    show              show the current board\n"
                "    makemove          make a move");
 
@@ -51,6 +52,9 @@ void command_help(int argc, char** argv) {
 
     } else if (!strcmp(argv[1], "loadfen")) {
       cli printf("loadfen <fen>: load a board configuration from a FEN string\n");
+
+    } else if (!strcmp(argv[1], "savefen")) {
+      cli printf("savefen: get the FEN string of the current board configuration\n");
 
     } else if (!strcmp(argv[1], "show")) {
       cli printf("show: print the current board configuration\n");
@@ -79,6 +83,14 @@ void command_loadfen(int argc, char** argv) {
   }
 
   copy_board(&new_board, &game_board);
+}
+
+void command_savefen(int argc, char** argv) {
+  expect_n_arguments("savefen", 0);
+
+  char buffer[256];
+  save_fen(buffer, &game_board);
+  printf("%s\n", buffer);
 }
 
 void command_show(int argc, char** argv) {
@@ -223,6 +235,9 @@ int main(int argc, char** argv) {
 
     } else if (!strcmp(command, "loadfen")) {
       command_loadfen(argc, argv);
+
+    } else if (!strcmp(command, "savefen")) {
+      command_savefen(argc, argv);
 
     } else if (!strcmp(command, "show")) {
       command_show(argc, argv);
