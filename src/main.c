@@ -148,24 +148,24 @@ void state_test(int argc, const char** argv) {
 }
 
 void distance_test(int argc, const char** argv) {
-  printf("Pawn distance:\n");
+  printf("Pawn advantage:\n");
   for (int prow=0; prow<8; prow++) {
     for (int pcol=0; pcol<8; pcol++) {
       pos_t pos = to_position(perspective_row(prow, false),
                               perspective_col(pcol, false));
 
-      printf("%c", '0' + pawn_dist_to_center(pos));
+      printf("%3i", pawn_pos_adv(pos));
     }
     printf("\n");
   }
 
-  printf("Knight distance:\n");
+  printf("Knight advantage:\n");
   for (int prow=0; prow<8; prow++) {
     for (int pcol=0; pcol<8; pcol++) {
       pos_t pos = to_position(perspective_row(prow, false),
                               perspective_col(pcol, false));
 
-      printf("%c", '0' + knight_dist_to_center(pos));
+      printf("%3i", knight_pos_adv(pos));
     }
     printf("\n");
   }

@@ -1,9 +1,12 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "ai.h"
 #include "board.h"
+#include "io.h"
 #include "move.h"
 #include "position.h"
 #include "piece.h"
@@ -15,17 +18,17 @@ const int KNIGHT_BASE = 2;
 // As x increases, distance from center in x decreases.
 // Same for y.
 const int PAWN_ADV_TABLE[4][4] = {
-  {-36, -25, -16,  -9},
-  {-25, -16,  -9,  -4},
-  {-16,  -9,  -4,  -1},
-  { -9,  -4,  -1,  -0},
+  {-7, -6, -5, -3},
+  {-6, -5, -4, -2},
+  {-5, -4, -3, -1},
+  {-3, -2, -1, -0},
 };
 
 const int KNIGHT_ADV_TABLE[4][4] = {
-  {-16,  -9,  -9,  -4},
-  { -9,  -4,  -4,  -1},
-  { -9,  -4,  -4,  -1},
-  { -4,  -1,  -1,  -0}
+  {-5, -4, -4, -2},
+  {-4, -3, -3, -1},
+  {-4, -3, -3, -1},
+  {-2, -1, -1, -0}
 };
 
 // Returns the copy of eval from the opponent's POV.
@@ -136,7 +139,7 @@ int knight_dist_to_center(pos_t pos) {
   return (col <= 3 ? (4 - col) / 2 : (col - 3) / 2) + (row <= 3 ? (4 - row) / 2 : (row - 3) / 2);
 }
 
-int _pawn_pos_adv(pos_t pos) {
+int pawn_pos_adv(pos_t pos) {
   int col = to_col(pos);
   int row = to_row(pos);
   if (col >= 4) col = 7 - col;
@@ -144,7 +147,7 @@ int _pawn_pos_adv(pos_t pos) {
   return PAWN_ADV_TABLE[row][col];
 }
 
-int _knight_pos_adv(pos_t pos) {
+int knight_pos_adv(pos_t pos) {
   int col = to_col(pos);
   int row = to_row(pos);
   if (col >= 4) col = 7 - col;
@@ -159,45 +162,6 @@ unsigned int get_evaluate_count() {
   return evaluate_count;
 }
 #endif
-
-// Evaluate the board.
-eval_t evaluate_board(board_t* board) {
-  // Check for the board state.
-  state_t state = get_board_state(board);
-  switch (state & 0x30) {
-  case 1: return (eval_t) { .type=DRAW,       .strength=board->move_count };
-  case 2: return (eval_t) { .type=WHITE_WINS, .strength=board->move_count };
-  case 3: return (eval_t) { .type=BLACK_WINS, .strength=board->move_count };
-  }
-
-  // If the game did not end yet, look for the positions of pieces.
-  int eval = 0;
-  for (int row=0; row<8; row++) {
-    for (int col=0; col<8; col++) {
-      pos_t pos = to_position(row, col);
-      char piece = get_piece(board, pos);
-
-      if (piece == ' ') continue;
-
-      // Calculate the evaluation for the piece.
-      int piece_eval;
-      if (is_piece_pawn(piece))
-        piece_eval = PAWN_BASE + _pawn_pos_adv(pos);
-      else
-        piece_eval = KNIGHT_BASE + _knight_pos_adv(pos);
-
-      // If the piece is black, then negate the evaluation.
-      if (is_piece_black(piece))
-        piece_eval *= -1;
-
-      eval += piece_eval;
-    }
-  }
-
-  // Return the generated strength object as a continue evaluation.
-  return (eval_t) { .type=CONTINUE, .strength=eval};
-}
-
 
 // Find the best continuing moves available and its evaluation.
 size_t
@@ -232,7 +196,7 @@ _evaluate(board_t* board,
   // Check if we reached the end of the best_line buffer.
   // If so, just return the evaluation.
   if (!max_depth) {
-    *evaluation = evaluate_board(board);
+    *evaluation = (eval_t) { .type=CONTINUE, .strength=0 };
     assert(evaluation->type != INVALID);
     return 0;
   }
@@ -264,8 +228,33 @@ _evaluate(board_t* board,
 
     do_move(board, move);
     _evaluate(board, new_depth, new_moves, &new_evaluation, alpha, beta, false);
-
     undo_move(board, move);
+
+    // If the evaluation type was CONTINUE, then add the move delta evaluation.
+    if (new_evaluation.type == CONTINUE) {
+      int delta_evaluation = 0;
+
+      // Add the advantage of the piece.
+      if (is_valid_pos(move.capture)) {
+        if (is_piece_knight(move.capture_piece))
+          delta_evaluation -= KNIGHT_BASE;
+        else {
+          assert(is_piece_pawn(move.capture_piece));
+          delta_evaluation -= PAWN_BASE;
+        }
+      }
+
+      // Add the advantage difference of the from and to positions.
+      char piece = get_piece(board, move.from);
+      if (is_piece_knight(piece)) {
+        delta_evaluation += knight_pos_adv(move.to) - knight_pos_adv(move.from);
+      } else {
+        assert(is_piece_pawn(piece));
+        delta_evaluation += pawn_pos_adv(move.to) - pawn_pos_adv(move.from);
+      }
+
+      new_evaluation.strength += board->turn ? delta_evaluation : -delta_evaluation;
+    }
 
     // If this move is not the first move, compare this move with the best move.
     if (found_moves) {
