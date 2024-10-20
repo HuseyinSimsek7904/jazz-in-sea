@@ -231,7 +231,9 @@ int generate_argv(char* arg_buffer, char** argv) {
 
   cli printf("> ");
 
-  fgets(buffer, sizeof(buffer), stdin);
+  if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
+    cli printf("\n");
+  }
 
   int argc = 0;
   char* buffer_ptr = buffer;
@@ -334,8 +336,6 @@ int main(int argc, char** argv) {
   }
 
   while (true) {
-    if (feof(stdin)) exit(0);
-
     char* argv[32];
     char arg_buffer[512];
     int argc = generate_argv(arg_buffer, argv);
