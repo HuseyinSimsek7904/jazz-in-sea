@@ -1,9 +1,11 @@
 #include <assert.h>
+#include <bits/getopt_core.h>
 #include <stdbool.h>
-#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
+#include <getopt.h>
 
 #include "ai.h"
 #include "board.h"
@@ -14,265 +16,201 @@
 #include "io.h"
 
 
-void search_depth(board_t* board, int depth) {
-  if (depth == 0) return;
+#define expect_n_arguments(s, n)                                        \
+  if (argc != n+1) {                                                    \
+    printf("error: command '%s' expects exactly %u argument.\n", s, n); \
+    return;                                                             \
+  }
 
-  move_t moves[256];
-  int length = generate_moves(board, moves);
+board_t game_board;
 
-  if (!length) {
-    print_board(board, false);
-    printf("No moves available, going back.\n");
+void initialize() {
+  load_fen(DEFAULT_BOARD, &game_board);
+}
+
+void command_help(int argc, char** argv) {
+  if (argc == 1) {
+    printf("commands:\n"
+           "    help              get information about commands\n"
+           "    loadfen           load a FEN notation board\n"
+           "    show              show the current board\n");
+            "    makemove          make a move");
+
+  } else if (argc == 2) {
+    if (!strcmp(argv[1], "help")) {
+      printf("help [<command>]: list or get information about commands\n");
+
+    } else if (!strcmp(argv[1], "loadfen")) {
+      printf("loadfen <fen>: load a board configuration from a FEN string\n");
+
+    } else if (!strcmp(argv[1], "show")) {
+      printf("show: print the current board configuration\n");
+    } else if (!strcmp(argv[1], "makemove")) {
+      cli printf("makemove <move>: make a move on the current board\n");
+
+    } else {
+      printf("error: unknown command\n");
+      return;
+    }
+
+  } else {
+    printf("error: command 'help' requires either 0 or 1 arguments.\n");
+    return;
+  }
+}
+
+void command_load_fen(int argc, char** argv) {
+  expect_n_arguments("loadfen", 1);
+
+  board_t new_board;
+  if (!load_fen(argv[1], &new_board)) {
+    printf("error: invalid fen\n");
     return;
   }
 
-  for (int i=0; i<length - 1; i++) {
-    print_move(moves[i]);
-    printf(", ");
-  }
-
-  printf("%u available moves: ", length);
-  print_move(moves[length - 1]);
-  printf("\n");
-
-  move_t move = moves[rand() % length];
-
-  printf("Making move ");
-  print_move(move);
-  printf(".\n");
-
-  do_move(board, move);
-
-  search_depth(board, depth - 1);
-
-  printf("Unmaking move ");
-  print_move(move);
-  printf(".\n");
-
-  undo_move(board, move);
+  copy_board(&new_board, &game_board);
 }
 
-int count_branches(board_t* board, int depth) {
-  if (depth == 0) return 1;
+void command_show(int argc, char** argv) {
+  expect_n_arguments("show", 0);
 
-  move_t moves[256];
-  int length = generate_moves(board, moves);
-
-  int total = 0;
-  for (int i=0; i<length; i++) {
-    do_move(board, moves[i]);
-    total += count_branches(board, depth - 1);
-    undo_move(board, moves[i]);
-  }
-  return total;
+  print_board(&game_board, false);
 }
 
-void depth_test(int argc, const char** argv) {
-  int depth = -1;
-  if (argc >= 3) {
-    depth = atoi(argv[2]);
+void command_makemove(int argc, char** argv) {
+  expect_n_arguments("makemove", 1);
+
+  move_t move;
+  if (!string_to_move(argv[1], &move)) {
+    printf("error: invalid move notation\n");
+    return;
   }
 
-  printf("Trying to print a branch from root to a leaf with depth %i...\n", depth);
-
-  board_t board;
-  board_t board_original;
-
-  if (!load_fen(DEFAULT_BOARD, &board)) {
-    printf("Could not load FEN.\n");
-    exit(1);
-  }
-  copy_board(&board, &board_original);
-
-  printf("Successfully loaded FEN.\n");
-
-  print_board(&board, false);
-
-  search_depth(&board, depth);
-
-  printf("Resulting board:\n");
-  print_board(&board, false);
-
-  if (compare(&board, &board_original)) {
-    printf("Boards match!\n");
-    exit(0);
-  } else {
-    printf("Boards do not match!\n");
-    exit(1);
-  }
+  do_move(&game_board, move);
 }
 
-void count_test(int argc, const char** argv) {
-  if (argc < 3) {
-    printf("Count test requires at least one argument.\n");
-    exit(1);
-  }
+bool is_whitespace(char c) { return c == ' ' || c == '\t' || c == '\n'; }
 
-  int depth = atoi(argv[2]);
+#define ARG_BUFFER_SIZE 512
+#define ARGV_SIZE 32
 
-  const char* fen = DEFAULT_BOARD;
-  if (argc >= 4) {
-    fen = argv[3];
-  }
+int generate_argv(char* arg_buffer, char** argv) {
+  // Get the command and parse it.
+  char buffer[256];
+  printf("> ");
+  fgets(buffer, sizeof(buffer), stdin);
 
-  board_t board;
+  int argc = 0;
+  char* buffer_ptr = buffer;
+  char* arg_buffer_ptr = arg_buffer;
+  while (true) {
+    // Ignore the whitespaces.
+    char c;
+    do {
+      c = *buffer_ptr++;
+    } while (is_whitespace(c));
 
-  if (!load_fen(fen, &board)) {
-    printf("Could not load FEN.\n");
-    exit(1);
-  }
+    // If reached the end of the string, finish parsing.
+    if (c == '\0') break;
 
-  int branches = count_branches(&board, depth);
-  printf("%u\n", branches);
-
-  exit(0);
-}
-
-void state_test(int argc, const char** argv) {
-  const char* fen = DEFAULT_BOARD;
-  if (argc >= 3) {
-    fen = argv[2];
-  }
-
-  board_t board;
-
-  if (!load_fen(fen, &board)) {
-    printf("Could not load FEN.\n");
-    exit(1);
-  }
-
-  state_t state = get_board_state(&board);
-  printf("%s\n", board_state_text(state));
-
-  exit(0);
-}
-
-void distance_test(int argc, const char** argv) {
-  printf("Pawn advantage:\n");
-  for (int prow=0; prow<8; prow++) {
-    for (int pcol=0; pcol<8; pcol++) {
-      pos_t pos = to_position(perspective_row(prow, false),
-                              perspective_col(pcol, false));
-
-      printf("%3i", pawn_pos_adv(pos));
+    char quote = '\0';
+    if (c == '\'' || c == '"'){
+      quote = c;
+      c = *buffer_ptr++;
     }
-    printf("\n");
-  }
 
-  printf("Knight advantage:\n");
-  for (int prow=0; prow<8; prow++) {
-    for (int pcol=0; pcol<8; pcol++) {
-      pos_t pos = to_position(perspective_row(prow, false),
-                              perspective_col(pcol, false));
-
-      printf("%3i", knight_pos_adv(pos));
+    // Copy the string from the buffer to arg buffer.
+    if (argc > ARGV_SIZE) {
+      printf("error: argv overflow\n");
+      return -1;
     }
-    printf("\n");
+    argv[argc++] = arg_buffer_ptr;
+
+    while (quote ? c != quote : !is_whitespace(c)){
+      if (c == '\0') {
+        if (quote) {
+          printf("error: unterminated quote\n");
+
+        }
+
+        break;
+      }
+
+      // Check for buffer overflow and move the character.
+      if (arg_buffer_ptr > arg_buffer + ARG_BUFFER_SIZE) {
+        printf("error: arg buffer overflow\n");
+        return -1;
+      }
+      *arg_buffer_ptr++ = c;
+
+      c = *buffer_ptr++;
+    }
+
+    // Check for buffer overflow and move the character.
+    if (arg_buffer_ptr > arg_buffer + ARG_BUFFER_SIZE) {
+      printf("error: arg buffer overflow\n");
+      return -1;
+    }
+    *arg_buffer_ptr++ = '\0';
   }
+
+  // After all of the buffers are filled, add a null ptr to the arg_ptr_buffer.
+  if (argc > ARGV_SIZE) {
+    printf("error: argv overflow\n");
+    return -1;
+  }
+
+  argv[argc] = 0;
+  return argc;
 }
 
-void iterative_ai_test(int argc, const char** argv) {
-  const char* fen = DEFAULT_BOARD;
-  size_t depth = 3;
+int main(int argc, char** argv) {
+  initialize();
+  srand(time(NULL));
 
-  if (argc >= 3) {
-    depth = atoi(argv[2]);
-    if (argc >= 4) {
-      fen = argv[3];
+  // Get the global flags.
+  const char* const global_opts = "h";
+
+  while (argv[optind]) {
+    char c = getopt(argc, argv, global_opts);
+    switch (c) {
+    case 'h':
+      printf("\n"
+             "                -- Jazz in Sea -- \n"
+             "  An AI attempt for the board game Cez written in C\n"
+             "\n"
+             "run `%s` without any options to start the cli.\n"
+             , argv[0]);
+
+
+      return 0;
     }
-  }
-
-  board_t board;
-  if (!load_fen(fen, &board)) {
-    printf("Could not load fen.\n");
-    exit(1);
   }
 
   while (true) {
-    print_board(&board, false);
+    char* argv[32];
+    char arg_buffer[512];
+    int argc = generate_argv(arg_buffer, argv);
 
-    // Check if the game ended.
-    state_t state = get_board_state(&board);
-    if (state) {
-      printf("%s\n", board_state_text(state));
-      exit(0);
-    }
+    if (argc < 0) continue;
 
-    eval_t evaluation;
-    move_t moves[256];
-    size_t length = evaluate(&board, depth, moves, &evaluation);
+    char* command = argv[0];
 
-    // Since we checked whether or not the game ended, we know that there must be at least one move available.
-    assert(length);
+    if (!strcmp(command, "help")) {
+      command_help(argc, argv);
 
-    print_eval(evaluation, &board);
+    } else if (!strcmp(command, "loadfen")) {
+      command_loadfen(argc, argv);
 
-    #ifdef EVALCOUNT
-    printf("total %u calls to eval\n", get_evaluate_count());
-    #endif
+    } else if (!strcmp(command, "show")) {
+      command_show(argc, argv);
 
-    // List the moves.
-    printf("best moves: ");
-    print_move(moves[0]);
-    for (int i=1; i<length; i++) {
-      printf(", ");
-      print_move(moves[i]);
-    }
-    printf(" (%zu moves)\n", length);
+    } else if (!strcmp(command, "makemove")) {
+      command_makemove(argc, argv);
 
-    // Wait for the user to press enter.
-    if (getc(stdin) != '\n') exit(1);
-
-    // Select a random move.
-    move_t selected_move = moves[rand() % length];
-    printf("making move ");
-    print_move(selected_move);
-    printf("\n");
-    do_move(&board, selected_move);
-  }
-}
-
-void ai_test(int argc, const char** argv) {
-  const char* fen = DEFAULT_BOARD;
-  size_t depth = 3;
-  if (argc >= 3) {
-    fen = argv[2];
-    if (argc >= 4) {
-      depth = atoi(argv[3]);
+    } else {
+      cli_error("unknown command '%s'\n", command);
+      continue;
     }
   }
-
-  board_t board;
-  if (!load_fen(fen, &board)) {
-    printf("Could not load FEN.\n");
-    exit(1);
-  }
-
-  move_t moves[256];
-  eval_t evaluation;
-  evaluate(&board, depth, moves, &evaluation);
-
-  print_eval(evaluation, &board);
-
-  exit(0);
-}
-
-int main(int argc, const char** argv) {
-  srand(time(NULL));
-
-  int option = 0;
-  if (argc >= 2) {
-    option = atoi(argv[1]);
-  }
-
-  switch (option) {
-  case 0: depth_test(argc, argv); break;
-  case 1: count_test(argc, argv); break;
-  case 2: state_test(argc, argv); break;
-  case 3: distance_test(argc, argv); break;
-  case 4: iterative_ai_test(argc, argv); break;
-  case 5: ai_test(argc, argv); break;
-  default:
-    break;
-      }
 }
