@@ -40,3 +40,4 @@
 - [x] #38  (cli) implement the `status` command
 - [x] #39  (cli) implement the `allmoves` command
 - [ ] #40  (cli) implement the `countbranches` command
+- [x] #41  (cli) implement the `playai` command
