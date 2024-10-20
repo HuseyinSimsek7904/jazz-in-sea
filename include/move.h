@@ -21,6 +21,8 @@ typedef struct {
   int capture_piece;
 } move_t;
 
+bool cmp_move(move_t, move_t);
+
 bool is_valid_move(move_t);
 
 void do_move(board_t*, move_t);
