@@ -36,7 +36,7 @@ int _capture_delta_to_regular_delta(int dist) {
 }
 
 // Try to convert a string to a move.
-bool string_to_move(const char* s, move_t* move) {
+bool string_to_move(const char* s, board_t* board, move_t* move) {
   char row_name = *s++;
   if (row_name < 'a' || row_name > 'h') return false;
 
