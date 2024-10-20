@@ -8,16 +8,16 @@
 - [x] #7   (feat) implement a very simplified evaluation function where the pieces are scored according to their distance to the center
 - [x] #8   (feat) implement the simplest kind of ai, where the ai uses the minmax algorithm to find an "optimal" move
 - [x] #9   (feat) implement alpha-beta pruning
-- [ ] #10  (test) add info messages about the test commands
-- [ ] #11  (test) implement better command system that allows subcommands like 'test', 'load-fen' etc.
-- [ ] #12  (test) depth tests do not create random moves as the test takes not more than few milliseconds, so the seed for the srand function is almost always the same
+- [x] #10  (test) add info messages about the test commands
+- [x] #11  (test) implement better command system that allows subcommands like 'test', 'load-fen' etc.
+- [-] #12  (test) depth tests do not create random moves as the test takes not more than few milliseconds, so the seed for the srand function is almost always the same
 - [x] #13  (feat) add all of the remaining parts of the fen loader
 - [x] #14  (feat) add fen saver
 - [ ] #15  (feat) implement `DRAW_BY_REPETITION` and `DRAW_BY_NO_MOVES`
 - [ ] #16  (feat) implement quick mate search when either players are down to only 1 pieces
 - [ ] #17  (feat) implement game history and loading and storing game history
 - [x] #18  (feat) eval should return an array of best moves
-- [ ] #19  (feat) imlement cli like commands (requires #1, #2)
+- [x] #19  (feat) imlement cli like commands (requires #1, #2)
 - [ ] #20  (feat) implement pvp, pvb and bvb (requires #1, #2, #19)
 - [ ] #21  (feat) `generate_moves` should generate moves in the order that would help the alpha-beta pruning algorithm, aka best moves first (best moves are usually the moves that get the piece closer to the center or moves that forces the opponent to take the piece)
 - [ ] #22  (chore) some frequently used functions should be placed in headers as inline functions
@@ -28,3 +28,6 @@
 - [x] #27  (chore) replace `_pawn_pos_adv` and `_knight_pos_adv` with prebuilt arrays of advantage values
 - [x] #28  (feat) eval should not recalculate the board evaluation and instead should always look for the evaluation difference
 - [ ] #29  (chore) create `piece_t`
+- [ ] #30  (fix) the ai produces asymmetric result for these boards:
+  - `1P4P1/8/8/8/8/8/8/p6p w` with depth 10
+- [ ] #31  (feat) for cli, update the tty attributes
