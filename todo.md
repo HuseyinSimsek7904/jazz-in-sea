@@ -36,7 +36,7 @@
 - [ ] #34  (cli) implement the `placeat` subcommand
 - [ ] #35  (cli) implement the `removeat` subcommand
 - [ ] #36  (cli) implement the `undomove` subcommand
-- [ ] #37  (cli) implement the `automove` command
+- [x] #37  (cli) implement the `automove` command
 - [x] #38  (cli) implement the `status` command
 - [x] #39  (cli) implement the `allmoves` command
 - [ ] #40  (cli) implement the `countbranches` command
