@@ -18,6 +18,7 @@
 #include "io.h"
 
 #define cli            if (cli_logs)
+#define cli_info       if (be_descriptive) cli
 #define cli_error(...) if (cli_logs) fprintf(stderr, "error: " __VA_ARGS__); else exit(1);
 
 #define expect_n_arguments(s, n)                                        \
@@ -34,6 +35,7 @@ size_t game_all_moves_length;
 
 // API flags
 bool cli_logs = true;
+bool be_descriptive = true;
 
 
 #define command(name)                              \
@@ -51,6 +53,9 @@ command(loadfen) {
   copy_board(&new_board, &game_board);
   game_state = get_board_state(&game_board);
   game_all_moves_length = generate_moves(&game_board, game_all_moves);
+
+  cli_info printf("successfully loaded from fen\n");
+  cli_info print_board(&game_board, false);
 }
 
 command(savefen) {
@@ -65,6 +70,8 @@ command(show) {
   expect_n_arguments("show", 0);
 
   cli print_board(&game_board, false);
+
+  cli_info printf("%s to move\n", game_board.turn ? "white" : "black");
 }
 
 command(makemove) {
