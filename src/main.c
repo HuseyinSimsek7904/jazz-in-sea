@@ -30,21 +30,74 @@
 board_t game_board;
 
 // API flags
-bool cli_logs = false;
+bool cli_logs = true;
 
 
 void initialize() {
   load_fen(DEFAULT_BOARD, &game_board);
 }
 
-void command_help(int argc, char** argv) {
+
+#define command(name)                              \
+  void command_ ## name(int argc, char** argv)     \
+
+command(loadfen) {
+  expect_n_arguments("loadfen", 1);
+
+  board_t new_board;
+  if (!load_fen(argv[1], &new_board)) {
+    cli_error("invalid fen\n");
+    return;
+  }
+
+  copy_board(&new_board, &game_board);
+}
+
+command(savefen) {
+  expect_n_arguments("savefen", 0);
+
+  char buffer[256];
+  save_fen(buffer, &game_board);
+  printf("%s\n", buffer);
+}
+
+command(show) {
+  expect_n_arguments("show", 0);
+
+  cli print_board(&game_board, false);
+}
+
+command(makemove) {
+  expect_n_arguments("makemove", 1);
+
+  move_t move;
+  if (!string_to_move(argv[1], &game_board, &move)) {
+    cli_error("invalid move notation\n");
+    return;
+  }
+
+  move_t moves[256];
+  size_t length = generate_moves(&game_board, moves);
+
+  for (int i=0; i<length; i++) {
+    if (cmp_move(moves[i], move)) {
+      do_move(&game_board, move);
+      return;
+    }
+  }
+
+  cli_error("invalid move\n");
+  return;
+}
+
+command(help) {
   if (argc == 1) {
     cli printf("commands:\n"
                "    help              get information about commands\n"
                "    loadfen           load a board from its FEN\n"
                "    savefen           get the FEN string of the current board\n"
                "    show              show the current board\n"
-               "    makemove          make a move");
+               "    makemove          make a move\n");
 
   } else if (argc == 2) {
     if (!strcmp(argv[1], "help")) {
@@ -71,55 +124,6 @@ void command_help(int argc, char** argv) {
     cli_error("command 'help' requires either 0 or 1 arguments.\n");
     return;
   }
-}
-
-void command_loadfen(int argc, char** argv) {
-  expect_n_arguments("loadfen", 1);
-
-  board_t new_board;
-  if (!load_fen(argv[1], &new_board)) {
-    cli_error("invalid fen\n");
-    return;
-  }
-
-  copy_board(&new_board, &game_board);
-}
-
-void command_savefen(int argc, char** argv) {
-  expect_n_arguments("savefen", 0);
-
-  char buffer[256];
-  save_fen(buffer, &game_board);
-  printf("%s\n", buffer);
-}
-
-void command_show(int argc, char** argv) {
-  expect_n_arguments("show", 0);
-
-  cli print_board(&game_board, false);
-}
-
-void command_makemove(int argc, char** argv) {
-  expect_n_arguments("makemove", 1);
-
-  move_t move;
-  if (!string_to_move(argv[1], &game_board, &move)) {
-    cli_error("invalid move notation\n");
-    return;
-  }
-
-  move_t moves[256];
-  size_t length = generate_moves(&game_board, moves);
-
-  for (int i=0; i<length; i++) {
-    if (cmp_move(moves[i], move)) {
-      do_move(&game_board, move);
-      return;
-    }
-  }
-
-  cli_error("invalid move\n");
-  return;
 }
 
 bool is_whitespace(char c) { return c == ' ' || c == '\t' || c == '\n'; }
