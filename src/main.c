@@ -28,14 +28,10 @@
 
 // API states
 board_t game_board;
+state_t game_state;
 
 // API flags
 bool cli_logs = true;
-
-
-void initialize() {
-  load_fen(DEFAULT_BOARD, &game_board);
-}
 
 
 #define command(name)                              \
@@ -51,6 +47,7 @@ command(loadfen) {
   }
 
   copy_board(&new_board, &game_board);
+  game_state = get_board_state(&game_board);
 }
 
 command(savefen) {
@@ -72,7 +69,7 @@ command(makemove) {
 
   move_t move;
   if (!string_to_move(argv[1], &game_board, &move)) {
-    cli_error("invalid move notation\n");
+    cli_error("invalid move notation '%s'\n", argv[1]);
     return;
   }
 
@@ -82,6 +79,7 @@ command(makemove) {
   for (int i=0; i<length; i++) {
     if (cmp_move(moves[i], move)) {
       do_move(&game_board, move);
+      game_state = get_board_state(&game_board);
       return;
     }
   }
@@ -90,6 +88,17 @@ command(makemove) {
   return;
 }
 
+command(status) {
+  expect_n_arguments("status", 0);
+
+  printf("%s\n", board_state_text(game_state));
+}
+
+#define help_command(command_name, ...)          \
+  else if (!strcmp(argv[1], #command_name)) {    \
+    cli printf(__VA_ARGS__);                     \
+  }                                              \
+
 command(help) {
   if (argc == 1) {
     cli printf("commands:\n"
@@ -97,25 +106,19 @@ command(help) {
                "    loadfen           load a board from its FEN\n"
                "    savefen           get the FEN string of the current board\n"
                "    show              show the current board\n"
-               "    makemove          make a move\n");
+               "    makemove          make a move\n"
+               "    status            get the status information of the current board\n");
 
   } else if (argc == 2) {
-    if (!strcmp(argv[1], "help")) {
-      cli printf("help [<command>]: list or get information about commands\n");
+    if (false) { }
+    help_command(help, "help [<command>]: list or get information about commands\n")
+      help_command(loadfen, "loadfen <fen>: load a board configuration from a FEN string\n")
+      help_command(savefen, "savefen: get the FEN string of the current board configuration\n")
+      help_command(show, "show: print the current board configuration\n")
+      help_command(makemove, "makemove <move>: make a move on the current board\n")
+      help_command(status, "status: print the status of the board\n")
 
-    } else if (!strcmp(argv[1], "loadfen")) {
-      cli printf("loadfen <fen>: load a board configuration from a FEN string\n");
-
-    } else if (!strcmp(argv[1], "savefen")) {
-      cli printf("savefen: get the FEN string of the current board configuration\n");
-
-    } else if (!strcmp(argv[1], "show")) {
-      cli printf("show: print the current board configuration\n");
-
-    } else if (!strcmp(argv[1], "makemove")) {
-      cli printf("makemove <move>: make a move on the current board\n");
-
-    } else {
+    else {
       cli_error("unknown command\n");
       return;
     }
@@ -202,6 +205,16 @@ int generate_argv(char* arg_buffer, char** argv) {
   return argc;
 }
 
+
+void initialize() {
+  load_fen(DEFAULT_BOARD, &game_board);
+  game_state = get_board_state(&game_board);
+}
+
+#define expect_command(command_name)            \
+  else if (!strcmp(command, #command_name))     \
+    command_ ## command_name(argc, argv);       \
+
 int main(int argc, char** argv) {
   initialize();
   srand(time(NULL));
@@ -234,22 +247,15 @@ int main(int argc, char** argv) {
 
     char* command = argv[0];
 
-    if (!strcmp(command, "help")) {
-      command_help(argc, argv);
-
-    } else if (!strcmp(command, "loadfen")) {
-      command_loadfen(argc, argv);
-
-    } else if (!strcmp(command, "savefen")) {
-      command_savefen(argc, argv);
-
-    } else if (!strcmp(command, "show")) {
-      command_show(argc, argv);
-
-    } else if (!strcmp(command, "makemove")) {
-      command_makemove(argc, argv);
-
-    } else {
+    // Check for the commands.
+    if (false) {}
+    expect_command(help)
+      expect_command(loadfen)
+      expect_command(savefen)
+      expect_command(show)
+      expect_command(makemove)
+      expect_command(status)
+    else {
       cli_error("unknown command '%s'\n", command);
       continue;
     }
