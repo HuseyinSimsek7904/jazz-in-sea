@@ -41,3 +41,4 @@
 - [x] #39  (cli) implement the `allmoves` command
 - [ ] #40  (cli) implement the `countbranches` command
 - [x] #41  (cli) implement the `playai` command
+- [x] #41  (cli) implement the `getaimove` command
