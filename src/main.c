@@ -29,6 +29,8 @@
 // API states
 board_t game_board;
 state_t game_state;
+move_t game_all_moves[256];
+size_t game_all_moves_length;
 
 // API flags
 bool cli_logs = true;
@@ -48,6 +50,7 @@ command(loadfen) {
 
   copy_board(&new_board, &game_board);
   game_state = get_board_state(&game_board);
+  game_all_moves_length = generate_moves(&game_board, game_all_moves);
 }
 
 command(savefen) {
@@ -80,6 +83,7 @@ command(makemove) {
     if (cmp_move(moves[i], move)) {
       do_move(&game_board, move);
       game_state = get_board_state(&game_board);
+      game_all_moves_length = generate_moves(&game_board, game_all_moves);
       return;
     }
   }
@@ -92,6 +96,21 @@ command(status) {
   expect_n_arguments("status", 0);
 
   printf("%s\n", board_state_text(game_state));
+}
+
+command(allmoves) {
+  expect_n_arguments("allmoves", 0);
+
+  if (!game_all_moves_length) {
+    print_move(game_all_moves[0]);
+  }
+
+  for (int i=1; i<game_all_moves_length; i++) {
+    printf(" ");
+    print_move(game_all_moves[i]);
+  }
+
+  printf("\n");
 }
 
 #define help_command(command_name, ...)          \
@@ -107,7 +126,8 @@ command(help) {
                "    savefen           get the FEN string of the current board\n"
                "    show              show the current board\n"
                "    makemove          make a move\n"
-               "    status            get the status information of the current board\n");
+               "    status            get the status information of the current board\n"
+               "    allmoves          list all of the available moves at the current board\n");
 
   } else if (argc == 2) {
     if (false) { }
@@ -117,6 +137,7 @@ command(help) {
       help_command(show, "show: print the current board configuration\n")
       help_command(makemove, "makemove <move>: make a move on the current board\n")
       help_command(status, "status: print the status of the board\n")
+      help_command(allmoves, "allmoves: list all of the available moves at the current board\n")
 
     else {
       cli_error("unknown command\n");
@@ -209,6 +230,7 @@ int generate_argv(char* arg_buffer, char** argv) {
 void initialize() {
   load_fen(DEFAULT_BOARD, &game_board);
   game_state = get_board_state(&game_board);
+  game_all_moves_length = generate_moves(&game_board, game_all_moves);
 }
 
 #define expect_command(command_name)            \
@@ -255,6 +277,7 @@ int main(int argc, char** argv) {
       expect_command(show)
       expect_command(makemove)
       expect_command(status)
+      expect_command(allmoves)
     else {
       cli_error("unknown command '%s'\n", command);
       continue;
