@@ -20,7 +20,7 @@
 
 // -- API states and flags --
 bool cli_logs = true;
-bool be_descriptive = true;
+bool be_descriptive = false;
 board_t game_board;
 state_t game_state;
 move_t game_all_moves[256];
@@ -136,7 +136,7 @@ command(status) {
 command(allmoves) {
   expect_n_arguments("allmoves", 0);
 
-  if (!game_all_moves_length) {
+  if (game_all_moves_length) {
     print_move(game_all_moves[0]);
   }
 
@@ -181,25 +181,30 @@ command(automove) {
 
 command(help) {
   if (argc == 1) {
-    cli printf("commands:\n"
+    cli printf("cli commands (these will not do anything if run with '-s'):\n"
                "    help              get information about commands\n"
-               "    loadfen           load a board from its FEN\n"
-               "    savefen           get the FEN string of the current board\n"
                "    show              show the current board\n"
-               "    makemove          make a move\n"
                "    status            get the status information of the current board\n"
                "    allmoves          list all of the available moves at the current board\n"
+               "\n"
+               "board commands:\n"
+               "    loadfen           load a board from its FEN\n"
+               "    savefen           get the FEN string of the current board\n"
+               "    makemove          make a move\n"
                "    automove          set or reset auto play by AI\n");
 
   } else if (argc == 2) {
     if (false) { }
+    // CLI commands
     help_command(help, "help [<command>]: list or get information about commands\n")
-      help_command(loadfen, "loadfen <fen>: load a board configuration from a FEN string\n")
-      help_command(savefen, "savefen: get the FEN string of the current board configuration\n")
       help_command(show, "show: print the current board configuration\n")
-      help_command(makemove, "makemove <move>: make a move on the current board\n")
       help_command(status, "status: print the status of the board\n")
       help_command(allmoves, "allmoves: list all of the available moves at the current board\n")
+
+      // Board commands
+      help_command(loadfen, "loadfen <fen>: load a board configuration from a FEN string\n")
+      help_command(savefen, "savefen: get the FEN string of the current board configuration\n")
+      help_command(makemove, "makemove <move>: make a move on the current board\n")
       help_command(automove, "automove: set or reset auto play mode by AI\n")
 
     else {
@@ -307,7 +312,7 @@ int main(int argc, char** argv) {
   srand(time(NULL));
 
   // Get the global flags.
-  const char* const global_opts = "h";
+  const char* const global_opts = "hsd";
 
   while (argv[optind]) {
     char c = getopt(argc, argv, global_opts);
@@ -317,11 +322,14 @@ int main(int argc, char** argv) {
              "                -- Jazz in Sea -- \n"
              "  An AI attempt for the board game Cez written in C\n"
              "\n"
-             "run `%s` without any options to start the cli.\n"
-             , argv[0]);
-
-
+             "    -h  Show this message\n"
+             "    -s  Silence the CLI like log messages\n"
+             "    -d  Be more descriptive (not effective if used with -s)\n");
       return 0;
+    case 's':
+      cli_logs = false;
+    case 'd':
+      be_descriptive = true;
     }
   }
 
