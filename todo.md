@@ -31,3 +31,12 @@
 - [ ] #30  (fix) the ai produces asymmetric result for these boards:
   - `1P4P1/8/8/8/8/8/8/p6p w` with depth 10
 - [ ] #31  (feat) for cli, update the tty attributes
+- [ ] #32  (cli) implement the `evaluate` command
+- [ ] #33  (cli) implement the `pieceat` subcommand
+- [ ] #34  (cli) implement the `placeat` subcommand
+- [ ] #35  (cli) implement the `removeat` subcommand
+- [ ] #36  (cli) implement the `undomove` subcommand
+- [ ] #37  (cli) implement the `automove` command
+- [x] #38  (cli) implement the `status` command
+- [x] #39  (cli) implement the `allmoves` command
+- [ ] #40  (cli) implement the `countbranches` command
