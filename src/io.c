@@ -73,6 +73,7 @@ bool string_to_move(const char* s, board_t* board, move_t* move) {
   if (move_type == 'x') {
     if (abs(dist) != 2 && abs(dist) != 3) return false;
     move->capture = move->from + _capture_delta_to_regular_delta(dist) * (move->to - move->from) / dist;
+    move->capture_piece = get_piece(board, move->capture);
   } else {
     if (abs(dist) != 1 && abs(dist) != 2) return false;
     move->capture = INV_POSITION;
