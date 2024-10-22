@@ -9,9 +9,7 @@ CPPFLAGS	:= -I $(INC-DIR)
 
 LDLIBS		:=	\
 src/board.o		\
-src/position.o		\
 src/move.o		\
-src/piece.o		\
 src/rules.o		\
 src/fen.o		\
 src/ai.o		\

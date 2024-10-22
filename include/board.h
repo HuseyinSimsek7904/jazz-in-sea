@@ -2,8 +2,11 @@
 #define _BOARD_H
 
 #include "position.h"
+#include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
+
+// -- The board_t type --
 
 typedef struct {
   #ifndef NDEBUG
@@ -27,16 +30,36 @@ typedef struct {
 } board_t;
 
 
-char get_piece(board_t*, pos_t);
-void set_piece(board_t*, pos_t, char);
+// -- Header functions --
 
-bool next_turn(board_t*);
+// Get a piece at a position.
+// Asserts if position is invalid.
+inline char get_piece(board_t *board, pos_t pos) {
+#ifndef NDEBUG
+  assert(board->initialized);
+#endif
+
+  assert(is_valid_pos(pos));
+  return board->board_array[pos];
+}
+
+// Set a piece at a position.
+// Asserts if position is invalid.
+inline void set_piece(board_t *board, pos_t pos, char piece) {
+  assert(is_valid_pos(pos));
+  board->board_array[pos] = piece;
+}
+
+// Change the turn of the board to the other player, and return the new turn.
+inline bool next_turn(board_t *board) { return board->turn = !board->turn; }
 
 inline bool whites_turn(board_t *board) { return  board->turn; }
 inline bool blacks_turn(board_t *board) { return !board->turn; }
 
-void copy_board(board_t*, board_t*);
 
+// -- C functions --
+
+void copy_board(board_t*, board_t*);
 bool compare(board_t*, board_t*);
 
 #endif
