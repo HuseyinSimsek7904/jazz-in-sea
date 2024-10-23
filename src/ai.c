@@ -12,23 +12,23 @@
 #include "piece.h"
 #include "rules.h"
 
-const int PAWN_BASE = 4;
-const int KNIGHT_BASE = 2;
+const int PAWN_BASE   = -20;
+const int KNIGHT_BASE = 700;
 
 // As x increases, distance from center in x decreases.
 // Same for y.
 const int PAWN_ADV_TABLE[4][4] = {
-  {-7, -6, -5, -3},
-  {-6, -5, -4, -2},
-  {-5, -4, -3, -1},
-  {-3, -2, -1, -0},
+  {-500, -450, -400, -300},
+  {-450, -400, -350, -250},
+  {-400, -350, -300, -200},
+  {-300, -250, -200, -0  },
 };
 
 const int KNIGHT_ADV_TABLE[4][4] = {
-  {-5, -4, -4, -2},
-  {-4, -3, -3, -1},
-  {-4, -3, -3, -1},
-  {-2, -1, -1, -0}
+  {-300, -250, -200, -100},
+  {-250, -200, -150, -60 },
+  {-200, -150, -30 , -50 },
+  {-100,  -60, -50 , -0  }
 };
 
 // Returns the copy of eval from the opponent's POV.
@@ -235,12 +235,14 @@ _evaluate(board_t* board,
       int delta_evaluation = 0;
 
       // Add the advantage of the piece.
+      // It is a "good" thing that we take the opponent's piece as these pieces have a base value.
+      // Losing a piece will make you lose that base value.
       if (is_valid_pos(move.capture)) {
         if (is_piece_knight(move.capture_piece))
-          delta_evaluation -= KNIGHT_BASE;
+          delta_evaluation += KNIGHT_BASE;
         else {
           assert(is_piece_pawn(move.capture_piece));
-          delta_evaluation -= PAWN_BASE;
+          delta_evaluation += PAWN_BASE;
         }
       }
 
