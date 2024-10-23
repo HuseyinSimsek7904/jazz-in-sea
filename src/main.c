@@ -215,6 +215,23 @@ command(getaimove) {
   printf("\n");
 }
 
+command(evaluate) {
+  expect_n_arguments("evaluate", 0);
+
+  // Check if the game ended.
+  if (game_state != NORMAL) {
+    cli_info printf("game ended\n");
+    return;
+  }
+
+  // Print the calculated evaluation of the AI.
+  int depth = 7;
+  move_t moves[256];
+  eval_t eval;
+  evaluate(&game_board, depth, moves, &eval);
+  print_eval(eval, &game_board);
+}
+
 #define help_command(command_name, ...)          \
   else if (!strcmp(argv[1], #command_name)) {    \
     cli printf(__VA_ARGS__);                     \
@@ -225,8 +242,6 @@ command(help) {
     cli printf("cli commands (these will not do anything if run with '-s'):\n"
                "    help              get information about commands\n"
                "    show              show the current board\n"
-               "    status            get the status information of the current board\n"
-               "    allmoves          list all of the available moves at the current board\n"
                "\n"
                "board commands:\n"
                "    loadfen           load a board from its FEN\n"
@@ -234,15 +249,17 @@ command(help) {
                "    makemove          make a move\n"
                "    automove          set or reset auto play by AI\n"
                "    playai            play one of the moves that AI generates\n"
-               "    getaimove         get a random move from the moves that the AI generated\n");
+               "    getaimove         get a random move from the moves that the AI generated\n"
+               "    status            get the status information of the current board\n"
+               "    allmoves          list all of the available moves at the current board\n"
+               "    evaluate          get AI evaluation on the board\n"
+               );
 
   } else if (argc == 2) {
     if (false) { }
     // CLI commands
     help_command(help, "help [<command>]: list or get information about commands\n")
       help_command(show, "show: print the current board configuration\n")
-      help_command(status, "status: print the status of the board\n")
-      help_command(allmoves, "allmoves: list all of the available moves at the current board\n")
 
       // Board commands
       help_command(loadfen, "loadfen <fen>: load a board configuration from a FEN string\n")
@@ -251,6 +268,9 @@ command(help) {
       help_command(automove, "automove: set or reset auto play mode by AI\n")
       help_command(playai, "playai: play a randomly selected move that AI generated\n")
       help_command(getaimove, "getaimove: get a randomly selected move that AI generated\n")
+      help_command(status, "status: print the status of the board\n")
+      help_command(allmoves, "allmoves: list all of the available moves at the current board\n")
+      help_command(evaluate, "evaluate: get AI evaluation on the current board\n")
 
     else {
       cli_error("unknown command\n");
@@ -401,6 +421,7 @@ int main(int argc, char** argv) {
       expect_command(automove)
       expect_command(playai)
       expect_command(getaimove)
+      expect_command(evaluate)
     else {
       cli_error("unknown command '%s'\n", command);
       continue;

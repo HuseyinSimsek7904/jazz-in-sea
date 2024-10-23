@@ -31,7 +31,7 @@
 - [ ] #30  (fix) the ai produces asymmetric result for these boards:
   - `1P4P1/8/8/8/8/8/8/p6p w` with depth 10
 - [ ] #31  (feat) for cli, update the tty attributes
-- [ ] #32  (cli) implement the `evaluate` command
+- [x] #32  (cli) implement the `evaluate` command
 - [ ] #33  (cli) implement the `pieceat` subcommand
 - [ ] #34  (cli) implement the `placeat` subcommand
 - [ ] #35  (cli) implement the `removeat` subcommand
