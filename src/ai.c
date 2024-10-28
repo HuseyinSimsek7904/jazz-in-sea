@@ -166,6 +166,7 @@ unsigned int get_evaluate_count() {
 // Find the best continuing moves available and its evaluation.
 size_t
 _evaluate(board_t* board,
+          state_cache_t* state,
           size_t max_depth,
           move_t* best_moves,
           eval_t* evaluation,
@@ -180,8 +181,7 @@ _evaluate(board_t* board,
 
   // Check for the board state.
   // If the game should not continue, return the evaluation.
-  state_t state = get_board_state(board);
-  switch (state & 0x30) {
+  switch (state->state & 0x30) {
   case 0x10:
     *evaluation = (eval_t) { .type=DRAW,       .strength=board->move_count };
     return 0;
@@ -226,9 +226,9 @@ _evaluate(board_t* board,
     size_t new_depth = max_depth - (is_valid_pos(move.capture) ? 0 : 1);
     move_t new_moves[256];
 
-    do_move(board, move);
-    _evaluate(board, new_depth, new_moves, &new_evaluation, alpha, beta, false);
-    undo_move(board, move);
+    do_move(board, state, move);
+    _evaluate(board, state, new_depth, new_moves, &new_evaluation, alpha, beta, false);
+    undo_move(board, state, move);
 
     // If the evaluation type was CONTINUE, then add the move delta evaluation.
     if (new_evaluation.type == CONTINUE) {
@@ -308,7 +308,11 @@ size_t evaluate(board_t* board, size_t max_depth, move_t* moves, eval_t* evaluat
   evaluate_count = 0;
   #endif
 
+  state_cache_t state;
+  generate_state_cache(board, &state);
+
   return _evaluate(board,
+                   &state,
                    max_depth,
                    moves,
                    evaluation,

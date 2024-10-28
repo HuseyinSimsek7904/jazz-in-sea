@@ -2,6 +2,7 @@
 #include "board.h"
 #include "piece.h"
 #include "position.h"
+#include "rules.h"
 #include <assert.h>
 
 const char FEN_WHITE_PAWN = 'P';
@@ -25,8 +26,8 @@ inline bool _char_to_player(char c) {
   }
 }
 
-// Load (and initialize) a board from FEN string.
-bool load_fen(const char* fen, board_t* board) {
+// Load and initialize a board and its state cache from FEN string.
+bool load_fen(const char* fen, state_cache_t* state, board_t* board) {
   int row = 0, col = 0;
 
   for (; *fen != ' '; fen++) {
@@ -95,6 +96,9 @@ bool load_fen(const char* fen, board_t* board) {
 
   // Reset the move count.
   board->move_count = 0;
+
+  // Update the board state.
+  generate_state_cache(board, state);
 
   return true;
 }

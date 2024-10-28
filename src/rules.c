@@ -128,7 +128,7 @@ unsigned int get_island_size(board_t* board, bool color, bool visited[256], unsi
 // This is because this function does not need to be fast right now, we will be
 // improving all of the functions as we progress.
 // Get the board state.
-state_t get_board_state(board_t* board) {
+state_t _get_board_state(board_t* board) {
   // Count all of the pieces.
   int white_piece_count = 0, black_piece_count = 0;
   count_pieces(board, &white_piece_count, &black_piece_count);
@@ -254,10 +254,16 @@ bool islands_should_be_updated(move_t move, bool islands[256]) {
 
   return false;
 }
+
+// Generate a state cache from only the information given on the board.
+void generate_state_cache(board_t* board, state_cache_t* state) {
+  state->state = _get_board_state(board);
+}
+
 // Make a move on the board and update the state of the board.
 // Both the board and move objects are assumed to be valid, so no checks are
 // performed.
-void do_move(board_t* board, move_t move) {
+void do_move(board_t* board, state_cache_t* state, move_t move) {
   // Take the piece from the origin position.
   // The piece must not be empty or of opposite color.
   char piece = get_piece(board, move.from);
@@ -281,10 +287,13 @@ void do_move(board_t* board, move_t move) {
   // Update the board turn and increment the move counter.
   next_turn(board);
   board->move_count++;
+
+  // Update the state of the board.
+  generate_state_cache(board, state);
 }
 
 // Undo a move on the board and update the state of the board.
-void undo_move(board_t* board, move_t move) {
+void undo_move(board_t* board, state_cache_t* state, move_t move) {
   // Take the piece from the destination position.
   // The piece must not be empty or of opposite color.
   char piece = get_piece(board, move.to);
@@ -308,4 +317,7 @@ void undo_move(board_t* board, move_t move) {
   // Update the board turn and decrement the move counter.
   next_turn(board);
   board->move_count--;
+
+  // Update the state of the board.
+  generate_state_cache(board, state);
 }

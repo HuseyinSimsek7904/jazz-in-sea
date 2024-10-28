@@ -23,7 +23,7 @@ size_t ai_depth = 8;
 bool cli_logs = true;
 bool be_descriptive = false;
 board_t game_board;
-state_t game_state;
+state_cache_t game_state;
 move_t game_all_moves[256];
 size_t game_all_moves_length;
 bool black_automove;
@@ -50,7 +50,7 @@ void make_automove() {
     return;
 
   // Check if the game ended.
-  if (game_state != NORMAL) {
+  if (game_state.state != NORMAL) {
     cli_info printf("could not automove, game ended\n");
 
     white_automove = false;
@@ -63,8 +63,7 @@ void make_automove() {
   move_t moves[256];
   eval_t eval;
   size_t length = evaluate(&game_board, ai_depth, moves, &eval);
-  do_move(&game_board, moves[rand() % length]);
-  game_state = get_board_state(&game_board);
+  do_move(&game_board, &game_state, moves[rand() % length]);
   game_all_moves_length = generate_moves(&game_board, game_all_moves);
   cli_info printf("done\n");
 
@@ -75,13 +74,13 @@ command(loadfen) {
   expect_n_arguments("loadfen", 1);
 
   board_t new_board;
-  if (!load_fen(argv[1], &new_board)) {
+  if (!load_fen(argv[1], &game_state, &new_board)) {
     cli_error("invalid fen\n");
     return;
   }
 
   copy_board(&new_board, &game_board);
-  game_state = get_board_state(&game_board);
+  generate_state_cache(&game_board, &game_state);
   game_all_moves_length = generate_moves(&game_board, game_all_moves);
 
   cli_info printf("successfully loaded from fen\n");
@@ -117,8 +116,7 @@ command(makemove) {
 
   for (int i=0; i<game_all_moves_length; i++) {
     if (cmp_move(game_all_moves[i], move)) {
-      do_move(&game_board, move);
-      game_state = get_board_state(&game_board);
+      do_move(&game_board, &game_state, move);
       game_all_moves_length = generate_moves(&game_board, game_all_moves);
 
       make_automove();
@@ -133,7 +131,7 @@ command(makemove) {
 command(status) {
   expect_n_arguments("status", 0);
 
-  printf("%s\n", board_state_text(game_state));
+  printf("%s\n", board_state_text(game_state.state));
 }
 
 command(allmoves) {
@@ -185,7 +183,7 @@ command(playai) {
   expect_n_arguments("playai", 0);
 
   // Check if the game ended.
-  if (game_state != NORMAL) {
+  if (game_state.state != NORMAL) {
     cli_info printf("could not play any moves, game ended\n");
     return;
   }
@@ -195,8 +193,7 @@ command(playai) {
   move_t moves[256];
   eval_t eval;
   size_t length = evaluate(&game_board, ai_depth, moves, &eval);
-  do_move(&game_board, moves[rand() % length]);
-  game_state = get_board_state(&game_board);
+  do_move(&game_board, &game_state, moves[rand() % length]);
   game_all_moves_length = generate_moves(&game_board, game_all_moves);
   cli_info printf("done\n");
 
@@ -228,7 +225,7 @@ command(evaluate) {
 
  end_of_parsing:
   // Check if the game ended.
-  if (game_state != NORMAL) {
+  if (game_state.state != NORMAL) {
     cli_info printf("game ended\n");
     return;
   }
@@ -260,7 +257,7 @@ command(evaluate) {
   case EVAL_TEXT:
     print_eval(eval, &game_board);
     break;
-      }
+  }
 }
 
 #define help_command(command_name, ...)          \
@@ -394,8 +391,8 @@ int generate_argv(char* arg_buffer, char** argv) {
 
 
 void initialize() {
-  load_fen(DEFAULT_BOARD, &game_board);
-  game_state = get_board_state(&game_board);
+  load_fen(DEFAULT_BOARD, &game_state, &game_board);
+  generate_state_cache(&game_board, &game_state);
   game_all_moves_length = generate_moves(&game_board, game_all_moves);
 }
 
