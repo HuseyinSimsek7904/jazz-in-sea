@@ -128,7 +128,7 @@ unsigned int get_island_size(board_t* board, bool color, bool visited[256], unsi
 // This is because this function does not need to be fast right now, we will be
 // improving all of the functions as we progress.
 // Get the board state.
-state_t _get_board_state(board_t* board) {
+status_t _get_board_state(board_t* board) {
   // Count all of the pieces.
   int white_piece_count = 0, black_piece_count = 0;
   count_pieces(board, &white_piece_count, &black_piece_count);
@@ -166,7 +166,7 @@ state_t _get_board_state(board_t* board) {
   return NORMAL;
 }
 
-const char* board_state_text(state_t state) {
+const char* board_status_text(status_t state) {
   const char* text = "<unknown state>";
 
   switch (state) {
@@ -257,7 +257,7 @@ bool islands_should_be_updated(move_t move, bool islands[256]) {
 
 // Generate a state cache from only the information given on the board.
 void generate_state_cache(board_t* board, state_cache_t* state) {
-  state->state = _get_board_state(board);
+  state->status = _get_board_state(board);
 }
 
 // Make a move on the board and update the state of the board.

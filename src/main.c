@@ -50,7 +50,7 @@ void make_automove() {
     return;
 
   // Check if the game ended.
-  if (game_state.state != NORMAL) {
+  if (game_state.status != NORMAL) {
     cli_info printf("could not automove, game ended\n");
 
     white_automove = false;
@@ -131,7 +131,7 @@ command(makemove) {
 command(status) {
   expect_n_arguments("status", 0);
 
-  printf("%s\n", board_state_text(game_state.state));
+  printf("%s\n", board_status_text(game_state.status));
 }
 
 command(allmoves) {
@@ -183,7 +183,7 @@ command(playai) {
   expect_n_arguments("playai", 0);
 
   // Check if the game ended.
-  if (game_state.state != NORMAL) {
+  if (game_state.status != NORMAL) {
     cli_info printf("could not play any moves, game ended\n");
     return;
   }
@@ -225,7 +225,7 @@ command(evaluate) {
 
  end_of_parsing:
   // Check if the game ended.
-  if (game_state.state != NORMAL) {
+  if (game_state.status != NORMAL) {
     cli_info printf("game ended\n");
     return;
   }

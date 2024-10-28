@@ -16,16 +16,15 @@ typedef enum {
   WHITE_WON_BY_INSUF_MAT = 0x21, // When black loses all material.
   BLACK_WON_BY_ISLANDS   = 0x30, // When only black has created islands.
   BLACK_WON_BY_INSUF_MAT = 0x31, // When white loses all material.
-} state_t;
+} status_t;
 
 typedef struct {
-  // The current board state.
-  state_t state;
+  // The current board status.
+  status_t status;
 } state_cache_t;
 
 size_t generate_moves(board_t*, move_t[256]);
-const char *board_state_text(state_t);
-
+const char *board_status_text(status_t);
 void _generate_islands_pos(board_t*, bool[256], pos_t, bool);
 void generate_islands(board_t *, bool[256]);
 

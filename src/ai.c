@@ -181,7 +181,7 @@ _evaluate(board_t* board,
 
   // Check for the board state.
   // If the game should not continue, return the evaluation.
-  switch (state->state & 0x30) {
+  switch (state->status & 0x30) {
   case 0x10:
     *evaluation = (eval_t) { .type=DRAW,       .strength=board->move_count };
     return 0;
