@@ -20,6 +20,11 @@ typedef enum {
 
 size_t generate_moves(board_t*, move_t[256]);
 state_t get_board_state(board_t*);
-const char* board_state_text(state_t);
+const char *board_state_text(state_t);
+
+void _generate_islands_pos(board_t*, bool[256], pos_t, bool);
+void generate_islands(board_t *, bool[256]);
+
+bool islands_should_be_updated(move_t, bool[256]);
 
 #endif

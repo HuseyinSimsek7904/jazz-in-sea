@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdio.h>
 
 #include "rules.h"
 #include "board.h"
@@ -198,4 +199,57 @@ const char* board_state_text(state_t state) {
   }
 
   return text;
+}
+
+// Update the island table using the current piece.
+void _generate_islands_pos(board_t* board, bool islands[256], pos_t position, bool color) {
+  if (!is_valid_pos(position)) return;
+
+  if (!is_piece_color(get_piece(board, position), color)) return;
+
+  if (islands[position]) return;
+
+  islands[position] = true;
+
+  for (int i=0; i<4; i++) {
+    _generate_islands_pos(board, islands, position + deltas[i], color);
+  }
+}
+
+// Create the island table.
+// This table can later be used to check if a move caused a piece to change an island.
+void generate_islands(board_t* board, bool islands[256]) {
+  for (int row=0; row<8; row++) {
+    for (int col=0; col<8; col++) {
+      islands[to_position(row, col)] = false;
+    }
+  }
+
+  // Generates islands on the center squares for both colors.
+  _generate_islands_pos(board, islands, 0x33, false);
+  _generate_islands_pos(board, islands, 0x34, false);
+  _generate_islands_pos(board, islands, 0x43, false);
+  _generate_islands_pos(board, islands, 0x44, false);
+  _generate_islands_pos(board, islands, 0x33, true);
+  _generate_islands_pos(board, islands, 0x34, true);
+  _generate_islands_pos(board, islands, 0x43, true);
+  _generate_islands_pos(board, islands, 0x44, true);
+}
+
+// Checks if the move caused any islands to be changed.
+// This function can be called before or after the `do_move` function.
+bool islands_should_be_updated(move_t move, bool islands[256]) {
+  // If the piece moved was a part of an island, the table should be updated.
+  // (If this piece is not a part of an island, pieces around it can not be either)
+  if (islands[move.from]) return true;
+
+  // If the piece landed on a square that is adjacent to islands, the table should be updated.
+  for (int i=0; i<4; i++) {
+    pos_t new_pos = move.to + deltas[i];
+    if (!is_valid_pos(new_pos)) continue;
+
+    if (islands[new_pos]) return true;
+  }
+
+  return false;
 }

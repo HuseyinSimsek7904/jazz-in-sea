@@ -145,6 +145,10 @@ const char BLACK_PAWN = 'p';
 const char BLACK_KNIGHT = 'n';
 const char ERROR = 'E';
 
+const char ISLANDS_EMPTY = '.';
+const char ISLANDS_NO = '+';
+const char ISLANDS_YES = '#';
+
 void print_board(board_t *board, bool player) {
   printf("%s", player ? TOP_ROW_INV : TOP_ROW);
 
@@ -186,6 +190,25 @@ void print_board(board_t *board, bool player) {
       }
 
       printf("%c", character);
+    }
+    printf("\n");
+  }
+}
+
+void print_islands(board_t* board, bool islands[256], bool player) {
+  for (int prow=0; prow<8; prow++) {
+    int row = perspective_row(prow, player);
+
+    for (int pcol=0; pcol<8; pcol++) {
+      int col = perspective_col(pcol, player);
+      pos_t pos = to_position(row, col);
+      char c;
+      if (get_piece(board, pos) == ' ') {
+        c = ISLANDS_EMPTY;
+      } else {
+        c = islands[pos] ? ISLANDS_YES : ISLANDS_NO;
+      }
+      printf("%c", c);
     }
     printf("\n");
   }
