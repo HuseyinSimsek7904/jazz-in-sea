@@ -21,6 +21,10 @@ typedef enum {
 typedef struct {
   // The current board status.
   status_t status;
+
+  // Number of pieces of both players.
+  unsigned int white_count;
+  unsigned int black_count;
 } state_cache_t;
 
 size_t generate_moves(board_t*, move_t[256]);

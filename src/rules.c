@@ -88,21 +88,6 @@ size_t generate_moves(board_t* board, move_t moves[256]) {
   return length;
 }
 
-// Gets the number of pieces on the board.
-void count_pieces(board_t* board, int* white, int* black) {
-  for (int row=0; row<8; row++) {
-    for (int col=0; col<8; col++) {
-      char piece = get_piece(board, to_position(row, col));
-
-      if (is_piece_white(piece)) {
-        (*white)++;
-      } else if (is_piece_black(piece)) {
-        (*black)++;
-      }
-    }
-  }
-}
-
 // Counts the cells in the island that contain this position.
 unsigned int get_island_size(board_t* board, bool color, bool visited[256], unsigned int position) {
   // Check if the position is already visited.
@@ -127,22 +112,25 @@ unsigned int get_island_size(board_t* board, bool color, bool visited[256], unsi
 // As can be seen very clearly, this function is written very poorly.
 // This is because this function does not need to be fast right now, we will be
 // improving all of the functions as we progress.
-// Get the board state.
-status_t _get_board_state(board_t* board) {
-  // Count all of the pieces.
-  int white_piece_count = 0, black_piece_count = 0;
-  count_pieces(board, &white_piece_count, &black_piece_count);
+// Get the board status.
+void _generate_board_status(board_t* board, state_cache_t* state) {
+  if (!state->white_count) {
+    state->status = state->black_count ? BLACK_WON_BY_INSUF_MAT : DRAW_BY_INSUF_MAT;
+    return;
+  }
 
-  if (!white_piece_count)
-    return black_piece_count ? BLACK_WON_BY_INSUF_MAT : DRAW_BY_INSUF_MAT;
-
-  if (!black_piece_count)
-    return WHITE_WON_BY_INSUF_MAT;
+  if (!state->black_count) {
+    state->status = WHITE_WON_BY_INSUF_MAT;
+    return;
+  }
 
   bool visited[256];
 
   // Reset all visited entries.
   for (int i=0; i<256; i++) visited[i] = false;
+
+  int white_piece_count = state->white_count;
+  int black_piece_count = state->black_count;
 
   // Check all of the center positions.
   white_piece_count -=
@@ -157,13 +145,17 @@ status_t _get_board_state(board_t* board) {
     get_island_size(board, false, visited, 0x43) +
     get_island_size(board, false, visited, 0x44);
 
-  if (!white_piece_count)
-    return black_piece_count ? WHITE_WON_BY_ISLANDS : DRAW_BY_BOTH_ISLANDS;
+  if (!white_piece_count) {
+    state->status = black_piece_count ? WHITE_WON_BY_ISLANDS : DRAW_BY_BOTH_ISLANDS;
+    return;
+  }
 
-  if (!black_piece_count)
-    return BLACK_WON_BY_ISLANDS;
+  if (!black_piece_count) {
+    state->status = BLACK_WON_BY_ISLANDS;
+    return;
+  }
 
-  return NORMAL;
+  state->status = NORMAL;
 }
 
 const char* board_status_text(status_t state) {
@@ -257,7 +249,24 @@ bool islands_should_be_updated(move_t move, bool islands[256]) {
 
 // Generate a state cache from only the information given on the board.
 void generate_state_cache(board_t* board, state_cache_t* state) {
-  state->status = _get_board_state(board);
+  // Count the pieces on the board.
+  state->white_count = 0;
+  state->black_count = 0;
+
+  for (int row=0; row<8; row++) {
+    for (int col=0; col<8; col++) {
+      char piece = get_piece(board, to_position(row, col));
+
+      if (is_piece_white(piece)) {
+        state->white_count++;
+      } else if (is_piece_black(piece)) {
+        state->black_count++;
+      }
+    }
+  }
+
+  // Update the game status.
+  _generate_board_status(board, state);
 }
 
 // Make a move on the board and update the state of the board.
@@ -282,14 +291,22 @@ void do_move(board_t* board, state_cache_t* state, move_t move) {
   if (is_capture(move)) {
     assert(get_piece(board, move.capture) == move.capture_piece);
     set_piece(board, move.capture, ' ');
+
+    // Decrement the piece count.
+    if (is_piece_white(move.capture_piece)) {
+      state->white_count--;
+    } else {
+      assert(is_piece_black(move.capture_piece));
+      state->black_count--;
+    }
   }
 
   // Update the board turn and increment the move counter.
   next_turn(board);
   board->move_count++;
 
-  // Update the state of the board.
-  generate_state_cache(board, state);
+  // Update the status of the board.
+  _generate_board_status(board, state);
 }
 
 // Undo a move on the board and update the state of the board.
@@ -312,12 +329,20 @@ void undo_move(board_t* board, state_cache_t* state, move_t move) {
   if (is_capture(move)) {
     assert(get_piece(board, move.capture) == ' ');
     set_piece(board, move.capture, move.capture_piece);
+
+    // Increment the piece count.
+    if (is_piece_white(move.capture_piece)) {
+      state->white_count++;
+    } else {
+      assert(is_piece_black(move.capture_piece));
+      state->black_count++;
+    }
   }
 
   // Update the board turn and decrement the move counter.
   next_turn(board);
   board->move_count--;
 
-  // Update the state of the board.
-  generate_state_cache(board, state);
+  // Update the status of the board.
+  _generate_board_status(board, state);
 }
