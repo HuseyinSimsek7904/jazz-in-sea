@@ -27,4 +27,7 @@ void generate_islands(board_t *, bool[256]);
 
 bool islands_should_be_updated(move_t, bool[256]);
 
+void do_move(board_t*, move_t);
+void undo_move(board_t*, move_t);
+
 #endif

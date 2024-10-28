@@ -51,11 +51,4 @@ inline bool is_valid_move(move_t move) {
 // Returns if the move is a capture move.
 inline bool is_capture(move_t move) { return is_valid_pos(move.capture); }
 
-
-// -- C functions --
-
-void do_move(board_t*, move_t);
-void undo_move(board_t*, move_t);
-
-
 #endif
