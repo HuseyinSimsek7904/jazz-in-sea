@@ -25,14 +25,17 @@ typedef struct {
   // Number of pieces of both players.
   unsigned int white_count;
   unsigned int black_count;
+
+  // Number of pieces that are in islands for both players.
+  unsigned int white_island_count;
+  unsigned int black_island_count;
+
+  // Islands table.
+  bool islands[256];
 } state_cache_t;
 
 size_t generate_moves(board_t*, move_t[256]);
 const char *board_status_text(status_t);
-void _generate_islands_pos(board_t*, bool[256], pos_t, bool);
-void generate_islands(board_t *, bool[256]);
-
-bool islands_should_be_updated(move_t, bool[256]);
 
 void generate_state_cache(board_t *, state_cache_t *);
 

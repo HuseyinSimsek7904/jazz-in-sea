@@ -303,20 +303,19 @@ _evaluate(board_t* board,
   return found_moves;
 }
 
-size_t evaluate(board_t* board, size_t max_depth, move_t* moves, eval_t* evaluation) {
-  #ifdef EVALCOUNT
+size_t evaluate(board_t* board, state_cache_t* state, size_t max_depth, move_t* moves, eval_t* evaluation) {
+#ifdef EVALCOUNT
   evaluate_count = 0;
-  #endif
+#endif
 
-  state_cache_t state;
-  generate_state_cache(board, &state);
+  size_t length = _evaluate(board,
+                            state,
+                            max_depth,
+                            moves,
+                            evaluation,
+                            (eval_t) { .type=BLACK_WINS, .strength=0 },  // best possible evaluation for black
+                            (eval_t) { .type=WHITE_WINS, .strength=0 },  // best possible evaluation for white
+                            true);
 
-  return _evaluate(board,
-                   &state,
-                   max_depth,
-                   moves,
-                   evaluation,
-                   (eval_t) { .type=BLACK_WINS, .strength=0 },  // best possible evaluation for black
-                   (eval_t) { .type=WHITE_WINS, .strength=0 },  // best possible evaluation for white
-                   true);
+  return length;
 }

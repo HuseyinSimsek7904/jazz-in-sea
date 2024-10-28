@@ -62,7 +62,8 @@ void make_automove() {
   cli_info printf("automove... ");
   move_t moves[256];
   eval_t eval;
-  size_t length = evaluate(&game_board, ai_depth, moves, &eval);
+  size_t length = evaluate(&game_board, &game_state, ai_depth, moves, &eval);
+
   do_move(&game_board, &game_state, moves[rand() % length]);
   game_all_moves_length = generate_moves(&game_board, game_all_moves);
   cli_info printf("done\n");
@@ -215,7 +216,8 @@ command(playai) {
   cli_info printf("playing... ");
   move_t moves[256];
   eval_t eval;
-  size_t length = evaluate(&game_board, ai_depth, moves, &eval);
+  size_t length = evaluate(&game_board, &game_state, ai_depth, moves, &eval);
+
   do_move(&game_board, &game_state, moves[rand() % length]);
   game_all_moves_length = generate_moves(&game_board, game_all_moves);
   cli_info printf("done\n");
@@ -256,7 +258,9 @@ command(evaluate) {
   // Print the calculated evaluation of the AI.
   move_t moves[256];
   eval_t eval;
-  size_t length = evaluate(&game_board, ai_depth, moves, &eval);
+  size_t length = evaluate(&game_board, &game_state, ai_depth, moves, &eval);
+
+
 
   switch (evaluation_type) {
   case LIST:

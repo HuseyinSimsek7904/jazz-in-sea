@@ -4,6 +4,7 @@
 #include "board.h"
 #include "move.h"
 #include "position.h"
+#include "rules.h"
 
 #include <limits.h>
 #include <stddef.h>
@@ -33,6 +34,6 @@ int knight_pos_adv(pos_t);
 unsigned int get_evaluate_count();
 #endif
 
-size_t evaluate(board_t*, size_t, move_t*, eval_t*);
+size_t evaluate(board_t*, state_cache_t*, size_t, move_t*, eval_t*);
 
 #endif

@@ -3,7 +3,7 @@
 - [x] #2   (feat) add move parser (requires #1)
 - [x] #3   (feat) add game state check functions
 - [x] #4   (test) update the tests to check for game states
-- [ ] #5   (feat) game state from the previous position can be cached
+- [x] #5   (feat) game state from the previous position can be cached
 - [ ] #6   (feat) available moves from the previous position can be cached
 - [x] #7   (feat) implement a very simplified evaluation function where the pieces are scored according to their distance to the center
 - [x] #8   (feat) implement the simplest kind of ai, where the ai uses the minmax algorithm to find an "optimal" move
