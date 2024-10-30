@@ -7,6 +7,7 @@
 #include "io.h"
 #include "move.h"
 #include "position.h"
+#include "rules.h"
 
 // Try to convert a string to a position.
 bool string_to_position(const char* s, pos_t* pos) {
@@ -195,7 +196,7 @@ void print_board(board_t *board, bool player) {
   }
 }
 
-void print_islands(board_t* board, bool islands[256], bool player) {
+void print_islands(board_t* board, state_cache_t state, bool player) {
   for (int prow=0; prow<8; prow++) {
     int row = perspective_row(prow, player);
 
@@ -206,7 +207,7 @@ void print_islands(board_t* board, bool islands[256], bool player) {
       if (get_piece(board, pos) == ' ') {
         c = ISLANDS_EMPTY;
       } else {
-        c = islands[pos] ? ISLANDS_YES : ISLANDS_NO;
+        c = state.islands[pos] ? ISLANDS_YES : ISLANDS_NO;
       }
       printf("%c", c);
     }

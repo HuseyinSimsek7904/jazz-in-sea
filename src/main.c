@@ -99,11 +99,11 @@ command(savefen) {
 }
 
 command(show) {
-  enum { BOARD, HASH } evaluation_type = BOARD;
+  enum { BOARD, HASH, ISLANDS } evaluation_type = BOARD;
 
   optind = 0;
   while (true) {
-    int c = getopt(argc, argv, "bh");
+    int c = getopt(argc, argv, "bhi");
     switch (c) {
     case -1:
       goto end_of_parsing;
@@ -114,6 +114,9 @@ command(show) {
       break;
     case 'h':
       evaluation_type = HASH;
+      break;
+    case 'i':
+      evaluation_type = ISLANDS;
       break;
     }
   }
@@ -126,6 +129,8 @@ command(show) {
   case HASH:
     printf("%u\n", hash_board(&game_board));
     break;
+  case ISLANDS:
+    print_islands(&game_board, game_state, false);
   }
 }
 
