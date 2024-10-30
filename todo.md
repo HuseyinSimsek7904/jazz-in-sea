@@ -44,5 +44,5 @@
 - [x] #42  (cli) implement the `getaimove` command
 - [ ] #43  (cli) create a test command for the new cli system
 - [ ] #44  (feat) same color square evaluation
-- [ ] #45  (feat) board hashing
+- [x] #45  (feat) board hashing
 - [ ] #46  (feat) same board optimisations (requires #45)

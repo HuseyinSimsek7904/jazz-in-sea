@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <limits.h>
 #include <stdbool.h>
 
 #include "board.h"
@@ -42,4 +43,18 @@ bool compare(board_t *board1, board_t *board2) {
   }
 
   return true;
+}
+
+// Generate a 16 bit hash for board.
+unsigned short hash_board(board_t* board) {
+  unsigned short hash = 0;
+  for (int row=0; row<8; row++) {
+    for (int col=0; col<8; col++) {
+      pos_t pos = to_position(row, col);
+      if (get_piece(board, pos) != ' ') {
+        hash = ((hash << 1) | (hash >> (sizeof(hash) * 8 - 1))) ^ pos;
+      }
+    }
+  }
+  return hash;
 }

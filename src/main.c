@@ -98,11 +98,34 @@ command(savefen) {
 }
 
 command(show) {
-  expect_n_arguments("show", 0);
+  enum { BOARD, HASH } evaluation_type = BOARD;
 
-  cli print_board(&game_board, false);
+  optind = 0;
+  while (true) {
+    int c = getopt(argc, argv, "bh");
+    switch (c) {
+    case -1:
+      goto end_of_parsing;
+    case '?':
+      return;
+    case 'b':
+      evaluation_type = BOARD;
+      break;
+    case 'h':
+      evaluation_type = HASH;
+      break;
+    }
+  }
 
-  cli_info printf("%s to move\n", game_board.turn ? "white" : "black");
+ end_of_parsing:
+  switch (evaluation_type) {
+  case BOARD:
+    print_board(&game_board, false);
+    break;
+  case HASH:
+    printf("%u\n", hash_board(&game_board));
+    break;
+  }
 }
 
 command(makemove) {

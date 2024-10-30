@@ -61,5 +61,6 @@ inline bool blacks_turn(board_t *board) { return !board->turn; }
 
 void copy_board(board_t*, board_t*);
 bool compare(board_t*, board_t*);
+unsigned short hash_board(board_t*);
 
 #endif
