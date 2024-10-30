@@ -17,7 +17,7 @@ bool string_to_position(const char* s, pos_t* pos) {
   char row_name = *s++;
   if (row_name < '1' || row_name > '8') return false;
 
-  if (*s != '\n') return false;
+  if (*s != '\0') return false;
 
   *pos = to_position(row_name - '1', col_name - 'a');
   return true;

@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdio.h>
 
 #include "rules.h"
 #include "board.h"
@@ -274,8 +273,6 @@ inline char _remove_piece(board_t* board, state_cache_t* state, pos_t from, bool
 // Place a piece to a position.
 inline void _place_piece(board_t* board, state_cache_t* state, pos_t to, char piece, bool* update_islands_table) {
   // Set the destination position.
-  // There must not be any piece on the position where we are moving the piece.
-  assert(get_piece(board, to) == ' ');
   set_piece(board, to, piece);
 
   if (!*update_islands_table &&
@@ -301,10 +298,59 @@ inline void _place_piece(board_t* board, state_cache_t* state, pos_t to, char pi
   }
 }
 
+// Remove a piece from the board.
+bool remove_piece(board_t* board, state_cache_t* state, pos_t pos) {
+  bool update_islands_table = false;
+  char piece = _remove_piece(board, state, pos, &update_islands_table);
+
+  if (is_piece_white(piece)) {
+    state->white_count--;
+  } else if (is_piece_black(piece)) {
+    state->black_count--;
+  } else {
+    return false;
+  }
+
+  if (update_islands_table)
+    _generate_islands(board, state);
+
+  _generate_board_status(board, state);
+
+  return true;
+}
+
+// Place a piece on the board.
+bool place_piece(board_t* board, state_cache_t* state, pos_t pos, char piece) {
+  if (is_piece_white(piece)) {
+    state->white_count++;
+  } else if (is_piece_black(piece)) {
+    state->black_count++;
+  } else {
+    return false;
+  }
+
+  if (get_piece(board, pos) != ' ') {
+    return false;
+  }
+
+  bool update_islands_table = false;
+  _place_piece(board, state, pos, piece, &update_islands_table);
+
+  if (update_islands_table)
+    _generate_islands(board, state);
+
+  _generate_board_status(board, state);
+
+  return true;
+}
+
 // Make a move on the board and update the state of the board.
 // Both the board and move objects are assumed to be valid, so no checks are
 // performed.
 void do_move(board_t* board, state_cache_t* state, move_t move) {
+  // There must not be any piece on the position where we are moving the piece.
+  assert(get_piece(board, move.to) == ' ');
+
   bool update_islands_table = false;
 
   // Low level move the piece.

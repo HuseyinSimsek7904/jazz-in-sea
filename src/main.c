@@ -256,7 +256,7 @@ command(evaluate) {
  end_of_parsing:
   // Check if the game ended.
   if (game_state.status != NORMAL) {
-    cli_info printf("game ended\n");
+    cli printf("game ended\n");
     return;
   }
 
@@ -264,8 +264,6 @@ command(evaluate) {
   move_t moves[256];
   eval_t eval;
   size_t length = evaluate(&game_board, &game_state, ai_depth, moves, &eval);
-
-
 
   switch (evaluation_type) {
   case LIST:
@@ -292,6 +290,33 @@ command(evaluate) {
   }
 }
 
+command(placeat) {
+  expect_n_arguments("placeat", 2);
+
+  pos_t pos;
+  char piece = argv[2][0];
+  if (!string_to_position(argv[1], &pos)) {
+    printf("%s\n", argv[1]);
+    cli_error("invalid position\n");
+    return;
+  }
+
+  place_piece(&game_board, &game_state, pos, piece);
+}
+
+command(removeat) {
+  expect_n_arguments("removeat", 1);
+
+  pos_t pos;
+  if (!string_to_position(argv[1], &pos)) {
+    printf("%s\n", argv[1]);
+    cli_error("invalid position\n");
+    return;
+  }
+
+  remove_piece(&game_board, &game_state, pos);
+}
+
 #define help_command(command_name, ...)          \
   else if (!strcmp(argv[1], #command_name)) {    \
     cli printf(__VA_ARGS__);                     \
@@ -312,6 +337,8 @@ command(help) {
                "    status            get the status information of the current board\n"
                "    allmoves          list all of the available moves at the current board\n"
                "    evaluate          get AI evaluation on the board\n"
+               "    placeat           place a piece on the board\n"
+               "    removeat          remove a piece on the board\n"
                );
 
   } else if (argc == 2) {
@@ -329,6 +356,8 @@ command(help) {
       help_command(status, "status: print the status of the board\n")
       help_command(allmoves, "allmoves: list all of the available moves at the current board\n")
       help_command(evaluate, "evaluate: get AI evaluation on the current board\n")
+      help_command(placeat, "placeat <pos> <piece>: place PIECE on the board at POS")
+      help_command(placeat, "removeat <pos>: remove the PIECE on the board")
 
     else {
       cli_error("unknown command\n");
@@ -479,6 +508,8 @@ int main(int argc, char** argv) {
       expect_command(automove)
       expect_command(playai)
       expect_command(evaluate)
+      expect_command(placeat)
+      expect_command(removeat)
     else {
       cli_error("unknown command '%s'\n", command);
       continue;
