@@ -232,9 +232,5 @@ void print_eval(eval_t eval, board_t *board) {
   case NOT_CALCULATED:
     printf("not calculated\n");
     break;
-  case INVALID:
-    assert(false);
-    printf("<invalid eval>\n");
-    break;
   }
 }

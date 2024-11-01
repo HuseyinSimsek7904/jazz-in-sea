@@ -45,8 +45,6 @@ eval_t _switch_eval_turn(eval_t eval) {
   case CONTINUE:
     return (eval_t){.type = CONTINUE, .strength = -eval.strength};
 
-  case INVALID:
-    assert(false);
   case DRAW:
   case NOT_CALCULATED:
     return eval;
@@ -93,7 +91,6 @@ int compare_favor(eval_t eval1, eval_t eval2, bool turn) {
     case CONTINUE: return eval2.strength;
 
     case NOT_CALCULATED:
-    case INVALID:
       assert(false);
       break;
     }
@@ -110,12 +107,11 @@ int compare_favor(eval_t eval1, eval_t eval2, bool turn) {
     case CONTINUE: return eval1.strength - eval2.strength;
 
     case NOT_CALCULATED:
-    case INVALID:
-      assert(false); break;
+      assert(false);
+      break;
     }
 
   case NOT_CALCULATED:
-  case INVALID:
     assert(false);
     break;
   }
@@ -197,7 +193,6 @@ _evaluate(board_t* board,
   // If so, just return the evaluation.
   if (!max_depth) {
     *evaluation = (eval_t) { .type=CONTINUE, .strength=0 };
-    assert(evaluation->type != INVALID);
     return 0;
   }
 
@@ -299,7 +294,6 @@ _evaluate(board_t* board,
     }
   }
 
-  assert(evaluation->type != INVALID);
   return found_moves;
 }
 
