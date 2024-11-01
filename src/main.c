@@ -166,15 +166,7 @@ command(status) {
 command(allmoves) {
   expect_n_arguments("allmoves", 0);
 
-  if (game_all_moves_length) {
-    print_move(game_all_moves[0]);
-  }
-
-  for (int i=1; i<game_all_moves_length; i++) {
-    printf(" ");
-    print_move(game_all_moves[i]);
-  }
-
+  print_moves(game_all_moves, game_all_moves_length);
   printf("\n");
 }
 
@@ -267,18 +259,8 @@ command(evaluate) {
 
   switch (evaluation_type) {
   case LIST:
-    printf("{ ");
-
-    if (length) {
-      print_move(moves[0]);
-    }
-
-    for (int i=1; i<length; i++) {
-      printf(" ");
-      print_move(moves[i]);
-    }
-
-    printf(" }\n");
+    print_moves(moves, length);
+    printf("\n");
     break;
   case RANDOM_MOVE:
     print_move(moves[rand() % length]);
@@ -302,6 +284,7 @@ command(placeat) {
   }
 
   place_piece(&game_board, &game_state, pos, piece);
+  game_all_moves_length = generate_moves(&game_board, game_all_moves);
 }
 
 command(removeat) {
@@ -315,6 +298,7 @@ command(removeat) {
   }
 
   remove_piece(&game_board, &game_state, pos);
+  game_all_moves_length = generate_moves(&game_board, game_all_moves);
 }
 
 #define help_command(command_name, ...)          \

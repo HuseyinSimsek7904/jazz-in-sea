@@ -19,4 +19,6 @@ char col_name(int);
 char row_name(int);
 void print_position(pos_t);
 
+void print_moves(move_t*, size_t);
+
 #endif

@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -233,4 +234,19 @@ void print_eval(eval_t eval, board_t *board) {
     printf("not calculated\n");
     break;
   }
+}
+
+void print_moves(move_t* moves, size_t length) {
+  printf("{ ");
+
+  if (length) {
+    print_move(moves[0]);
+  }
+
+  for (int i=1; i<length; i++) {
+    printf(" ");
+    print_move(moves[i]);
+  }
+
+  printf(" }");
 }
