@@ -46,3 +46,4 @@
 - [ ] #44  (feat) same color square evaluation
 - [x] #45  (feat) board hashing
 - [ ] #46  (feat) same board optimisations (requires #45)
+- [x] #47  (feat) implement the `aidepth` command

@@ -303,6 +303,20 @@ command(removeat) {
   game_all_moves_length = generate_moves(&game_board, game_all_moves);
 }
 
+command(aidepth) {
+  switch (argc) {
+  case 1:
+    cli printf("%zu\n", ai_depth);
+    break;
+  case 2:
+    ai_depth = atoi(argv[1]);
+    break;
+  default:
+    cli_error("command 'aidepth' expects 0 or 1 argument.\n");
+    return;
+  }
+}
+
 #define help_command(command_name, ...)          \
   else if (!strcmp(argv[1], #command_name)) {    \
     cli printf(__VA_ARGS__);                     \
@@ -325,6 +339,7 @@ command(help) {
                "    evaluate          get AI evaluation on the board\n"
                "    placeat           place a piece on the board\n"
                "    removeat          remove a piece on the board\n"
+               "    aidepth           set the depth of the AI search\n"
                );
 
   } else if (argc == 2) {
@@ -342,8 +357,9 @@ command(help) {
       help_command(status, "status: print the status of the board\n")
       help_command(allmoves, "allmoves: list all of the available moves at the current board\n")
       help_command(evaluate, "evaluate: get AI evaluation on the current board\n")
-      help_command(placeat, "placeat <pos> <piece>: place PIECE on the board at POS")
-      help_command(placeat, "removeat <pos>: remove the PIECE on the board")
+      help_command(placeat, "placeat <pos> <piece>: place PIECE on the board at POS\n")
+      help_command(placeat, "removeat <pos>: remove the PIECE on the board\n")
+      help_command(aidepth, "aidepth [<depth>]: get or set the AI's searching depth\n")
 
     else {
       cli_error("unknown command\n");
@@ -496,6 +512,7 @@ int main(int argc, char** argv) {
       expect_command(evaluate)
       expect_command(placeat)
       expect_command(removeat)
+      expect_command(aidepth)
     else {
       cli_error("unknown command '%s'\n", command);
       continue;
