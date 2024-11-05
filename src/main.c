@@ -257,6 +257,8 @@ command(evaluate) {
   eval_t eval;
   size_t length = evaluate(&game_board, &game_state, ai_depth, moves, &eval);
 
+  cli_info printf("called eval %d times.\n", get_evaluate_count());
+
   switch (evaluation_type) {
   case LIST:
     print_moves(moves, length);

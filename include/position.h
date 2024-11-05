@@ -33,4 +33,25 @@ inline bool is_center(pos_t pos) {
   return (col == 3 || col == 4) && (row == 3 || row == 4);
 }
 
+// Get the quadrant id of a position.
+// This is useful for calculating the moves that get the piece closer to the
+// center, which can be calculated by deltas[(i + quadrant) % 4]
+// Quadrant IDs:
+// 0 | 1
+// --+--
+// 3 | 2
+inline int get_quadrant(pos_t pos) {
+  int quad = 0;
+
+  if (to_col(pos) >= 4) {
+    quad += 1;
+  }
+
+  if (to_row(pos) >= 4) {
+    quad = 3 - quad;
+  }
+
+  return quad;
+}
+
 #endif
