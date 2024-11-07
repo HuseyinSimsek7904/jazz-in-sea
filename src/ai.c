@@ -1,12 +1,10 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 #include "ai.h"
 #include "board.h"
-#include "io.h"
 #include "move.h"
 #include "position.h"
 #include "piece.h"
@@ -119,6 +117,33 @@ int compare_favor(eval_t eval1, eval_t eval2, bool turn) {
   return 0;
 }
 
+inline int get_delta_eval(board_t* board, move_t move) {
+  int delta_evaluation = 0;
+
+  // Add the advantage of the piece.
+  // It is a "good" thing that we take the opponent's piece as these pieces have a base value.
+  // Losing a piece will make you lose that base value.
+  if (is_valid_pos(move.capture)) {
+    if (is_piece_knight(move.capture_piece))
+      delta_evaluation += KNIGHT_BASE;
+    else {
+      assert(is_piece_pawn(move.capture_piece));
+      delta_evaluation += PAWN_BASE;
+    }
+  }
+
+  // Add the advantage difference of the from and to positions.
+  char piece = get_piece(board, move.from);
+  if (is_piece_knight(piece)) {
+    delta_evaluation += knight_pos_adv(move.to) - knight_pos_adv(move.from);
+  } else {
+    assert(is_piece_pawn(piece));
+    delta_evaluation += pawn_pos_adv(move.to) - pawn_pos_adv(move.from);
+  }
+
+  return board->turn ? delta_evaluation : -delta_evaluation;
+}
+
 // Returns how many regular pawn moves it would take for the pawn to walk to the
 // center of the board.
 int pawn_dist_to_center(pos_t pos) {
@@ -211,14 +236,13 @@ _evaluate(board_t* board,
   }
 
   size_t found_moves = 0;
-  *evaluation = (eval_t) {};
 
   // Loop through all of the available moves except the first, and recursively get the next moves.
   for (int i=0; i<moves_length; i++) {
     // If the move was a capture move, do not decrement the depth.
     move_t move = moves[i];
     eval_t new_evaluation;
-    size_t new_depth = max_depth - (is_valid_pos(move.capture) ? 0 : 1);
+    size_t new_depth = max_depth - 1;
     move_t new_moves[256];
 
     do_move(board, state, move);
@@ -226,32 +250,8 @@ _evaluate(board_t* board,
     undo_move(board, state, move);
 
     // If the evaluation type was CONTINUE, then add the move delta evaluation.
-    if (new_evaluation.type == CONTINUE) {
-      int delta_evaluation = 0;
-
-      // Add the advantage of the piece.
-      // It is a "good" thing that we take the opponent's piece as these pieces have a base value.
-      // Losing a piece will make you lose that base value.
-      if (is_valid_pos(move.capture)) {
-        if (is_piece_knight(move.capture_piece))
-          delta_evaluation += KNIGHT_BASE;
-        else {
-          assert(is_piece_pawn(move.capture_piece));
-          delta_evaluation += PAWN_BASE;
-        }
-      }
-
-      // Add the advantage difference of the from and to positions.
-      char piece = get_piece(board, move.from);
-      if (is_piece_knight(piece)) {
-        delta_evaluation += knight_pos_adv(move.to) - knight_pos_adv(move.from);
-      } else {
-        assert(is_piece_pawn(piece));
-        delta_evaluation += pawn_pos_adv(move.to) - pawn_pos_adv(move.from);
-      }
-
-      new_evaluation.strength += board->turn ? delta_evaluation : -delta_evaluation;
-    }
+    if (new_evaluation.type == CONTINUE)
+      new_evaluation.strength += get_delta_eval(board, move);
 
     // If this move is not the first move, compare this move with the best move.
     if (found_moves) {
@@ -266,23 +266,17 @@ _evaluate(board_t* board,
         // If this move is equally as good as the best move, add this move to the list.
         best_moves[found_moves++] = move;
         continue;
-
-      } else {
-        // If this move is better than the found moves, remove them and update the evaluation.
-        *evaluation = new_evaluation;
-        found_moves = 1;
-        *best_moves = move;
       }
-
-    } else {
-      *evaluation = new_evaluation;
-      found_moves = 1;
-      *best_moves = move;
     }
 
+    *evaluation = new_evaluation;
+    found_moves = 1;
+    *best_moves = move;
+
     // If found a move better than beta or alpha, break.
-    if (compare_favor(new_evaluation, board->turn ? beta : alpha, board->turn) > 0)
+    if (compare_favor(new_evaluation, board->turn ? beta : alpha, board->turn) > 0) {
       break;
+    }
 
     // Update the limit variables alpha and beta.
     if (board->turn) {

@@ -30,6 +30,7 @@
 - [ ] #29  (chore) create `piece_t`
 - [ ] #30  (fix) the ai produces asymmetric result for these boards:
   - `1P4P1/8/8/8/8/8/8/p6p w` with depth 10
+  - `np4PN/7P/8/8/8/8/7p/7n w` with depth 3
 - [ ] #31  (feat) for cli, update the tty attributes
 - [x] #32  (cli) implement the `evaluate` command
 - [ ] #33  (cli) implement the `pieceat` subcommand
