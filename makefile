@@ -37,3 +37,7 @@ test:
 
 $(BUILD-DIR):
 	mkdir $(BUILD-DIR)
+
+generate-compile-commands:
+	make clean
+	bear -- make
