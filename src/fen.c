@@ -5,18 +5,18 @@
 #include "rules.h"
 #include <assert.h>
 
-const char FEN_WHITE_PAWN = 'P';
-const char FEN_WHITE_KNIGHT = 'N';
-const char FEN_BLACK_PAWN = 'p';
-const char FEN_BLACK_KNIGHT = 'n';
+#define FEN_WHITE_PAWN 'P'
+#define FEN_WHITE_KNIGHT 'N'
+#define FEN_BLACK_PAWN 'p'
+#define FEN_BLACK_KNIGHT 'n'
 
 // Right now, we use the FEN representations of piece on the board array.
 // However, when this is changed in the future, this function should be updated.
-inline char _char_to_piece(char c) { return c; }
-inline char _piece_to_char(char piece) { return piece; }
+static inline char _char_to_piece(char c) { return c; }
+static inline char _piece_to_char(char piece) { return piece; }
 
-inline char _player_to_char(bool player) { return player ? 'w' : 'b'; }
-inline bool _char_to_player(char c) {
+static inline char _player_to_char(bool player) { return player ? 'w' : 'b'; }
+static inline bool _char_to_player(char c) {
   switch (c) {
   case 'w': return true;
   case 'b': return false;

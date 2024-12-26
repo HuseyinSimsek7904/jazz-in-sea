@@ -256,7 +256,7 @@ void generate_state_cache(board_t* board, state_cache_t* state) {
 
 // Remove a piece on the board.
 // Returns the removed piece.
-inline char _remove_piece(board_t* board, state_cache_t* state, pos_t from, bool* update_islands_table) {
+static inline char _remove_piece(board_t* board, state_cache_t* state, pos_t from, bool* update_islands_table) {
   // If the piece was moved from an island, table should be updated.
   if (!*update_islands_table && state->islands[from])
     *update_islands_table = true;
@@ -273,7 +273,7 @@ inline char _remove_piece(board_t* board, state_cache_t* state, pos_t from, bool
 }
 
 // Place a piece to a position.
-inline void _place_piece(board_t* board, state_cache_t* state, pos_t to, char piece, bool* update_islands_table) {
+static inline void _place_piece(board_t* board, state_cache_t* state, pos_t to, char piece, bool* update_islands_table) {
   // Set the destination position.
   set_piece(board, to, piece);
 

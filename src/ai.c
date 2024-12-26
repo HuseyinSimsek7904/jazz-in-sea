@@ -117,7 +117,7 @@ int compare_favor(eval_t eval1, eval_t eval2, bool turn) {
   return 0;
 }
 
-inline int get_delta_eval(board_t* board, move_t move) {
+static inline int get_delta_eval(board_t* board, move_t move) {
   int delta_evaluation = 0;
 
   // Add the advantage of the piece.

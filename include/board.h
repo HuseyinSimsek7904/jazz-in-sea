@@ -34,7 +34,7 @@ typedef struct {
 
 // Get a piece at a position.
 // Asserts if position is invalid.
-inline char get_piece(board_t *board, pos_t pos) {
+static inline char get_piece(board_t *board, pos_t pos) {
 #ifndef NDEBUG
   assert(board->initialized);
 #endif
@@ -45,16 +45,16 @@ inline char get_piece(board_t *board, pos_t pos) {
 
 // Set a piece at a position.
 // Asserts if position is invalid.
-inline void set_piece(board_t *board, pos_t pos, char piece) {
+static inline void set_piece(board_t *board, pos_t pos, char piece) {
   assert(is_valid_pos(pos));
   board->board_array[pos] = piece;
 }
 
 // Change the turn of the board to the other player, and return the new turn.
-inline bool next_turn(board_t *board) { return board->turn = !board->turn; }
+static inline bool next_turn(board_t *board) { return board->turn = !board->turn; }
 
-inline bool whites_turn(board_t *board) { return  board->turn; }
-inline bool blacks_turn(board_t *board) { return !board->turn; }
+static inline bool whites_turn(board_t *board) { return  board->turn; }
+static inline bool blacks_turn(board_t *board) { return !board->turn; }
 
 
 // -- C functions --

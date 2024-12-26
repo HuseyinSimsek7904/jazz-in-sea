@@ -28,7 +28,7 @@ typedef struct {
 // -- Header functions --
 
 // Check if two moves are the same.
-inline bool cmp_move(move_t move1, move_t move2) {
+static inline bool cmp_move(move_t move1, move_t move2) {
   if (move1.from != move2.from) return false;
 
   if (move1.to != move2.to) return false;
@@ -44,11 +44,11 @@ inline bool cmp_move(move_t move1, move_t move2) {
 
 // Check if a move is valid.
 // This can be checked by checking if the from position is valid.
-inline bool is_valid_move(move_t move) {
+static inline bool is_valid_move(move_t move) {
   return is_valid_pos(move.from);
 }
 
 // Returns if the move is a capture move.
-inline bool is_capture(move_t move) { return is_valid_pos(move.capture); }
+static inline bool is_capture(move_t move) { return is_valid_pos(move.capture); }
 
 #endif

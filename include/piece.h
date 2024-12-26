@@ -11,10 +11,10 @@
 
 // Check the piece color.
 
-inline bool is_piece_black(char piece) { return piece == 'p' || piece == 'n'; }
-inline bool is_piece_white(char piece) { return piece == 'P' || piece == 'N'; }
+static inline bool is_piece_black(char piece) { return piece == 'p' || piece == 'n'; }
+static inline bool is_piece_white(char piece) { return piece == 'P' || piece == 'N'; }
 
-inline bool is_piece_color(char piece, bool color) {
+static inline bool is_piece_color(char piece, bool color) {
   if (color)
     return is_piece_white(piece);
   else
@@ -23,10 +23,10 @@ inline bool is_piece_color(char piece, bool color) {
 
 // Check the piece type.
 
-inline bool is_piece_pawn(char piece)   { return piece == 'p' || piece == 'P'; }
-inline bool is_piece_knight(char piece) { return piece == 'n' || piece == 'N'; }
+static inline bool is_piece_pawn(char piece)   { return piece == 'p' || piece == 'P'; }
+static inline bool is_piece_knight(char piece) { return piece == 'n' || piece == 'N'; }
 
-inline bool is_piece_type(char piece, bool type) {
+static inline bool is_piece_type(char piece, bool type) {
   if (type)
     return is_piece_knight(piece);
   else
