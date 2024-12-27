@@ -22,7 +22,7 @@
 - [x] #21  (feat) `generate_moves` should generate moves in the order that would help the alpha-beta pruning algorithm, aka best moves first (best moves are usually the moves that get the piece closer to the center or moves that forces the opponent to take the piece)
 - [x] #22  (chore) some frequently used functions should be placed in headers as inline functions
 - [ ] #23  (feat) create a database of all the <=n piece boards and their evaluations, which can also be used for optimising the ai
-- [ ] #24  (feat) implement memoisation for the ai
+- [x] #24  (feat) implement memoisation for the ai
 - [ ] #25  (feat) implement long term memoisation for absolute evaluations like `WHITE_WINS` and `BLACK_WINS`
 - [ ] #26  (chore) convert the recursive ai to iterative ai, which will make it possible to find the mate in 6 without having to check 10 nodes deep branches
 - [x] #27  (chore) replace `_pawn_pos_adv` and `_knight_pos_adv` with prebuilt arrays of advantage values

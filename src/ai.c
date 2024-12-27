@@ -1,10 +1,12 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "ai.h"
 #include "board.h"
+#include "io.h"
 #include "move.h"
 #include "position.h"
 #include "piece.h"
@@ -41,7 +43,7 @@ eval_t _switch_eval_turn(eval_t eval) {
   case BLACK_WINS:
     return (eval_t) { .type=WHITE_WINS, .strength=eval.strength };
   case CONTINUE:
-    return (eval_t){.type = CONTINUE, .strength = -eval.strength};
+    return (eval_t) { .type=CONTINUE, .strength=-eval.strength };
 
   case DRAW:
   case NOT_CALCULATED:
@@ -178,18 +180,21 @@ int knight_pos_adv(pos_t pos) {
 
 #ifdef EVALCOUNT
 size_t evaluate_count = 0;
+size_t remember_count = 0;
 size_t game_end_count = 0;
 size_t leaf_count = 0;
 
 unsigned int get_evaluate_count() { return evaluate_count; }
+unsigned int get_remember_count() { return remember_count; }
 unsigned int get_game_end_count() { return game_end_count; }
 unsigned int get_leaf_count() { return leaf_count; }
 #endif
 
-// Find the best continuing moves available and its evaluation.
+// Find the best continuing moves available and their evaluation value.
 size_t
 _evaluate(board_t* board,
           state_cache_t* state,
+          ai_cache_t* cache,
           size_t max_depth,
           move_t* best_moves,
           eval_t* evaluation,
@@ -201,6 +206,22 @@ _evaluate(board_t* board,
   #ifdef EVALCOUNT
   evaluate_count++;
   #endif
+
+  // Get the hash value for the board.
+  unsigned short hash = hash_board(board, state);
+
+  // Check if this board was previously calcuated.
+  {
+    eval_t possible_eval;
+    move_t possible_move;
+
+    if (try_remember(cache, hash, board, max_depth, &possible_eval, &possible_move)) {
+      remember_count++;
+      *best_moves = possible_move;
+      *evaluation = possible_eval;
+      return 1;
+    }
+  }
 
   // Check for the board state.
   // If the game should not continue, return the evaluation.
@@ -263,7 +284,7 @@ _evaluate(board_t* board,
     move_t new_moves[256];
 
     do_move(board, state, move);
-    _evaluate(board, state, new_depth, new_moves, &new_evaluation, alpha, beta, false);
+    _evaluate(board, state, cache, new_depth, new_moves, &new_evaluation, alpha, beta, false);
     undo_move(board, state, move);
 
     // If the evaluation type was CONTINUE, then add the move delta evaluation.
@@ -305,16 +326,18 @@ _evaluate(board_t* board,
     }
   }
 
+  memorize(cache, hash, board, max_depth, *evaluation, *best_moves);
   return found_moves;
 }
 
-size_t evaluate(board_t* board, state_cache_t* state, size_t max_depth, move_t* moves, eval_t* evaluation) {
+size_t evaluate(board_t* board, state_cache_t* state, ai_cache_t* cache, size_t max_depth, move_t* moves, eval_t* evaluation) {
 #ifdef EVALCOUNT
   evaluate_count = 0;
 #endif
 
   size_t length = _evaluate(board,
                             state,
+                            cache,
                             max_depth,
                             moves,
                             evaluation,
@@ -323,4 +346,33 @@ size_t evaluate(board_t* board, state_cache_t* state, size_t max_depth, move_t* 
                             true);
 
   return length;
+}
+
+void setup_cache(ai_cache_t* cache) {
+  for (size_t i=0; i<(1 << (8 * sizeof(unsigned short))); i++) {
+    cache->memorized_size[i] = 0;
+  }
+}
+
+// Add the board to the memorized boards.
+void memorize(ai_cache_t* cache, unsigned short hash, board_t* board, size_t depth, eval_t eval, move_t move) {
+  size_t index = cache->memorized_size[hash]++;
+  cache->memorized[hash][index].board = *board;
+  cache->memorized[hash][index].depth = depth;
+  cache->memorized[hash][index].eval = eval;
+  cache->memorized[hash][index].move = move;
+}
+
+// Get if the board was saved for memoization before.
+bool try_remember(ai_cache_t* cache, unsigned short hash, board_t* board, size_t depth, eval_t* eval, move_t* move) {
+  for (size_t i=0; i<cache->memorized_size[hash]; i++) {
+    if (compare(&cache->memorized[hash][i].board, board) && cache->memorized[hash][i].depth >= depth) {
+      *eval = cache->memorized[hash][i].eval;
+      *move = cache->memorized[hash][i].move;
+
+      return true;
+    }
+  }
+
+  return false;
 }
