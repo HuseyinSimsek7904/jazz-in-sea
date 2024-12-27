@@ -33,6 +33,9 @@ typedef struct {
 
   // Islands table.
   bool islands[256];
+
+  // Square hashes table used to generate a hash value for boards.
+  unsigned short square_hash[4][256];
 } state_cache_t;
 
 size_t generate_moves(board_t*, move_t[256]);
@@ -45,5 +48,8 @@ bool remove_piece(board_t*, state_cache_t*, pos_t);
 
 void do_move(board_t*, state_cache_t*, move_t);
 void undo_move(board_t*, state_cache_t*, move_t);
+
+void generate_square_hash(state_cache_t*);
+unsigned short hash_board(board_t*, state_cache_t*);
 
 #endif

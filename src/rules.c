@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdlib.h>
 
 #include "rules.h"
 #include "board.h"
@@ -421,4 +422,45 @@ void undo_move(board_t* board, state_cache_t* state, move_t move) {
   } else if (is_capture(move)) {
     _generate_board_status(board, state);
   }
+}
+
+// Generate the square hashes table.
+void generate_square_hash(state_cache_t *state) {
+  for (int row=0; row<8; row++) {
+    for (int col=0; col<8; col++) {
+      for (int piece=0; piece<4; piece++) {
+        state->square_hash[piece][to_position(row, col)] = rand();
+      }
+    }
+  }
+}
+
+static inline int piece_id(char piece) {
+  switch (piece) {
+  case 'P':
+    return 0;
+  case 'N':
+    return 1;
+  case 'p':
+    return 2;
+  case 'n':
+    return 3;
+  default:
+    assert(false);
+    return 0;
+  }
+}
+
+unsigned short hash_board(board_t* board, state_cache_t* state) {
+  unsigned short hash = 0;
+  for (int row=0; row<8; row++) {
+    for (int col=0; col<8; col++) {
+      pos_t pos = to_position(row, col);
+      char piece = get_piece(board, pos);
+
+      if (piece != ' ')
+        hash ^= state->square_hash[piece_id(piece)][pos];
+    }
+  }
+  return hash;
 }
