@@ -80,7 +80,7 @@ command(loadfen) {
     return;
   }
 
-  copy_board(&new_board, &game_board);
+  game_board = new_board;
   generate_state_cache(&game_board, &game_state);
   game_all_moves_length = generate_moves(&game_board, game_all_moves);
 
