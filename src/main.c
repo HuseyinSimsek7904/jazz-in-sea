@@ -257,7 +257,12 @@ command(evaluate) {
   eval_t eval;
   size_t length = evaluate(&game_board, &game_state, ai_depth, moves, &eval);
 
-  cli_info printf("called eval %d times.\n", get_evaluate_count());
+  #ifdef EVALCOUNT
+  cli_info printf("called _evaluate %d times.\n", get_evaluate_count());
+  cli_info printf("remembered %d times.\n", get_remember_count());
+  cli_info printf("found %d different game ends.\n", get_game_end_count());
+  cli_info printf("found total %d leaves.\n", get_leaf_count());
+  #endif
 
   switch (evaluation_type) {
   case LIST:

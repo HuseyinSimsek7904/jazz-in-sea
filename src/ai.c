@@ -177,11 +177,13 @@ int knight_pos_adv(pos_t pos) {
 }
 
 #ifdef EVALCOUNT
-unsigned int evaluate_count = 0;
+size_t evaluate_count = 0;
+size_t game_end_count = 0;
+size_t leaf_count = 0;
 
-unsigned int get_evaluate_count() {
-  return evaluate_count;
-}
+unsigned int get_evaluate_count() { return evaluate_count; }
+unsigned int get_game_end_count() { return game_end_count; }
+unsigned int get_leaf_count() { return leaf_count; }
 #endif
 
 // Find the best continuing moves available and its evaluation.
@@ -204,12 +206,21 @@ _evaluate(board_t* board,
   // If the game should not continue, return the evaluation.
   switch (state->status & 0x30) {
   case 0x10:
+    #ifdef EVALCOUNT
+    game_end_count++;
+    #endif
     *evaluation = (eval_t) { .type=DRAW,       .strength=board->move_count };
     return 0;
   case 0x20:
+    #ifdef EVALCOUNT
+    game_end_count++;
+    #endif
     *evaluation = (eval_t) { .type=WHITE_WINS, .strength=board->move_count };
     return 0;
   case 0x30:
+    #ifdef EVALCOUNT
+    game_end_count++;
+    #endif
     *evaluation = (eval_t) { .type=BLACK_WINS, .strength=board->move_count };
     return 0;
   }
@@ -217,6 +228,9 @@ _evaluate(board_t* board,
   // Check if we reached the end of the best_line buffer.
   // If so, just return the evaluation.
   if (!max_depth) {
+    #ifdef EVALCOUNT
+    leaf_count++;
+    #endif
     *evaluation = (eval_t) { .type=CONTINUE, .strength=0 };
     return 0;
   }
@@ -230,6 +244,9 @@ _evaluate(board_t* board,
   // If this move is the first move and if there are only one possible moves, return the only move.
   // No need to search recursively.
   if (starting_move && moves_length == 1) {
+    #ifdef EVALCOUNT
+    leaf_count++;
+    #endif
     *evaluation = (eval_t) { .type=NOT_CALCULATED };
     *best_moves = moves[0];
     return 1;
