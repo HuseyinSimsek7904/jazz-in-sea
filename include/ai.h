@@ -23,6 +23,7 @@ typedef struct {
 } eval_t;
 
 typedef struct {
+  #ifdef MEMOIZATION
   struct {
     board_t board;
     size_t depth;
@@ -30,6 +31,7 @@ typedef struct {
     move_t move;
   } memorized[1 << (8 * sizeof(unsigned short))][MAX_AI_MEMO];
   size_t memorized_size[1 << (8 * sizeof(unsigned short))];
+  #endif
 } ai_cache_t;
 
 void print_eval(eval_t, board_t*);
@@ -52,7 +54,10 @@ unsigned int get_leaf_count();
 size_t evaluate(board_t*, state_cache_t*, ai_cache_t*, size_t, move_t*, eval_t*);
 
 void setup_cache(ai_cache_t*);
+
+#ifdef MEMOIZATION
 void memorize(ai_cache_t* cache, unsigned short hash, board_t* board, size_t depth, eval_t eval, move_t move);
 bool try_remember(ai_cache_t* cache, unsigned short hash, board_t* board, size_t depth, eval_t* eval, move_t* move);
+#endif
 
 #endif

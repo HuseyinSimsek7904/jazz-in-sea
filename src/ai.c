@@ -198,8 +198,10 @@ _evaluate(board_t* board,
           size_t max_depth,
           move_t* best_moves,
           eval_t* evaluation,
+          #ifdef AB_PRUNING
           eval_t alpha,
           eval_t beta,
+          #endif
           bool starting_move) {
 
   // Can be used to debug whilst trying to optimise the evaluate function.
@@ -207,6 +209,7 @@ _evaluate(board_t* board,
   evaluate_count++;
   #endif
 
+  #ifdef MEMOIZATION
   // Get the hash value for the board.
   unsigned short hash = hash_board(board, state);
 
@@ -222,6 +225,7 @@ _evaluate(board_t* board,
       return 1;
     }
   }
+  #endif
 
   // Check for the board state.
   // If the game should not continue, return the evaluation.
@@ -284,7 +288,11 @@ _evaluate(board_t* board,
     move_t new_moves[256];
 
     do_move(board, state, move);
-    _evaluate(board, state, cache, new_depth, new_moves, &new_evaluation, alpha, beta, false);
+    _evaluate(board, state, cache, new_depth, new_moves, &new_evaluation,
+              #ifdef AB_PRUNING
+              alpha, beta,
+              #endif
+              false);
     undo_move(board, state, move);
 
     // If the evaluation type was CONTINUE, then add the move delta evaluation.
@@ -311,6 +319,7 @@ _evaluate(board_t* board,
     found_moves = 1;
     *best_moves = move;
 
+    #ifdef AB_PRUNING
     // If found a move better than beta or alpha, break.
     if (compare_favor(new_evaluation, board->turn ? beta : alpha, board->turn) > 0) {
       break;
@@ -324,9 +333,13 @@ _evaluate(board_t* board,
       if (compare_favor(new_evaluation, beta, board->turn) > 0)
         beta = new_evaluation;
     }
+    #endif
   }
 
+  #ifdef MEMOIZATION
   memorize(cache, hash, board, max_depth, *evaluation, *best_moves);
+  #endif
+
   return found_moves;
 }
 
@@ -341,19 +354,24 @@ size_t evaluate(board_t* board, state_cache_t* state, ai_cache_t* cache, size_t 
                             max_depth,
                             moves,
                             evaluation,
+                            #ifdef AB_PRUNING
                             (eval_t) { .type=BLACK_WINS, .strength=0 },  // best possible evaluation for black
                             (eval_t) { .type=WHITE_WINS, .strength=0 },  // best possible evaluation for white
+                            #endif
                             true);
 
   return length;
 }
 
 void setup_cache(ai_cache_t* cache) {
+  #ifdef MEMOIZATION
   for (size_t i=0; i<(1 << (8 * sizeof(unsigned short))); i++) {
     cache->memorized_size[i] = 0;
   }
+  #endif
 }
 
+#ifdef MEMOIZATION
 // Add the board to the memorized boards.
 void memorize(ai_cache_t* cache, unsigned short hash, board_t* board, size_t depth, eval_t eval, move_t move) {
   size_t index = cache->memorized_size[hash]++;
@@ -376,3 +394,4 @@ bool try_remember(ai_cache_t* cache, unsigned short hash, board_t* board, size_t
 
   return false;
 }
+#endif

@@ -3,8 +3,17 @@ INC-DIR		:= ./include
 BUILD-DIR	:= ./build
 SCRIPTS-DIR	:= ./scripts
 
+# EVALCOUNT enables counting calls to the _evaluate function.
+# AB_PRUNING enables alpha-beta pruning.
+# MEMOIZATION enables memoization for the AI.
+
+CMACROS		:= \
+		-DEVALCOUNT \
+		-DMEMOIZATION \
+		#-DAB_PRUNING \
+
 CC		:= gcc
-CFLAGS		:= -O2 -Wall -Werror -DEVALCOUNT
+CFLAGS		:= -O2 -Wall -Werror $(CMACROS)
 CPPFLAGS	:= -I $(INC-DIR)
 
 LDLIBS		:=	\

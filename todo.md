@@ -29,6 +29,7 @@
 - [x] #28  (feat) eval should not recalculate the board evaluation and instead should always look for the evaluation difference
 - [ ] #29  (chore) create `piece_t`
 - [ ] #30  (fix) the ai produces asymmetric result for these boards:
+  this problem is probably caused by alpha beta pruning, enabling it causes the results to be changed
   - `1P4P1/8/8/8/8/8/8/p6p w` with depth 10
   - `np4PN/7P/8/8/8/8/7p/7n w` with depth 3
 - [ ] #31  (feat) for cli, update the tty attributes
