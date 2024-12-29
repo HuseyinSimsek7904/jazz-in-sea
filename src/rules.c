@@ -424,7 +424,13 @@ void do_move(board_t* board, state_cache_t* state, move_t move) {
   // If the move is a capture move, remove the piece.
   // There must be a piece where we are going to capture of type capture_piece.
   if (is_capture(move)) {
-    assert(move.capture_piece == _remove_piece(board, state, move.capture, &update_islands_table));
+    // Wtf is this!?
+    #ifndef NDEBUG
+    char remove_piece =
+    #endif
+
+    _remove_piece(board, state, move.capture, &update_islands_table);
+    assert(move.capture_piece == remove_piece);
 
     _update_hash(state, move.capture_piece, move.capture);
 
