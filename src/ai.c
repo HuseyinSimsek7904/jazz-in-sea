@@ -210,15 +210,12 @@ _evaluate(board_t* board,
   #endif
 
   #ifdef MEMOIZATION
-  // Get the hash value for the board.
-  unsigned short hash = hash_board(board, state);
-
   // Check if this board was previously calcuated.
   {
     eval_t possible_eval;
     move_t possible_move;
 
-    if (try_remember(cache, hash, board, max_depth, &possible_eval, &possible_move)) {
+    if (try_remember(cache, state->hash, board, max_depth, &possible_eval, &possible_move)) {
       remember_count++;
       *best_moves = possible_move;
       *evaluation = possible_eval;
@@ -279,6 +276,10 @@ _evaluate(board_t* board,
 
   size_t found_moves = 0;
 
+  #ifdef TEST_HASH
+  const unsigned short old_hash = state->hash;
+  #endif
+
   // Loop through all of the available moves except the first, and recursively get the next moves.
   for (int i=0; i<moves_length; i++) {
     // If the move was a capture move, do not decrement the depth.
@@ -336,8 +337,12 @@ _evaluate(board_t* board,
     #endif
   }
 
+  #ifdef TEST_HASH
+  assert(old_hash == state->hash);
+  #endif
+
   #ifdef MEMOIZATION
-  memorize(cache, hash, board, max_depth, *evaluation, *best_moves);
+  memorize(cache, state->hash, board, max_depth, *evaluation, *best_moves);
   #endif
 
   return found_moves;

@@ -47,4 +47,5 @@
 - [ ] #46  (feat) same board optimisations (requires #45)
 - [x] #47  (feat) implement the `aidepth` command
 - [ ] #48  (chore) generate the advantage tables that use position indeces
-- [ ] #49  (chore) update the hash value of the board every move instead of calculating it from scratch every time it is needed
+- [x] #49  (chore) update the hash value of the board every move instead of calculating it from scratch every time it is needed
+- [ ] #50  (fix) `placeat` and `removeat` commands do not update the status of the board

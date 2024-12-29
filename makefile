@@ -8,6 +8,7 @@ SCRIPTS-DIR	:= ./scripts
 # MEMOIZATION enables memoization for the AI.
 
 CMACROS		:= \
+		-DTEST_HASH \
 		-DEVALCOUNT \
 		-DMEMOIZATION \
 		#-DAB_PRUNING \

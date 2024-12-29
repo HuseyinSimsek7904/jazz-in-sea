@@ -130,7 +130,7 @@ command(show) {
     print_board(&game_board, false);
     break;
   case HASH:
-    printf("%u\n", hash_board(&game_board, &game_state));
+    printf("%u\n", game_state.hash);
     break;
   case ISLANDS:
     print_islands(&game_board, game_state, false);
@@ -473,7 +473,6 @@ int generate_argv(char* arg_buffer, char** argv) {
 
 void initialize() {
   srand(time(NULL));
-  generate_square_hash(&game_state);
 
   load_fen(DEFAULT_BOARD, &game_state, &game_board);
   generate_state_cache(&game_board, &game_state);

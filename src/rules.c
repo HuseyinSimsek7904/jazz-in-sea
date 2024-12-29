@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "rules.h"
@@ -230,6 +231,51 @@ void _generate_islands(board_t* board, state_cache_t* state) {
   _generate_board_status(board, state);
 }
 
+// Generate the square hashes table.
+static inline void _generate_square_hash(state_cache_t *state) {
+  for (int row=0; row<8; row++) {
+    for (int col=0; col<8; col++) {
+      for (int piece=0; piece<4; piece++) {
+        state->square_hash[piece][to_position(row, col)] = rand();
+      }
+    }
+  }
+}
+
+static inline int piece_id(char piece) {
+  switch (piece) {
+  case 'P':
+    return 0;
+  case 'N':
+    return 1;
+  case 'p':
+    return 2;
+  case 'n':
+    return 3;
+  default:
+    assert(false);
+    return 0;
+  }
+}
+
+// Update the hash value after placing or removing a piece to a position.
+static inline void _update_hash(state_cache_t* state, char piece, pos_t pos) {
+  state->hash ^= state->square_hash[piece_id(piece)][pos];
+}
+
+// Generate the hash value for a board.
+static inline void _hash_board(board_t* board, state_cache_t* state) {
+  for (int row=0; row<8; row++) {
+    for (int col=0; col<8; col++) {
+      pos_t pos = to_position(row, col);
+      char piece = get_piece(board, pos);
+
+      if (piece != ' ')
+        _update_hash(state, piece, pos);
+    }
+  }
+}
+
 // Generate a state cache from only the information given on the board.
 void generate_state_cache(board_t* board, state_cache_t* state) {
   // Count the pieces on the board.
@@ -253,11 +299,16 @@ void generate_state_cache(board_t* board, state_cache_t* state) {
 
   // Update the game status.
   _generate_board_status(board, state);
+
+  // Generate the hash value for the board.
+  _generate_square_hash(state);
+  _hash_board(board, state);
 }
 
 // Remove a piece on the board.
 // Returns the removed piece.
-static inline char _remove_piece(board_t* board, state_cache_t* state, pos_t from, bool* update_islands_table) {
+// NOTE: Does not alter the state cache.
+static inline char _remove_piece(board_t* board, const state_cache_t* state, pos_t from, bool* update_islands_table) {
   // If the piece was moved from an island, table should be updated.
   if (!*update_islands_table && state->islands[from])
     *update_islands_table = true;
@@ -274,7 +325,8 @@ static inline char _remove_piece(board_t* board, state_cache_t* state, pos_t fro
 }
 
 // Place a piece to a position.
-static inline void _place_piece(board_t* board, state_cache_t* state, pos_t to, char piece, bool* update_islands_table) {
+// NOTE: Does not alter the state cache.
+static inline void _place_piece(board_t* board, const state_cache_t* state, pos_t to, char piece, bool* update_islands_table) {
   // Set the destination position.
   set_piece(board, to, piece);
 
@@ -306,6 +358,8 @@ bool remove_piece(board_t* board, state_cache_t* state, pos_t pos) {
   bool update_islands_table = false;
   char piece = _remove_piece(board, state, pos, &update_islands_table);
 
+  _update_hash(state, piece, pos);
+
   if (is_piece_white(piece)) {
     state->white_count--;
   } else if (is_piece_black(piece)) {
@@ -324,6 +378,8 @@ bool remove_piece(board_t* board, state_cache_t* state, pos_t pos) {
 
 // Place a piece on the board.
 bool place_piece(board_t* board, state_cache_t* state, pos_t pos, char piece) {
+  _update_hash(state, piece, pos);
+
   if (is_piece_white(piece)) {
     state->white_count++;
   } else if (is_piece_black(piece)) {
@@ -362,10 +418,15 @@ void do_move(board_t* board, state_cache_t* state, move_t move) {
   assert(is_piece_color(piece, board->turn));
   _place_piece(board, state, move.to, piece, &update_islands_table);
 
+  _update_hash(state, piece, move.from);
+  _update_hash(state, piece, move.to);
+
   // If the move is a capture move, remove the piece.
   // There must be a piece where we are going to capture of type capture_piece.
   if (is_capture(move)) {
     assert(move.capture_piece == _remove_piece(board, state, move.capture, &update_islands_table));
+
+    _update_hash(state, move.capture_piece, move.capture);
 
     // Decrement the piece count.
     if (is_piece_white(move.capture_piece)) {
@@ -398,10 +459,15 @@ void undo_move(board_t* board, state_cache_t* state, move_t move) {
   assert(is_piece_color(piece, !board->turn));
   _place_piece(board, state, move.from, piece, &update_islands_table);
 
+  _update_hash(state, piece, move.from);
+  _update_hash(state, piece, move.to);
+
   // If the move is a capture move, add the piece.
   // There must be no piece where we are going to add the piece.
   if (is_capture(move)) {
     _place_piece(board, state, move.capture, move.capture_piece, &update_islands_table);
+
+    _update_hash(state, move.capture_piece, move.capture);
 
     // Increment the piece count.
     if (is_piece_white(move.capture_piece)) {
@@ -422,45 +488,4 @@ void undo_move(board_t* board, state_cache_t* state, move_t move) {
   } else if (is_capture(move)) {
     _generate_board_status(board, state);
   }
-}
-
-// Generate the square hashes table.
-void generate_square_hash(state_cache_t *state) {
-  for (int row=0; row<8; row++) {
-    for (int col=0; col<8; col++) {
-      for (int piece=0; piece<4; piece++) {
-        state->square_hash[piece][to_position(row, col)] = rand();
-      }
-    }
-  }
-}
-
-static inline int piece_id(char piece) {
-  switch (piece) {
-  case 'P':
-    return 0;
-  case 'N':
-    return 1;
-  case 'p':
-    return 2;
-  case 'n':
-    return 3;
-  default:
-    assert(false);
-    return 0;
-  }
-}
-
-unsigned short hash_board(board_t* board, state_cache_t* state) {
-  unsigned short hash = 0;
-  for (int row=0; row<8; row++) {
-    for (int col=0; col<8; col++) {
-      pos_t pos = to_position(row, col);
-      char piece = get_piece(board, pos);
-
-      if (piece != ' ')
-        hash ^= state->square_hash[piece_id(piece)][pos];
-    }
-  }
-  return hash;
 }
