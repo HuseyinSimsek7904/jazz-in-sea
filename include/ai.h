@@ -23,7 +23,7 @@ typedef struct {
 } eval_t;
 
 typedef struct {
-  #ifdef MEMOIZATION
+#ifdef MEMOIZATION
   struct {
     board_t board;
     size_t depth;
@@ -31,7 +31,7 @@ typedef struct {
     move_t move;
   } memorized[1 << (8 * sizeof(unsigned short))][MAX_AI_MEMO];
   size_t memorized_size[1 << (8 * sizeof(unsigned short))];
-  #endif
+#endif
 } ai_cache_t;
 
 void print_eval(eval_t, board_t*);

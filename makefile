@@ -7,11 +7,12 @@ SCRIPTS-DIR	:= ./scripts
 # AB_PRUNING enables alpha-beta pruning.
 # MEMOIZATION enables memoization for the AI.
 
-CMACROS		:= \
-		-DTEST_HASH \
-		-DEVALCOUNT \
-		-DMEMOIZATION \
-		#-DAB_PRUNING \
+CMACROS		:=	\
+-DTEST_HASH		\
+-DEVALCOUNT		\
+-DMEMOIZATION		\
+#-DAB_PRUNING		\
+#-DNDEBUG		\
 
 CC		:= gcc
 CFLAGS		:= -O2 -Wall -Werror $(CMACROS)

@@ -31,17 +31,17 @@ bool white_automove;
 
 
 // -- Commands --
-#define command(name)                              \
-  void command_ ## name(int argc, char** argv)     \
+#define command(name)                           \
+  void command_ ## name(int argc, char** argv)  \
 
 #define cli            if (cli_logs)
 #define cli_info       if (be_descriptive) cli
 #define cli_error(...) if (cli_logs) fprintf(stderr, "error: " __VA_ARGS__); else exit(1);
 
-#define expect_n_arguments(s, n)                                               \
-  if (argc != n + 1) {                                                         \
-    printf("error: command '%s' expects exactly %u argument.\n", s, n);        \
-    return;                                                                    \
+#define expect_n_arguments(s, n)                                        \
+  if (argc != n + 1) {                                                  \
+    printf("error: command '%s' expects exactly %u argument.\n", s, n); \
+    return;                                                             \
   }
 
 void make_automove() {
@@ -262,12 +262,12 @@ command(evaluate) {
   size_t length = evaluate(&game_board, &game_state, ai_depth, moves, &eval);
   cli_info printf("done\n");
 
-  #ifdef EVALCOUNT
+#ifdef EVALCOUNT
   cli_info printf("called _evaluate %d times.\n", get_evaluate_count());
   cli_info printf("remembered %d (%d %%) times.\n", get_remember_count(), get_remember_count() * 100 / get_evaluate_count());
   cli_info printf("found %d (%d %%) different game ends.\n", get_game_end_count(), get_game_end_count() * 100 / get_evaluate_count());
   cli_info printf("found total %d (%d %%) leaves.\n", get_leaf_count(), get_leaf_count() * 100 / get_evaluate_count());
-  #endif
+#endif
 
   switch (evaluation_type) {
   case LIST:
@@ -327,10 +327,10 @@ command(aidepth) {
   }
 }
 
-#define help_command(command_name, ...)          \
-  else if (!strcmp(argv[1], #command_name)) {    \
-    cli printf(__VA_ARGS__);                     \
-  }                                              \
+#define help_command(command_name, ...)         \
+  else if (!strcmp(argv[1], #command_name)) {   \
+    cli printf(__VA_ARGS__);                    \
+  }                                             \
 
 command(help) {
   if (argc == 1) {

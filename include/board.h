@@ -9,9 +9,9 @@
 // -- The board_t type --
 
 typedef struct {
-  #ifndef NDEBUG
+#ifndef NDEBUG
   bool initialized;
-  #endif
+#endif
 
   // A board_array is a 16x16 array which contains information about each cell on a board.
   // The index of this array is called the POSITION.
