@@ -28,10 +28,7 @@
 - [x] #27  (chore) replace `_pawn_pos_adv` and `_knight_pos_adv` with prebuilt arrays of advantage values
 - [x] #28  (feat) eval should not recalculate the board evaluation and instead should always look for the evaluation difference
 - [ ] #29  (chore) create `piece_t`
-- [ ] #30  (fix) the ai produces asymmetric result for these boards:
-  this problem is probably caused by alpha beta pruning, enabling it causes the results to be changed
-  - `1P4P1/8/8/8/8/8/8/p6p w` with depth 10
-  - `np4PN/7P/8/8/8/8/7p/7n w` with depth 3
+- [ ] #30  (fix) alpha-beta pruning does not generate valid output
 - [ ] #31  (feat) for cli, update the tty attributes
 - [x] #32  (cli) implement the `evaluate` command
 - [ ] #33  (cli) implement the `pieceat` subcommand
@@ -49,3 +46,5 @@
 - [x] #45  (feat) board hashing
 - [ ] #46  (feat) same board optimisations (requires #45)
 - [x] #47  (feat) implement the `aidepth` command
+- [ ] #48  (chore) generate the advantage tables that use position indeces
+- [ ] #49  (chore) update the hash value of the board every move instead of calculating it from scratch every time it is needed
