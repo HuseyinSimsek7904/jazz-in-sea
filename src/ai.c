@@ -375,6 +375,7 @@ void setup_cache(ai_cache_t* cache) {
 // Add the board to the memorized boards.
 void memorize(ai_cache_t* cache, unsigned short hash, board_t* board, size_t depth, eval_t eval, move_t move) {
   size_t index = cache->memorized_size[hash]++;
+  cache->memorized_size[hash] %= MAX_AI_MEMO;
   cache->memorized[hash][index].board = *board;
   cache->memorized[hash][index].depth = depth;
   cache->memorized[hash][index].eval = eval;

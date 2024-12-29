@@ -9,7 +9,7 @@
 #include <limits.h>
 #include <stddef.h>
 
-#define MAX_AI_MEMO 0x100
+#define MAX_AI_MEMO 0x20
 
 typedef struct {
   // Type of evaluation, explains what is the result of the line.
