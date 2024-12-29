@@ -472,8 +472,6 @@ int generate_argv(char* arg_buffer, char** argv) {
 
 
 void initialize() {
-  srand(time(NULL));
-
   load_fen(DEFAULT_BOARD, &game_state, &game_board);
   generate_state_cache(&game_board, &game_state);
 
@@ -485,10 +483,10 @@ void initialize() {
     command_ ## command_name(argc, argv);       \
 
 int main(int argc, char** argv) {
-  initialize();
-
   // Get the global flags.
-  const char* const global_opts = "hsd";
+  const char* const global_opts = "hsdr";
+
+  srand(time(NULL));
 
   while (argv[optind]) {
     char c = getopt(argc, argv, global_opts);
@@ -504,10 +502,17 @@ int main(int argc, char** argv) {
       return 0;
     case 's':
       cli_logs = false;
+      break;
     case 'd':
       be_descriptive = true;
+      break;
+    case 'r':
+      srand(0);
+      break;
     }
   }
+
+  initialize();
 
   while (true) {
     char* argv[32];
