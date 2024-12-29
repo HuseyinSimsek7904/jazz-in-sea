@@ -51,7 +51,7 @@ unsigned int get_game_end_count();
 unsigned int get_leaf_count();
 #endif
 
-size_t evaluate(board_t*, state_cache_t*, ai_cache_t*, size_t, move_t*, eval_t*);
+size_t evaluate(board_t*, state_cache_t*, size_t, move_t*, eval_t*);
 
 void setup_cache(ai_cache_t*);
 

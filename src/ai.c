@@ -348,11 +348,12 @@ _evaluate(board_t* board,
   return found_moves;
 }
 
-size_t evaluate(board_t* board, state_cache_t* state, ai_cache_t* cache, size_t max_depth, move_t* moves, eval_t* evaluation) {
+size_t evaluate(board_t* board, state_cache_t* state, size_t max_depth, move_t* moves, eval_t* evaluation) {
 #ifdef EVALCOUNT
   evaluate_count = 0;
 #endif
 
+  ai_cache_t* cache = malloc(sizeof(ai_cache_t));
   size_t length = _evaluate(board,
                             state,
                             cache,
@@ -364,6 +365,8 @@ size_t evaluate(board_t* board, state_cache_t* state, ai_cache_t* cache, size_t 
                             (eval_t) { .type=WHITE_WINS, .strength=0 },  // best possible evaluation for white
                             #endif
                             true);
+
+  free(cache);
 
   return length;
 }
