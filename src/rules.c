@@ -265,6 +265,7 @@ static inline void _update_hash(state_cache_t* state, char piece, pos_t pos) {
 
 // Generate the hash value for a board.
 static inline void _hash_board(board_t* board, state_cache_t* state) {
+  state->hash = 0;
   for (int row=0; row<8; row++) {
     for (int col=0; col<8; col++) {
       pos_t pos = to_position(row, col);
