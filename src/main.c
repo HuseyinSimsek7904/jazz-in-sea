@@ -343,13 +343,15 @@ command(help) {
                "    savefen           get the FEN string of the current board\n"
                "    makemove          make a move\n"
                "    automove          set or reset auto play by AI\n"
-               "    playai            play one of the moves that AI generates\n"
                "    status            get the status information of the current board\n"
                "    allmoves          list all of the available moves at the current board\n"
-               "    evaluate          get AI evaluation on the board\n"
                "    placeat           place a piece on the board\n"
                "    removeat          remove a piece on the board\n"
+               "\n"
+               "ai commands:\n"
                "    aidepth           set the depth of the AI search\n"
+               "    playai            play one of the moves that AI generates\n"
+               "    evaluate          get AI evaluation on the board\n"
                );
 
   } else if (argc == 2) {
@@ -363,13 +365,15 @@ command(help) {
       help_command(savefen, "savefen: get the FEN string of the current board configuration\n")
       help_command(makemove, "makemove <move>: make a move on the current board\n")
       help_command(automove, "automove: set or reset auto play mode by AI\n")
-      help_command(playai, "playai: play a randomly selected move that AI generated\n")
       help_command(status, "status: print the status of the board\n")
       help_command(allmoves, "allmoves: list all of the available moves at the current board\n")
-      help_command(evaluate, "evaluate: get AI evaluation on the current board\n")
       help_command(placeat, "placeat <pos> <piece>: place PIECE on the board at POS\n")
       help_command(placeat, "removeat <pos>: remove the PIECE on the board\n")
+
+      // AI commands
       help_command(aidepth, "aidepth [<depth>]: get or set the AI's searching depth\n")
+      help_command(playai, "playai: play a randomly selected move that AI generated\n")
+      help_command(evaluate, "evaluate: get AI evaluation on the current board\n")
 
     else {
       cli_error("unknown command\n");
@@ -490,7 +494,8 @@ int main(int argc, char** argv) {
              "\n"
              "    -h  Show this message\n"
              "    -s  Silence the CLI like log messages\n"
-             "    -d  Be more descriptive (not effective if used with -s)\n");
+             "    -d  Be more descriptive (not effective if used with -s)\n"
+             "    -r  Derandomize the output\n");
       return 0;
     case 's':
       cli_logs = false;
