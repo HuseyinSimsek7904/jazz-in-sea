@@ -511,7 +511,7 @@ int main(int argc, char** argv) {
     char arg_buffer[512];
     int argc = generate_argv(arg_buffer, argv);
 
-    if (argc < 0) continue;
+    if (!argc) continue;
 
     char* command = argv[0];
 
