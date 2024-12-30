@@ -353,6 +353,9 @@ _evaluate(board_t* board,
 size_t evaluate(board_t* board, state_cache_t* state, size_t max_depth, move_t* moves, eval_t* evaluation) {
 #ifdef EVALCOUNT
   evaluate_count = 0;
+  remember_count = 0;
+  game_end_count = 0;
+  leaf_count = 0;
 #endif
 
   ai_cache_t* cache = malloc(sizeof(ai_cache_t));
