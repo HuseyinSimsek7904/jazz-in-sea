@@ -100,7 +100,7 @@ command(savefen) {
 }
 
 command(show) {
-  enum { BOARD, HASH, ISLANDS } evaluation_type = BOARD;
+  enum { BOARD, HASH, ISLANDS } show_type = BOARD;
 
   optind = 0;
   while (true) {
@@ -111,19 +111,19 @@ command(show) {
     case '?':
       return;
     case 'b':
-      evaluation_type = BOARD;
+      show_type = BOARD;
       break;
     case 'h':
-      evaluation_type = HASH;
+      show_type = HASH;
       break;
     case 'i':
-      evaluation_type = ISLANDS;
+      show_type = ISLANDS;
       break;
     }
   }
 
  end_of_parsing:
-  switch (evaluation_type) {
+  switch (show_type) {
   case BOARD:
     print_board(&game_board, false);
     break;
