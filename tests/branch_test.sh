@@ -13,8 +13,10 @@ branch_check() {
     fi
 
     if [ "$branches" != "$2" ]; then
-        echo -e "did not pass branch test:"
-        echo -e "for depth $1, got $branches expected $2"
+        >&2 echo -e "\e[1;31m"
+        >&2 echo -e "error: did not pass branch test:"
+        >&2 echo -e "error: for depth $1, got $branches expected $2"
+        >&2 echo -e "\e[0m"
         exit 1
     fi
 

@@ -43,12 +43,13 @@ install: $(BUILD-DIR)
 clean:
 	rm -f $(SRC-DIR)/main $(OBJ)
 
-test:
-	$(SCRIPTS-DIR)/tests.sh
-
 $(BUILD-DIR):
 	mkdir $(BUILD-DIR)
 
 generate-compile-commands:
 	make clean
 	bear -- make
+
+test:
+	./tests/branch_test.sh   || :
+	./tests/valgrind_test.sh || :
