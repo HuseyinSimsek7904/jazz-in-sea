@@ -327,6 +327,51 @@ command(aidepth) {
   }
 }
 
+static inline size_t count_branches(size_t depth) {
+  if (!depth) return 1;
+
+  size_t branches = 0;
+
+  move_t moves[256];
+  size_t length = generate_moves(&game_board, moves);
+  for (size_t i=0; i<length; i++) {
+    do_move(&game_board, &game_state, moves[i]);
+
+    branches += count_branches(depth - 1);
+
+    undo_move(&game_board, &game_state, moves[i]);
+  }
+
+  return branches;
+}
+
+command(test) {
+  size_t depth = 0;
+  enum { LEAF_COUNT } test = LEAF_COUNT;
+
+  optind = 0;
+  while (true) {
+    int c = getopt(argc, argv, "l:");
+    switch (c) {
+    case -1:
+      goto end_of_parsing;
+    case '?':
+      return;
+    case 'l':
+      depth = atoi(optarg);
+      test = LEAF_COUNT;
+      break;
+    }
+  }
+
+ end_of_parsing:
+  switch (test) {
+  case LEAF_COUNT:
+    printf("%zu\n", count_branches(depth));
+    break;
+  }
+}
+
 #define help_command(command_name, ...)         \
   else if (!strcmp(argv[1], #command_name)) {   \
     cli printf(__VA_ARGS__);                    \
@@ -352,6 +397,9 @@ command(help) {
                "    aidepth           set the depth of the AI search\n"
                "    playai            play one of the moves that AI generates\n"
                "    evaluate          get AI evaluation on the board\n"
+               "\n"
+               "test commands:\n"
+               "    test              produce a test information\n"
                );
 
   } else if (argc == 2) {
@@ -374,6 +422,9 @@ command(help) {
       help_command(aidepth, "aidepth [<depth>]: get or set the AI's searching depth\n")
       help_command(playai, "playai: play a randomly selected move that AI generated\n")
       help_command(evaluate, "evaluate: get AI evaluation on the current board\n")
+
+      // Test commands
+      help_command(test, "test: produce test information\n")
 
     else {
       cli_error("unknown command\n");
@@ -536,6 +587,7 @@ int main(int argc, char** argv) {
       expect_command(placeat)
       expect_command(removeat)
       expect_command(aidepth)
+      expect_command(test)
     else {
       cli_error("unknown command '%s'\n", command);
       continue;
