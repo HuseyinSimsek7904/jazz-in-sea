@@ -454,6 +454,9 @@ int generate_argv(char* arg_buffer, char** argv) {
     cli printf("\n");
   }
 
+  if (feof(stdin))
+    exit(0);
+
   int argc = 0;
   char* buffer_ptr = buffer;
   char* arg_buffer_ptr = arg_buffer;
@@ -563,12 +566,13 @@ int main(int argc, char** argv) {
   initialize();
 
   while (true) {
+    if (feof(stdin)) return 0;
+
     char* argv[32];
     char arg_buffer[512];
     int argc = generate_argv(arg_buffer, argv);
-    if (feof(stdin)) return 0;
 
-    if (!argc) continue;
+    if (argc <= 0) continue;
 
     char* command = argv[0];
 
