@@ -359,6 +359,8 @@ size_t evaluate(board_t* board, state_cache_t* state, size_t max_depth, move_t* 
 #endif
 
   ai_cache_t* cache = malloc(sizeof(ai_cache_t));
+  setup_cache(cache);
+
   size_t length = _evaluate(board,
                             state,
                             cache,
