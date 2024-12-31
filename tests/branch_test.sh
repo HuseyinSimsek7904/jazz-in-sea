@@ -30,4 +30,4 @@ branch_check 4 30872
 branch_check 5 482432
 branch_check 6 7499456
 branch_check 7 122915700
-echo "passed all branch tests."
+echo "passed all branch tests"
