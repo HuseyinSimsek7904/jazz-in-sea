@@ -9,7 +9,8 @@
 #include <limits.h>
 #include <stddef.h>
 
-#define MAX_AI_MEMO 0x10
+#define AI_HASHMAP_SIZE 0x20000
+#define AI_LL_NODE_SIZE 0x30
 
 typedef struct {
   // Type of evaluation, explains what is the result of the line.
@@ -22,15 +23,21 @@ typedef struct {
   int strength;
 } eval_t;
 
-typedef struct {
-#ifdef MEMOIZATION
-  struct {
+typedef struct ai_cache_node_t {
+  struct ai_cache_node_t* next;
+
+  size_t size;
+  struct memorized_t {
     board_t board;
     size_t depth;
     eval_t eval;
     move_t move;
-  } memorized[1 << (8 * sizeof(unsigned short))][MAX_AI_MEMO];
-  size_t memorized_size[1 << (8 * sizeof(unsigned short))];
+  } array[AI_LL_NODE_SIZE];
+} ai_cache_node_t;
+
+typedef struct {
+#ifdef MEMOIZATION
+  ai_cache_node_t* memorized[AI_HASHMAP_SIZE];
 #endif
 } ai_cache_t;
 
@@ -47,11 +54,12 @@ unsigned int get_leaf_count();
 
 size_t evaluate(board_t*, state_cache_t*, size_t, move_t*, eval_t*);
 
-void setup_cache(ai_cache_t*);
+void setup_cache(ai_cache_t *);
+void free_cache(ai_cache_t *);
 
 #ifdef MEMOIZATION
-void memorize(ai_cache_t* cache, unsigned short hash, board_t* board, size_t depth, eval_t eval, move_t move);
-bool try_remember(ai_cache_t* cache, unsigned short hash, board_t* board, size_t depth, eval_t* eval, move_t* move);
+void memorize(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, eval_t eval, move_t move);
+bool try_remember(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, eval_t* eval, move_t* move);
 #endif
 
 void setup_adv_tables();

@@ -180,23 +180,9 @@ _evaluate(board_t* board,
   evaluate_count++;
 #endif
 
-#ifdef MEMOIZATION
-  // Check if this board was previously calcuated.
-  {
-    eval_t possible_eval;
-    move_t possible_move;
-
-    if (try_remember(cache, state->hash, board, max_depth, &possible_eval, &possible_move)) {
-      remember_count++;
-      *best_moves = possible_move;
-      *evaluation = possible_eval;
-      return 1;
-    }
-  }
-#endif
-
   // Check for the board state.
   // If the game should not continue, return the evaluation.
+  // No need to memorize, as it will take equally as long.
   switch (state->status & 0x30) {
   case 0x10:
 #ifdef EVALCOUNT
@@ -218,8 +204,24 @@ _evaluate(board_t* board,
     return 0;
   }
 
+#ifdef MEMOIZATION
+  // Check if this board was previously calcuated.
+  {
+    eval_t possible_eval;
+    move_t possible_move;
+
+    if (try_remember(cache, state->hash, board, max_depth, &possible_eval, &possible_move)) {
+      remember_count++;
+      *best_moves = possible_move;
+      *evaluation = possible_eval;
+      return 1;
+    }
+  }
+#endif
+
   // Check if we reached the end of the best_line buffer.
   // If so, just return the evaluation.
+  // No need to memorize as finding a depth 0 branch is almost useless.
   if (!max_depth) {
 #ifdef EVALCOUNT
     leaf_count++;
@@ -235,7 +237,7 @@ _evaluate(board_t* board,
   assert(moves_length);
 
   // If this move is the first move and if there are only one possible moves, return the only move.
-  // No need to search recursively.
+  // No need to search recursively or memorize.
   if (starting_move && moves_length == 1) {
 #ifdef EVALCOUNT
     leaf_count++;
@@ -247,10 +249,8 @@ _evaluate(board_t* board,
 
   size_t found_moves = 0;
 
-#ifdef TEST_HASH
-#ifndef NDEBUG
-  const unsigned short old_hash = state->hash;
-#endif
+#if defined (TEST_HASH) && ! defined (NDEBUG)
+  const hash_t old_hash = state->hash;
 #endif
 
   // Loop through all of the available moves except the first, and recursively get the next moves.
@@ -329,12 +329,12 @@ size_t evaluate(board_t* board, state_cache_t* state, size_t max_depth, move_t* 
   leaf_count = 0;
 #endif
 
-  ai_cache_t* cache = malloc(sizeof(ai_cache_t));
-  setup_cache(cache);
+  ai_cache_t cache;
+  setup_cache(&cache);
 
   size_t length = _evaluate(board,
                             state,
-                            cache,
+                            &cache,
                             max_depth,
                             moves,
                             evaluation,
@@ -344,38 +344,73 @@ size_t evaluate(board_t* board, state_cache_t* state, size_t max_depth, move_t* 
 #endif
                             true);
 
-  free(cache);
+  free_cache(&cache);
 
   return length;
 }
 
 void setup_cache(ai_cache_t* cache) {
 #ifdef MEMOIZATION
-  for (size_t i=0; i<(1 << (8 * sizeof(unsigned short))); i++) {
-    cache->memorized_size[i] = 0;
+  for (size_t i=0; i<AI_HASHMAP_SIZE; i++) {
+    cache->memorized[i] = NULL;
+  }
+#endif
+}
+
+void free_cache(ai_cache_t* cache) {
+#ifdef MEMOIZATION
+  for (size_t i=0; i<AI_HASHMAP_SIZE; i++) {
+    ai_cache_node_t* node = cache->memorized[i];
+    while (node != NULL) {
+      ai_cache_node_t* next = node->next;
+      free(node);
+      node = next;
+    }
   }
 #endif
 }
 
 #ifdef MEMOIZATION
 // Add the board to the memorized boards.
-void memorize(ai_cache_t* cache, unsigned short hash, board_t* board, size_t depth, eval_t eval, move_t move) {
-  size_t index = cache->memorized_size[hash]++;
-  cache->memorized_size[hash] %= MAX_AI_MEMO;
-  cache->memorized[hash][index].board = *board;
-  cache->memorized[hash][index].depth = depth;
-  cache->memorized[hash][index].eval = eval;
-  cache->memorized[hash][index].move = move;
+void memorize(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, eval_t eval, move_t move) {
+  ai_cache_node_t* node = cache->memorized[hash % AI_HASHMAP_SIZE];
+
+  if (!node) {
+    cache->memorized[hash % AI_HASHMAP_SIZE] = malloc(sizeof(ai_cache_node_t));
+    node = cache->memorized[hash % AI_HASHMAP_SIZE];
+    node->next = NULL;
+    node->size = 0;
+    node->array[node->size++] = (struct memorized_t) { .board=*board, .depth=depth, .eval=eval, .move=move };
+    return;
+  }
+
+  while (true) {
+    if (node->size < AI_LL_NODE_SIZE) break;
+
+    if (!node->next) {
+      node->next = malloc(sizeof(ai_cache_node_t));
+      node = node->next;
+      node->next = NULL;
+      node->size = 0;
+      break;
+    }
+
+    node = node->next;
+  }
+  node->array[node->size++] = (struct memorized_t) { .board=*board, .depth=depth, .eval=eval, .move=move };
 }
 
 // Get if the board was saved for memoization before.
-bool try_remember(ai_cache_t* cache, unsigned short hash, board_t* board, size_t depth, eval_t* eval, move_t* move) {
-  for (size_t i=0; i<cache->memorized_size[hash]; i++) {
-    if (compare(&cache->memorized[hash][i].board, board) && cache->memorized[hash][i].depth >= depth) {
-      *eval = cache->memorized[hash][i].eval;
-      *move = cache->memorized[hash][i].move;
+bool try_remember(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, eval_t* eval, move_t* move) {
+  for (ai_cache_node_t* node = cache->memorized[hash % AI_HASHMAP_SIZE]; node != NULL; node = node->next) {
+    for (int i=0; i<node->size; i++) {
+      struct memorized_t memorized = node->array[i];
 
-      return true;
+      if (compare(board, &memorized.board) && memorized.depth >= depth) {
+        *eval = memorized.eval;
+        *move = memorized.move;
+        return true;
+      }
     }
   }
 

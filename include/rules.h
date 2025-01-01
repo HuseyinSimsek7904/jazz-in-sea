@@ -7,6 +7,8 @@
 #include "move.h"
 #include "position.h"
 
+typedef unsigned int hash_t;
+
 typedef enum {
   NORMAL                 = 0x00,
   DRAW_BY_REPETITION     = 0x10, // When a position is repeated three times.
@@ -35,10 +37,10 @@ typedef struct {
   bool islands[256];
 
   // Square hashes table used to generate a hash value for boards.
-  unsigned short square_hash[4][256];
+  hash_t square_hash[4][256];
 
   // The current hash value.
-  unsigned short hash;
+  hash_t hash;
 } state_cache_t;
 
 size_t generate_moves(board_t*, move_t[256]);
