@@ -380,7 +380,7 @@ void memorize(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, eval
     node = cache->memorized[hash % AI_HASHMAP_SIZE];
     node->next = NULL;
     node->size = 0;
-    node->array[node->size++] = (struct memorized_t) { .board=*board, .depth=depth, .eval=eval, .move=move };
+    node->array[node->size++] = (struct memorized_t) { .board=*board, .hash=hash, .depth=depth, .eval=eval, .move=move };
     return;
   }
 
@@ -397,18 +397,22 @@ void memorize(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, eval
 
     node = node->next;
   }
-  node->array[node->size++] = (struct memorized_t) { .board=*board, .depth=depth, .eval=eval, .move=move };
+
+  node->array[node->size++] = (struct memorized_t) { .board=*board, .hash=hash, .depth=depth, .eval=eval, .move=move };
 }
 
 // Get if the board was saved for memoization before.
 bool try_remember(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, eval_t* eval, move_t* move) {
   for (ai_cache_node_t* node = cache->memorized[hash % AI_HASHMAP_SIZE]; node != NULL; node = node->next) {
     for (int i=0; i<node->size; i++) {
-      struct memorized_t memorized = node->array[i];
+      struct memorized_t* memorized = &node->array[i];
 
-      if (compare(board, &memorized.board) && memorized.depth >= depth) {
-        *eval = memorized.eval;
-        *move = memorized.move;
+      if (memorized->hash != hash)
+        continue;
+
+      if (compare(board, &memorized->board) && memorized->depth >= depth) {
+        *eval = memorized->eval;
+        *move = memorized->move;
         return true;
       }
     }

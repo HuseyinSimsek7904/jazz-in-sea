@@ -29,6 +29,7 @@ typedef struct ai_cache_node_t {
   size_t size;
   struct memorized_t {
     board_t board;
+    hash_t hash;
     size_t depth;
     eval_t eval;
     move_t move;
