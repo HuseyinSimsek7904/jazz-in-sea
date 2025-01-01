@@ -27,7 +27,7 @@
 - [ ] #26  (chore) convert the recursive ai to iterative ai, which will make it possible to find the mate in 6 without having to check 10 nodes deep branches
 - [x] #27  (chore) replace `_pawn_pos_adv` and `_knight_pos_adv` with prebuilt arrays of advantage values
 - [x] #28  (feat) eval should not recalculate the board evaluation and instead should always look for the evaluation difference
-- [ ] #29  (chore) create `piece_t`
+- [x] #29  (chore) create `piece_t`
 - [ ] #30  (fix) alpha-beta pruning does not generate valid output
 - [ ] #31  (feat) for cli, update the tty attributes
 - [x] #32  (cli) implement the `evaluate` command
@@ -41,12 +41,12 @@
 - [ ] #40  (cli) implement the `countbranches` command
 - [x] #41  (cli) implement the `playai` command
 - [x] #42  (cli) implement the `getaimove` command
-- [ ] #43  (cli) create a test command for the new cli system
+- [x] #43  (cli) create a test command for the new cli system
 - [ ] #44  (feat) same color square evaluation
 - [x] #45  (feat) board hashing
 - [x] #46  (feat) same board optimisations (requires #45)
 - [x] #47  (feat) implement the `aidepth` command
-- [ ] #48  (chore) generate the advantage tables that use position indeces
+- [x] #48  (chore) generate the advantage tables that use position indeces
 - [x] #49  (chore) update the hash value of the board every move instead of calculating it from scratch every time it is needed
 - [ ] #50  (fix) `placeat` and `removeat` commands do not update the status of the board
-- [ ] #51  (feat) turn `ai_cache_t.memorized` to a linked list
+- [x] #51  (feat) turn `ai_cache_t.memorized` to a linked list
