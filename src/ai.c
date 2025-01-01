@@ -322,7 +322,7 @@ _evaluate(board_t* board,
 #endif
 
 #ifdef MEMOIZATION
-  memorize(cache, state->hash, board, max_depth, *evaluation, *best_moves);
+  memorize(cache, state->hash, board, max_depth, *evaluation, best_moves[rand() % found_moves]);
 #endif
 
   return found_moves;
