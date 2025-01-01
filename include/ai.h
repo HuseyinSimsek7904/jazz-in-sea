@@ -9,7 +9,7 @@
 #include <limits.h>
 #include <stddef.h>
 
-#define MAX_AI_MEMO 0x20
+#define MAX_AI_MEMO 0x10
 
 typedef struct {
   // Type of evaluation, explains what is the result of the line.
@@ -38,12 +38,6 @@ void print_eval(eval_t, board_t*);
 
 bool compare_eval(bool, eval_t, eval_t);
 
-int pawn_dist_to_center(pos_t);
-int knight_dist_to_center(pos_t);
-
-int pawn_pos_adv(pos_t);
-int knight_pos_adv(pos_t);
-
 #ifdef EVALCOUNT
 unsigned int get_evaluate_count();
 unsigned int get_remember_count();
@@ -59,5 +53,7 @@ void setup_cache(ai_cache_t*);
 void memorize(ai_cache_t* cache, unsigned short hash, board_t* board, size_t depth, eval_t eval, move_t move);
 bool try_remember(ai_cache_t* cache, unsigned short hash, board_t* board, size_t depth, eval_t* eval, move_t* move);
 #endif
+
+void setup_adv_tables();
 
 #endif

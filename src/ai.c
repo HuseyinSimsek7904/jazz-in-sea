@@ -17,19 +17,22 @@ const int KNIGHT_BASE = 700;
 
 // As x increases, distance from center in x decreases.
 // Same for y.
-const int PAWN_ADV_TABLE[4][4] = {
+const int TOPLEFT_PAWN_ADV_TABLE[4][4] = {
   {-500, -450, -400, -300},
   {-450, -400, -350, -250},
   {-400, -350, -300, -200},
   {-300, -250, -200, -0  },
 };
 
-const int KNIGHT_ADV_TABLE[4][4] = {
+const int TOPLEFT_KNIGHT_ADV_TABLE[4][4] = {
   {-300, -250, -200, -100},
   {-250, -200, -150, -60 },
   {-200, -150, -30 , -50 },
   {-100,  -60, -50 , -0  }
 };
+
+int PAWN_ADV_TABLE[256];
+int KNIGHT_ADV_TABLE[256];
 
 // Returns the copy of eval from the opponent's POV.
 // WHITE_WINS => BLACK_WINS
@@ -137,45 +140,13 @@ static inline int get_delta_eval(board_t* board, move_t move) {
   // Add the advantage difference of the from and to positions.
   char piece = get_piece(board, move.from);
   if (is_piece_knight(piece)) {
-    delta_evaluation += knight_pos_adv(move.to) - knight_pos_adv(move.from);
+    delta_evaluation += KNIGHT_ADV_TABLE[move.to] - KNIGHT_ADV_TABLE[move.from];
   } else {
     assert(is_piece_pawn(piece));
-    delta_evaluation += pawn_pos_adv(move.to) - pawn_pos_adv(move.from);
+    delta_evaluation += PAWN_ADV_TABLE[move.to] - PAWN_ADV_TABLE[move.from];
   }
 
   return board->turn ? delta_evaluation : -delta_evaluation;
-}
-
-// Returns how many regular pawn moves it would take for the pawn to walk to the
-// center of the board.
-int pawn_dist_to_center(pos_t pos) {
-  int col = to_col(pos);
-  int row = to_row(pos);
-  return (col <= 3 ? 3 - col : col - 4) + (row <= 3 ? 3 - row : row - 4);
-}
-
-// Returns how many regular knight moves it would take for the pawn to walk to
-// the center of the board.
-int knight_dist_to_center(pos_t pos) {
-  int col = to_col(pos);
-  int row = to_row(pos);
-  return (col <= 3 ? (4 - col) / 2 : (col - 3) / 2) + (row <= 3 ? (4 - row) / 2 : (row - 3) / 2);
-}
-
-int pawn_pos_adv(pos_t pos) {
-  int col = to_col(pos);
-  int row = to_row(pos);
-  if (col >= 4) col = 7 - col;
-  if (row >= 4) row = 7 - row;
-  return PAWN_ADV_TABLE[row][col];
-}
-
-int knight_pos_adv(pos_t pos) {
-  int col = to_col(pos);
-  int row = to_row(pos);
-  if (col >= 4) col = 7 - col;
-  if (row >= 4) row = 7 - row;
-  return KNIGHT_ADV_TABLE[row][col];
 }
 
 #ifdef EVALCOUNT
@@ -411,3 +382,20 @@ bool try_remember(ai_cache_t* cache, unsigned short hash, board_t* board, size_t
   return false;
 }
 #endif
+
+void setup_adv_tables() {
+  for (int row=0; row<8; row++) {
+    for (int col=0; col<8; col++) {
+      int topleft_row = row;
+      int topleft_col = col;
+
+      if (row >= 4) topleft_row = 7 - row;
+      if (col >= 4) topleft_col = 7 - col;
+
+      pos_t pos = to_position(row, col);
+
+      PAWN_ADV_TABLE[pos] = TOPLEFT_PAWN_ADV_TABLE[topleft_row][topleft_col];
+      KNIGHT_ADV_TABLE[pos] = TOPLEFT_KNIGHT_ADV_TABLE[topleft_row][topleft_col];
+    }
+  }
+}
