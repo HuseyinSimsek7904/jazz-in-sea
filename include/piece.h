@@ -3,34 +3,23 @@
 
 #include <stdbool.h>
 
-#define BLACK  false
-#define WHITE  true
+#define MOD_EMPTY  0
+#define MOD_WHITE  4
+#define MOD_BLACK  6
+#define MOD_PAWN   4
+#define MOD_KNIGHT 5
 
-#define PAWN   false
-#define KNIGHT true
+enum {
+  EMPTY        = MOD_EMPTY,
+  WHITE_PAWN   = MOD_WHITE | MOD_PAWN,
+  WHITE_KNIGHT = MOD_WHITE | MOD_KNIGHT,
+  BLACK_PAWN   = MOD_BLACK | MOD_PAWN,
+  BLACK_KNIGHT = MOD_BLACK | MOD_KNIGHT,
+};
 
-// Check the piece color.
+typedef char piece_t;
 
-static inline bool is_piece_black(char piece) { return piece == 'p' || piece == 'n'; }
-static inline bool is_piece_white(char piece) { return piece == 'P' || piece == 'N'; }
-
-static inline bool is_piece_color(char piece, bool color) {
-  if (color)
-    return is_piece_white(piece);
-  else
-    return is_piece_black(piece);
-}
-
-// Check the piece type.
-
-static inline bool is_piece_pawn(char piece)   { return piece == 'p' || piece == 'P'; }
-static inline bool is_piece_knight(char piece) { return piece == 'n' || piece == 'N'; }
-
-static inline bool is_piece_type(char piece, bool type) {
-  if (type)
-    return is_piece_knight(piece);
-  else
-    return is_piece_pawn(piece);
-}
+static inline char get_piece_color(piece_t piece) { return piece & 6; }
+static inline char get_piece_type(piece_t piece) { return piece & 5; }
 
 #endif

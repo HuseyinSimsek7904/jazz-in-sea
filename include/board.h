@@ -1,6 +1,7 @@
 #ifndef _BOARD_H
 #define _BOARD_H
 
+#include "piece.h"
 #include "position.h"
 #include <assert.h>
 #include <stdbool.h>
@@ -21,7 +22,7 @@ typedef struct {
   // This extra space in positions are used for checking whether a position is valid.
   // So checking if (POS & 0x88) == 0 is enough to check if the position is out of the bounds of the board.
   // This will hopefully allow for fast checking of bounds.
-  char board_array[16 * 16];
+  piece_t board_array[16 * 16];
 
   // false -> black, true -> white
   bool turn;
@@ -34,7 +35,7 @@ typedef struct {
 
 // Get a piece at a position.
 // Asserts if position is invalid.
-static inline char get_piece(board_t *board, pos_t pos) {
+static inline piece_t get_piece(board_t *board, pos_t pos) {
 #ifndef NDEBUG
   assert(board->initialized);
 #endif
@@ -45,7 +46,7 @@ static inline char get_piece(board_t *board, pos_t pos) {
 
 // Set a piece at a position.
 // Asserts if position is invalid.
-static inline void set_piece(board_t *board, pos_t pos, char piece) {
+static inline void set_piece(board_t *board, pos_t pos, piece_t piece) {
   assert(is_valid_pos(pos));
   board->board_array[pos] = piece;
 }

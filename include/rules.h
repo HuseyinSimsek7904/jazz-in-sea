@@ -5,6 +5,7 @@
 
 #include "board.h"
 #include "move.h"
+#include "piece.h"
 #include "position.h"
 
 typedef unsigned int hash_t;
@@ -48,7 +49,7 @@ const char *board_status_text(status_t);
 
 void generate_state_cache(board_t *, state_cache_t *);
 
-bool place_piece(board_t*, state_cache_t*, pos_t, char);
+bool place_piece(board_t*, state_cache_t*, pos_t, piece_t);
 bool remove_piece(board_t*, state_cache_t*, pos_t);
 
 void do_move(board_t*, state_cache_t*, move_t);

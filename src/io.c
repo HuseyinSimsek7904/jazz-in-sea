@@ -7,6 +7,7 @@
 #include "board.h"
 #include "io.h"
 #include "move.h"
+#include "piece.h"
 #include "position.h"
 #include "rules.h"
 
@@ -134,25 +135,24 @@ void print_move(move_t move) {
   }
 }
 
-const char *TOP_ROW = " abcdefgh\n";
-const char *TOP_ROW_INV = " hgfedcba\n";
+const char *CLI_TOP_ROW = " abcdefgh\n";
+const char *CLI_TOP_ROW_INV = " hgfedcba\n";
 
-const char WHITE_CELL = '_';
-const char BLACK_CELL = ' ';
-const char WHITE_CELL_CENTER = '.';
-const char BLACK_CELL_CENTER = '.';
-const char WHITE_PAWN = 'P';
-const char WHITE_KNIGHT = 'N';
-const char BLACK_PAWN = 'p';
-const char BLACK_KNIGHT = 'n';
-const char ERROR = 'E';
-
-const char ISLANDS_EMPTY = '.';
-const char ISLANDS_NO = '+';
-const char ISLANDS_YES = '#';
+const char CLI_WHITE_CELL = '_';
+const char CLI_BLACK_CELL = ' ';
+const char CLI_WHITE_CELL_CENTER = '.';
+const char CLI_BLACK_CELL_CENTER = '.';
+const char CLI_WHITE_PAWN = 'P';
+const char CLI_WHITE_KNIGHT = 'N';
+const char CLI_BLACK_PAWN = 'p';
+const char CLI_BLACK_KNIGHT = 'n';
+const char CLI_ERROR = 'E';
+const char CLI_ISLANDS_EMPTY = '.';
+const char CLI_ISLANDS_NO = '+';
+const char CLI_ISLANDS_YES = '#';
 
 void print_board(board_t *board, bool player) {
-  printf("%s", player ? TOP_ROW_INV : TOP_ROW);
+  printf("%s", player ? CLI_TOP_ROW_INV : CLI_TOP_ROW);
 
   for (int prow = 0; prow < 8; prow++) {
     int row = perspective_row(prow, player);
@@ -162,32 +162,32 @@ void print_board(board_t *board, bool player) {
       int col = perspective_col(pcol, player);
 
       pos_t position = to_position(row, col);
-      char piece = get_piece(board, position);
+      piece_t piece = get_piece(board, position);
 
       char character;
       switch (piece) {
-      case ' ':
+      case EMPTY:
         if (is_center(position)) {
-          character = (col + row) % 2 ? WHITE_CELL_CENTER : BLACK_CELL_CENTER;
+          character = (col + row) % 2 ? CLI_WHITE_CELL_CENTER : CLI_BLACK_CELL_CENTER;
         } else {
-          character = (col + row) % 2 ? WHITE_CELL : BLACK_CELL;
+          character = (col + row) % 2 ? CLI_WHITE_CELL : CLI_BLACK_CELL;
         }
         break;
 
-      case 'P':
-        character = WHITE_PAWN;
+      case WHITE_PAWN:
+        character = CLI_WHITE_PAWN;
         break;
-      case 'N':
-        character = WHITE_KNIGHT;
+      case WHITE_KNIGHT:
+        character = CLI_WHITE_KNIGHT;
         break;
-      case 'p':
-        character = BLACK_PAWN;
+      case BLACK_PAWN:
+        character = CLI_BLACK_PAWN;
         break;
-      case 'n':
-        character = BLACK_KNIGHT;
+      case BLACK_KNIGHT:
+        character = CLI_BLACK_KNIGHT;
         break;
       default:
-        character = ERROR;
+        character = CLI_ERROR;
         break;
       }
 
@@ -205,10 +205,10 @@ void print_islands(board_t* board, state_cache_t state, bool player) {
       int col = perspective_col(pcol, player);
       pos_t pos = to_position(row, col);
       char c;
-      if (get_piece(board, pos) == ' ') {
-        c = ISLANDS_EMPTY;
+      if (get_piece(board, pos) == EMPTY) {
+        c = CLI_ISLANDS_EMPTY;
       } else {
-        c = state.islands[pos] ? ISLANDS_YES : ISLANDS_NO;
+        c = state.islands[pos] ? CLI_ISLANDS_YES : CLI_ISLANDS_NO;
       }
       printf("%c", c);
     }

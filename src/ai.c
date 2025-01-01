@@ -129,21 +129,28 @@ static inline int get_delta_eval(board_t* board, move_t move) {
   // It is a "good" thing that we take the opponent's piece as these pieces have a base value.
   // Losing a piece will make you lose that base value.
   if (is_valid_pos(move.capture)) {
-    if (is_piece_knight(move.capture_piece))
-      delta_evaluation += KNIGHT_BASE;
-    else {
-      assert(is_piece_pawn(move.capture_piece));
+    switch (get_piece_type(move.capture_piece)) {
+    case MOD_PAWN:
       delta_evaluation += PAWN_BASE;
+      break;
+    case MOD_KNIGHT:
+      delta_evaluation += KNIGHT_BASE;
+      break;
+    default:
+      assert(false);
     }
   }
 
   // Add the advantage difference of the from and to positions.
-  char piece = get_piece(board, move.from);
-  if (is_piece_knight(piece)) {
-    delta_evaluation += KNIGHT_ADV_TABLE[move.to] - KNIGHT_ADV_TABLE[move.from];
-  } else {
-    assert(is_piece_pawn(piece));
+  switch (get_piece_type(get_piece(board, move.from))) {
+  case MOD_PAWN:
     delta_evaluation += PAWN_ADV_TABLE[move.to] - PAWN_ADV_TABLE[move.from];
+    break;
+  case MOD_KNIGHT:
+    delta_evaluation += KNIGHT_ADV_TABLE[move.to] - KNIGHT_ADV_TABLE[move.from];
+    break;
+  default:
+    assert(false);
   }
 
   return board->turn ? delta_evaluation : -delta_evaluation;

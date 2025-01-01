@@ -4,16 +4,44 @@
 #include "position.h"
 #include "rules.h"
 #include <assert.h>
+#include <stdbool.h>
 
 #define FEN_WHITE_PAWN 'P'
 #define FEN_WHITE_KNIGHT 'N'
 #define FEN_BLACK_PAWN 'p'
 #define FEN_BLACK_KNIGHT 'n'
 
-// Right now, we use the FEN representations of piece on the board array.
-// However, when this is changed in the future, this function should be updated.
-static inline char _char_to_piece(char c) { return c; }
-static inline char _piece_to_char(char piece) { return piece; }
+static inline piece_t _char_to_piece(char c) {
+  switch (c) {
+  case FEN_WHITE_PAWN:
+    return WHITE_PAWN;
+  case FEN_WHITE_KNIGHT:
+    return WHITE_KNIGHT;
+  case FEN_BLACK_PAWN:
+    return BLACK_PAWN;
+  case FEN_BLACK_KNIGHT:
+    return BLACK_KNIGHT;
+  default:
+    assert(false);
+    return -1;
+  }
+}
+
+static inline char _piece_to_char(piece_t piece) {
+  switch (piece) {
+  case WHITE_PAWN:
+    return FEN_WHITE_PAWN;
+  case WHITE_KNIGHT:
+    return FEN_WHITE_KNIGHT;
+  case BLACK_PAWN:
+    return FEN_BLACK_PAWN;
+  case BLACK_KNIGHT:
+    return FEN_BLACK_KNIGHT;
+  default:
+    assert(false);
+    return -1;
+  }
+}
 
 static inline char _player_to_char(bool player) { return player ? 'w' : 'b'; }
 static inline bool _char_to_player(char c) {
@@ -53,7 +81,7 @@ bool load_fen(const char* fen, state_cache_t* state, board_t* board) {
       // However checking this seems unnecessary.
       int spaces = *fen - '0';
       if (col + spaces > 8) return false;
-      while (spaces--) set_piece(board, to_position(row, col++), ' ');
+      while (spaces--) set_piece(board, to_position(row, col++), EMPTY);
       break;
 
     case FEN_WHITE_PAWN:
@@ -108,9 +136,9 @@ bool load_fen(const char* fen, state_cache_t* state, board_t* board) {
 char* save_fen(char* fen, board_t* board) {
   for (int row=0; row<8; row++) {
     for (int col=0; col<8; col++) {
-      char piece = get_piece(board, to_position(row, col));
+      piece_t piece = get_piece(board, to_position(row, col));
 
-      if (piece == ' ') {
+      if (piece == EMPTY) {
         if (*(fen - 1) >= '1' && *(fen - 1) <= '8') {
           (*(fen - 1))++;
         } else {
