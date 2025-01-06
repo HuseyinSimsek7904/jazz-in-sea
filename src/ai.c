@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -322,7 +323,7 @@ _evaluate(board_t* board,
 #endif
 
 #ifdef MEMOIZATION
-  memorize(cache, state->hash, board, max_depth, *evaluation, best_moves[rand() % found_moves]);
+  memorize(cache, state->hash, board, (evaluation->type == WHITE_WINS || evaluation->type == BLACK_WINS) ? LONG_MAX : max_depth, *evaluation, best_moves[rand() % found_moves]);
 #endif
 
   return found_moves;
