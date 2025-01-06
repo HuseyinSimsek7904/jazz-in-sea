@@ -257,10 +257,23 @@ command(evaluate) {
   // Print the calculated evaluation of the AI.
   cli_info printf("evaluating... ");
   move_t moves[256];
+  size_t length;
   eval_t eval;
 
-  size_t length = evaluate(&game_board, &game_state, ai_depth, moves, &eval);
-  cli_info printf("done\n");
+#ifdef MEASURE_EVAL_TIME
+  {
+    clock_t start = clock();
+#endif
+
+    length = evaluate(&game_board, &game_state, ai_depth, moves, &eval);
+    cli_info printf("done\n");
+
+#ifdef MEASURE_EVAL_TIME
+    cli_info printf("took %ldms\n", (clock() - start) / (CLOCKS_PER_SEC / 1000));
+  }
+#endif
+
+
 
 #ifdef EVALCOUNT
   cli_info printf("called _evaluate %d times.\n", get_evaluate_count());
