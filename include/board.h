@@ -10,7 +10,7 @@
 // -- The board_t type --
 
 typedef struct {
-#ifndef NDEBUG
+#if defined (TEST_BOARD_INIT) && ! defined (NDEBUG)
   bool initialized;
 #endif
 
@@ -36,7 +36,7 @@ typedef struct {
 // Get a piece at a position.
 // Asserts if position is invalid.
 static inline piece_t get_piece(board_t *board, pos_t pos) {
-#ifndef NDEBUG
+#ifdef TEST_BOARD_INIT
   assert(board->initialized);
 #endif
 

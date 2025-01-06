@@ -157,16 +157,20 @@ static inline int get_delta_eval(board_t* board, move_t move) {
   return board->turn ? delta_evaluation : -delta_evaluation;
 }
 
-#ifdef EVALCOUNT
+#ifdef MEASURE_EVAL_COUNT
 size_t evaluate_count = 0;
-size_t remember_count = 0;
 size_t game_end_count = 0;
 size_t leaf_count = 0;
 
 unsigned int get_evaluate_count() { return evaluate_count; }
-unsigned int get_remember_count() { return remember_count; }
 unsigned int get_game_end_count() { return game_end_count; }
 unsigned int get_leaf_count() { return leaf_count; }
+
+#ifdef MM_OPT_MEMOIZATION
+size_t remember_count = 0;
+unsigned int get_remember_count() { return remember_count; }
+#endif
+
 #endif
 
 // Find the best continuing moves available and their evaluation value.
@@ -177,14 +181,14 @@ _evaluate(board_t* board,
           size_t max_depth,
           move_t* best_moves,
           eval_t* evaluation,
-#ifdef AB_PRUNING
+#ifdef MM_OPT_AB_PRUNING
           eval_t alpha,
           eval_t beta,
 #endif
           bool starting_move) {
 
   // Can be used to debug whilst trying to optimise the evaluate function.
-#ifdef EVALCOUNT
+#ifdef MEASURE_EVAL_COUNT
   evaluate_count++;
 #endif
 
@@ -193,26 +197,26 @@ _evaluate(board_t* board,
   // No need to memorize, as it will take equally as long.
   switch (state->status & 0x30) {
   case 0x10:
-#ifdef EVALCOUNT
+#ifdef MEASURE_EVAL_COUNT
     game_end_count++;
 #endif
     *evaluation = (eval_t) { .type=DRAW,       .strength=board->move_count };
     return 0;
   case 0x20:
-#ifdef EVALCOUNT
+#ifdef MEASURE_EVAL_COUNT
     game_end_count++;
 #endif
     *evaluation = (eval_t) { .type=WHITE_WINS, .strength=board->move_count };
     return 0;
   case 0x30:
-#ifdef EVALCOUNT
+#ifdef MEASURE_EVAL_COUNT
     game_end_count++;
 #endif
     *evaluation = (eval_t) { .type=BLACK_WINS, .strength=board->move_count };
     return 0;
   }
 
-#ifdef MEMOIZATION
+#ifdef MM_OPT_MEMOIZATION
   // Check if this board was previously calcuated.
   {
     eval_t possible_eval;
@@ -231,7 +235,7 @@ _evaluate(board_t* board,
   // If so, just return the evaluation.
   // No need to memorize as finding a depth 0 branch is almost useless.
   if (!max_depth) {
-#ifdef EVALCOUNT
+#ifdef MEASURE_EVAL_COUNT
     leaf_count++;
 #endif
     *evaluation = (eval_t) { .type=CONTINUE, .strength=0 };
@@ -247,7 +251,7 @@ _evaluate(board_t* board,
   // If this move is the first move and if there are only one possible moves, return the only move.
   // No need to search recursively or memorize.
   if (starting_move && moves_length == 1) {
-#ifdef EVALCOUNT
+#ifdef MEASURE_EVAL_COUNT
     leaf_count++;
 #endif
     *evaluation = (eval_t) { .type=NOT_CALCULATED };
@@ -257,7 +261,7 @@ _evaluate(board_t* board,
 
   size_t found_moves = 0;
 
-#if defined (TEST_HASH) && ! defined (NDEBUG)
+#if defined (TEST_EVAL_HASH) && ! defined (NDEBUG)
   const hash_t old_hash = state->hash;
 #endif
 
@@ -271,7 +275,7 @@ _evaluate(board_t* board,
 
     do_move(board, state, move);
     _evaluate(board, state, cache, new_depth, new_moves, &new_evaluation,
-#ifdef AB_PRUNING
+#ifdef MM_OPT_AB_PRUNING
               alpha, beta,
 #endif
               false);
@@ -301,7 +305,7 @@ _evaluate(board_t* board,
     found_moves = 1;
     *best_moves = move;
 
-#ifdef AB_PRUNING
+#ifdef MM_OPT_AB_PRUNING
     // If found a move better than beta or alpha, break.
     if (compare_favor(new_evaluation, board->turn ? beta : alpha, board->turn) > 0) {
       break;
@@ -318,11 +322,11 @@ _evaluate(board_t* board,
 #endif
   }
 
-#ifdef TEST_HASH
+#ifdef TEST_EVAL_HASH
   assert(old_hash == state->hash);
 #endif
 
-#ifdef MEMOIZATION
+#ifdef MM_OPT_MEMOIZATION
   memorize(cache, state->hash, board, (evaluation->type == WHITE_WINS || evaluation->type == BLACK_WINS) ? LONG_MAX : max_depth, *evaluation, best_moves[rand() % found_moves]);
 #endif
 
@@ -330,11 +334,15 @@ _evaluate(board_t* board,
 }
 
 size_t evaluate(board_t* board, state_cache_t* state, size_t max_depth, move_t* moves, eval_t* evaluation) {
-#ifdef EVALCOUNT
+#ifdef MEASURE_EVAL_COUNT
   evaluate_count = 0;
-  remember_count = 0;
   game_end_count = 0;
   leaf_count = 0;
+
+#ifdef MM_OPT_MEMOIZATION
+  remember_count = 0;
+#endif
+
 #endif
 
   ai_cache_t cache;
@@ -346,7 +354,7 @@ size_t evaluate(board_t* board, state_cache_t* state, size_t max_depth, move_t* 
                             max_depth,
                             moves,
                             evaluation,
-#ifdef AB_PRUNING
+#ifdef MM_OPT_AB_PRUNING
                             (eval_t) { .type=BLACK_WINS, .strength=0 },  // best possible evaluation for black
                             (eval_t) { .type=WHITE_WINS, .strength=0 },  // best possible evaluation for white
 #endif
@@ -358,7 +366,7 @@ size_t evaluate(board_t* board, state_cache_t* state, size_t max_depth, move_t* 
 }
 
 void setup_cache(ai_cache_t* cache) {
-#ifdef MEMOIZATION
+#ifdef MM_OPT_MEMOIZATION
   for (size_t i=0; i<AI_HASHMAP_SIZE; i++) {
     ai_cache_node_t* node = cache->memorized[i] = malloc(sizeof(ai_cache_node_t));
     node->next = NULL;
@@ -368,7 +376,7 @@ void setup_cache(ai_cache_t* cache) {
 }
 
 void free_cache(ai_cache_t* cache) {
-#ifdef MEMOIZATION
+#ifdef MM_OPT_MEMOIZATION
   for (size_t i=0; i<AI_HASHMAP_SIZE; i++) {
     ai_cache_node_t* node = cache->memorized[i];
     while (node != NULL) {
@@ -380,13 +388,13 @@ void free_cache(ai_cache_t* cache) {
 #endif
 }
 
-#ifdef MEMOIZATION
+#ifdef MM_OPT_MEMOIZATION
 // Add the board to the memorized boards.
 void memorize(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, eval_t eval, move_t move) {
   ai_cache_node_t* node = cache->memorized[hash % AI_HASHMAP_SIZE];
 
   while (true) {
-#ifdef UPDATE_MEMO
+#ifdef MM_OPT_UPDATE_MEMO
     for (size_t i=0; i<node->size; i++) {
       if (node->array[i].hash != hash || !compare(board, &node->array[i].board))
         continue;

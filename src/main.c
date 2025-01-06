@@ -273,13 +273,15 @@ command(evaluate) {
   }
 #endif
 
-
-
-#ifdef EVALCOUNT
+#ifdef MEASURE_EVAL_COUNT
   cli_info printf("called _evaluate %d times.\n", get_evaluate_count());
-  cli_info printf("remembered %d (%d %%) times.\n", get_remember_count(), get_remember_count() * 100 / get_evaluate_count());
   cli_info printf("found %d (%d %%) different game ends.\n", get_game_end_count(), get_game_end_count() * 100 / get_evaluate_count());
   cli_info printf("found total %d (%d %%) leaves.\n", get_leaf_count(), get_leaf_count() * 100 / get_evaluate_count());
+
+#ifdef MM_OPT_MEMOIZATION
+  cli_info printf("remembered %d (%d %%) times.\n", get_remember_count(), get_remember_count() * 100 / get_evaluate_count());
+#endif
+
 #endif
 
   switch (evaluation_type) {

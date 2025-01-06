@@ -10,7 +10,7 @@
 // Check if the boards are same.
 bool compare(board_t *board1, board_t *board2) {
   // Uninitialized boards cannot be compared.
-#ifndef NDEBUG
+#ifdef TEST_BOARD_INIT
   assert(board1->initialized);
   assert(board2->initialized);
 #endif

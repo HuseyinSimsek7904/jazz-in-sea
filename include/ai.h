@@ -37,7 +37,7 @@ typedef struct ai_cache_node_t {
 } ai_cache_node_t;
 
 typedef struct {
-#ifdef MEMOIZATION
+#ifdef MM_OPT_MEMOIZATION
   ai_cache_node_t* memorized[AI_HASHMAP_SIZE];
 #endif
 } ai_cache_t;
@@ -46,7 +46,7 @@ void print_eval(eval_t, board_t*);
 
 bool compare_eval(bool, eval_t, eval_t);
 
-#ifdef EVALCOUNT
+#ifdef MEASURE_EVAL_COUNT
 unsigned int get_evaluate_count();
 unsigned int get_remember_count();
 unsigned int get_game_end_count();
@@ -58,7 +58,7 @@ size_t evaluate(board_t*, state_cache_t*, size_t, move_t*, eval_t*);
 void setup_cache(ai_cache_t *);
 void free_cache(ai_cache_t *);
 
-#ifdef MEMOIZATION
+#ifdef MM_OPT_MEMOIZATION
 void memorize(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, eval_t eval, move_t move);
 bool try_remember(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, eval_t* eval, move_t* move);
 #endif

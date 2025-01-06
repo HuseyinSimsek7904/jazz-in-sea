@@ -118,7 +118,7 @@ bool load_fen(const char* fen, state_cache_t* state, board_t* board) {
   // Check if we reached the end of the string.
   if (*fen != '\0') return false;
 
-#ifndef NDEBUG
+#if defined (TEST_BOARD_INIT) && ! NDEBUG
   board->initialized = true;
 #endif
 
