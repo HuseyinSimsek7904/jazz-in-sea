@@ -68,14 +68,7 @@ bool load_fen(const char* fen, state_cache_t* state, board_t* board) {
       col = 0;
       break;
 
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':;
+    case '1' ... '8':;
       // Add spaces.
       // Technically, 8/62/8/... is not a valid sentence as there should not be digits right next to each other.
       // However checking this seems unnecessary.
