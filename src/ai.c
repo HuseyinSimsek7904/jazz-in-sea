@@ -386,6 +386,19 @@ void memorize(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, eval
   ai_cache_node_t* node = cache->memorized[hash % AI_HASHMAP_SIZE];
 
   while (true) {
+#ifdef UPDATE_MEMO
+    for (size_t i=0; i<node->size; i++) {
+      if (node->array[i].hash != hash || !compare(board, &node->array[i].board))
+        continue;
+
+      assert(node->array[i].depth < depth);
+
+      node->array[i].depth = depth;
+      node->array[i].eval = eval;
+      return;
+    }
+#endif
+
     if (node->size < AI_LL_NODE_SIZE) break;
 
     if (!node->next) {
