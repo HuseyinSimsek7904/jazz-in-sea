@@ -359,7 +359,9 @@ size_t evaluate(board_t* board, state_cache_t* state, size_t max_depth, move_t* 
 void setup_cache(ai_cache_t* cache) {
 #ifdef MEMOIZATION
   for (size_t i=0; i<AI_HASHMAP_SIZE; i++) {
-    cache->memorized[i] = NULL;
+    ai_cache_node_t* node = cache->memorized[i] = malloc(sizeof(ai_cache_node_t));
+    node->next = NULL;
+    node->size = 0;
   }
 #endif
 }
@@ -381,15 +383,6 @@ void free_cache(ai_cache_t* cache) {
 // Add the board to the memorized boards.
 void memorize(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, eval_t eval, move_t move) {
   ai_cache_node_t* node = cache->memorized[hash % AI_HASHMAP_SIZE];
-
-  if (!node) {
-    cache->memorized[hash % AI_HASHMAP_SIZE] = malloc(sizeof(ai_cache_node_t));
-    node = cache->memorized[hash % AI_HASHMAP_SIZE];
-    node->next = NULL;
-    node->size = 0;
-    node->array[node->size++] = (struct memorized_t) { .board=*board, .hash=hash, .depth=depth, .eval=eval, .move=move };
-    return;
-  }
 
   while (true) {
     if (node->size < AI_LL_NODE_SIZE) break;
