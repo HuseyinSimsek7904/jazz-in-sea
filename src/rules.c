@@ -42,18 +42,16 @@ size_t generate_moves(board_t* board, move_t moves[256]) {
       // Check if the color of the piece is the color of the player.
       if (get_piece_color(piece) != piece_color) continue;
 
-      // Calculate the delta length of regular moves.
-      int delta_mul = 1;
-      if (get_piece_type(piece) == MOD_KNIGHT) {
-        delta_mul = 2;
-      }
+      bool is_knight = get_piece_type(piece) == MOD_KNIGHT;
 
       // Loop through all directions.
       for (size_t i=0; i<4; i++) {
         int delta = deltas[(i + get_quadrant(position)) % 4];
 
         // Calculate the first position and check if it is valid.
-        int first_pos = position + delta * delta_mul;
+        int first_pos = position + delta;
+        if (is_knight) first_pos += delta;
+
         if (!is_valid_pos(first_pos)) continue;
 
         piece_t first_piece = get_piece(board, first_pos);
