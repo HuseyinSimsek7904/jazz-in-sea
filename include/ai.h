@@ -7,6 +7,7 @@
 #include "rules.h"
 
 #include <limits.h>
+#include <stdbool.h>
 #include <stddef.h>
 
 #define AI_HASHMAP_SIZE 0x20000
@@ -43,8 +44,8 @@ typedef struct {
 } ai_cache_t;
 
 void print_eval(eval_t, board_t*);
-
-bool compare_eval(bool, eval_t, eval_t);
+int compare_eval(eval_t, eval_t);
+int compare_eval_by(eval_t, eval_t, bool);
 
 #ifdef MEASURE_EVAL_COUNT
 unsigned int get_evaluate_count();

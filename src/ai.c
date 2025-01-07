@@ -35,42 +35,12 @@ const int TOPLEFT_KNIGHT_ADV_TABLE[4][4] = {
 int PAWN_ADV_TABLE[256];
 int KNIGHT_ADV_TABLE[256];
 
-// Returns the copy of eval from the opponent's POV.
-// WHITE_WINS => BLACK_WINS
-// BLACK_WINS => WHITE_WINS
-// DRAW => DRAW
-// CONTINUE(x) => CONTINUE(-x)
-eval_t _switch_eval_turn(eval_t eval) {
-  switch (eval.type) {
-  case WHITE_WINS:
-    return (eval_t) { .type=BLACK_WINS, .strength=eval.strength };
-  case BLACK_WINS:
-    return (eval_t) { .type=WHITE_WINS, .strength=eval.strength };
-  case CONTINUE:
-    return (eval_t) { .type=CONTINUE, .strength=-eval.strength };
-
-  case DRAW:
-  case NOT_CALCULATED:
-    return eval;
-  }
-  return (eval_t) {};
-}
-
-// Compare eval1 and eval2 by whether they are favorable for the player.
+// Compare eval1 and eval2 by whether they are favorable for the white player.
 // <0 => eval2 is more favorable than eval1
 // =0 => neither is more favorable
 // >0 => eval1 is more favorable than eval2
 // NOT_CALCULATED evals can not be compared.
-int compare_favor(eval_t eval1, eval_t eval2, bool turn) {
-  // Convert the eval structs to whites POV to simplify the function.
-  // This way, for all player these can be used to mean the same thing.
-  // WHITE_WINS => WINS
-  // BLACK_WINS => LOSES
-  if (!turn) {
-    eval1 = _switch_eval_turn(eval1);
-    eval2 = _switch_eval_turn(eval2);
-  }
-
+int compare_eval(eval_t eval1, eval_t eval2) {
   switch (eval1.type) {
   case WHITE_WINS:
     // Unless eval2 is WHITE_WINS, always eval1.
@@ -121,6 +91,20 @@ int compare_favor(eval_t eval1, eval_t eval2, bool turn) {
   }
 
   return 0;
+}
+
+// Compare eval1 and eval2 by whether they are favorable for the colored player.
+// <0 => eval2 is more favorable than eval1
+// =0 => neither is more favorable
+// >0 => eval1 is more favorable than eval2
+// NOT_CALCULATED evals can not be compared.
+int compare_eval_by(eval_t eval1, eval_t eval2, bool color) {
+  int cmp = compare_eval(eval1, eval2);
+
+  if (!color)
+    cmp = -cmp;
+
+  return cmp;
 }
 
 static inline int get_delta_eval(board_t* board, move_t move) {
@@ -288,7 +272,7 @@ _evaluate(board_t* board,
     // If this move is not the first move, compare this move with the best move.
     if (found_moves) {
       // Compare this move and the old best move.
-      int cmp = compare_favor(new_evaluation, *evaluation, board->turn);
+      int cmp = compare_eval_by(new_evaluation, *evaluation, board->turn);
 
       if (cmp < 0) {
         // If this move is worse than the found moves, continue.
@@ -306,17 +290,17 @@ _evaluate(board_t* board,
     *best_moves = move;
 
 #ifdef MM_OPT_AB_PRUNING
-    // If found a move better than beta or alpha, break.
-    if (compare_favor(new_evaluation, board->turn ? beta : alpha, board->turn) > 0) {
+    // If beta is worse than or equal to alpha, break.
+    if (compare_eval(beta, alpha) <= 0) {
       break;
     }
 
     // Update the limit variables alpha and beta.
     if (board->turn) {
-      if (compare_favor(new_evaluation, alpha, board->turn) > 0)
+      if (compare_eval(new_evaluation, alpha) > 0)
         alpha = new_evaluation;
     } else {
-      if (compare_favor(new_evaluation, beta, board->turn) > 0)
+      if (compare_eval(new_evaluation, beta) < 0)
         beta = new_evaluation;
     }
 #endif
