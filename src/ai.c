@@ -13,23 +13,20 @@
 #include "piece.h"
 #include "rules.h"
 
-const int PAWN_BASE   = -20;
-const int KNIGHT_BASE = 700;
-
 // As x increases, distance from center in x decreases.
 // Same for y.
 const int TOPLEFT_PAWN_ADV_TABLE[4][4] = {
-  {-500, -450, -400, -300},
-  {-450, -400, -350, -250},
-  {-400, -350, -300, -200},
-  {-300, -250, -200, -0  },
+  {-520, -470, -420, -320},
+  {-470, -420, -370, -270},
+  {-420, -370, -320, -220},
+  {-320, -270, -220,  -20},
 };
 
 const int TOPLEFT_KNIGHT_ADV_TABLE[4][4] = {
-  {-300, -250, -200, -100},
-  {-250, -200, -150, -60 },
-  {-200, -150, -30 , -50 },
-  {-100,  -60, -50 , -0  }
+  { 400,  450,  500,  600},
+  { 450,  500,  550,  660},
+  { 500,  550,  670,  650},
+  { 600,  670,  650,  700}
 };
 
 int PAWN_ADV_TABLE[256];
@@ -116,10 +113,10 @@ static inline int get_delta_eval(board_t* board, move_t move) {
   if (is_valid_pos(move.capture)) {
     switch (get_piece_type(move.capture_piece)) {
     case MOD_PAWN:
-      delta_evaluation += PAWN_BASE;
+      delta_evaluation += PAWN_ADV_TABLE[move.capture];
       break;
     case MOD_KNIGHT:
-      delta_evaluation += KNIGHT_BASE;
+      delta_evaluation += KNIGHT_ADV_TABLE[move.capture];
       break;
     default:
       assert(false);
