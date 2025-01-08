@@ -424,6 +424,11 @@ void memorize(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, eval
     node = node->next;
   }
 
+  // If the eval is an absolute evaluation, convert the depth relative.
+  if (eval.type == WHITE_WINS || eval.type == BLACK_WINS || eval.type == DRAW) {
+    eval.strength += board->move_count;
+  }
+
   node->array[node->size++] = (struct memorized_t) { .board=*board, .hash=hash, .depth=depth, .eval=eval, .move=move };
 }
 
@@ -433,12 +438,18 @@ bool try_remember(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, 
     for (int i=0; i<node->size; i++) {
       struct memorized_t* memorized = &node->array[i];
 
-      if (memorized->hash != hash)
-        continue;
+      if (memorized->hash == hash &&
+          compare(board, &memorized->board) &&
+          memorized->depth >= depth) {
 
-      if (compare(board, &memorized->board) && memorized->depth >= depth) {
         *eval = memorized->eval;
         *move = memorized->move;
+
+        // If the eval is an absolute evaluation, convert the depth absolute as well.
+        if (eval->type == WHITE_WINS || eval->type == BLACK_WINS || eval->type == DRAW) {
+          eval->strength -= board->move_count;
+        }
+
         return true;
       }
     }
