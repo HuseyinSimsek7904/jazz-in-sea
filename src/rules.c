@@ -171,7 +171,7 @@ void _generate_islands_pos(board_t* board, state_cache_t* state, pos_t position,
 
   state->islands[position] = true;
 
-  if (color)
+  if (color == MOD_WHITE)
     state->white_island_count++;
   else
     state->black_island_count++;
@@ -307,13 +307,13 @@ static inline void _place_piece(board_t* board, const state_cache_t* state, pos_
     for (int i=0; i<4; i++) {
       pos_t new_pos = to + deltas[i];
 
-      if (!is_valid_pos(new_pos) ||
-          get_piece_color(get_piece(board, new_pos)) != (board->turn ? MOD_WHITE : MOD_BLACK) ||
-          !state->islands[new_pos])
-        continue;
+      if (is_valid_pos(new_pos) &&
+          get_piece_color(get_piece(board, new_pos)) == get_piece_color(piece) &&
+          state->islands[new_pos]) {
 
-      *update_islands_table = true;
-      break;
+        *update_islands_table = true;
+        break;
+      }
     }
   }
 }
