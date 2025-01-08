@@ -245,10 +245,6 @@ _evaluate(board_t* board,
 
   size_t found_moves = 0;
 
-#if defined (TEST_EVAL_HASH) && ! defined (NDEBUG)
-  const hash_t old_hash = state->hash;
-#endif
-
   // Loop through all of the available moves except the first, and recursively get the next moves.
   for (int i=0; i<moves_length; i++) {
     // If the move was a capture move, do not decrement the depth.
@@ -257,6 +253,11 @@ _evaluate(board_t* board,
     size_t new_depth = max_depth - 1;
     move_t new_moves[256];
 
+#if defined(TEST_EVAL_STATE) && !defined(NDEBUG)
+    board_t _test_old_board = *board;
+    state_cache_t _test_old_state = *state;
+#endif
+
     do_move(board, state, move);
     _evaluate(board, state, cache, new_depth, new_moves, &new_evaluation,
 #ifdef MM_OPT_AB_PRUNING
@@ -264,6 +265,15 @@ _evaluate(board_t* board,
 #endif
               false);
     undo_move(board, state, move);
+
+#ifdef TEST_EVAL_STATE
+    assert(_test_old_state.hash == state->hash && compare(board, (board_t *)&_test_old_board));
+    assert(_test_old_state.white_count == state->white_count);
+    assert(_test_old_state.white_island_count == state->white_island_count);
+    assert(_test_old_state.black_count == state->black_count);
+    assert(_test_old_state.black_island_count == state->black_island_count);
+    assert(_test_old_state.status == state->status);
+#endif
 
     // If the evaluation type was CONTINUE, then add the move delta evaluation.
     if (new_evaluation.type == CONTINUE)
@@ -305,10 +315,6 @@ _evaluate(board_t* board,
     }
 #endif
   }
-
-#ifdef TEST_EVAL_HASH
-  assert(old_hash == state->hash);
-#endif
 
 #ifdef MM_OPT_MEMOIZATION
   memorize(cache, state->hash, board, (evaluation->type == WHITE_WINS || evaluation->type == BLACK_WINS) ? LONG_MAX : max_depth, *evaluation, best_moves[rand() % found_moves]);
