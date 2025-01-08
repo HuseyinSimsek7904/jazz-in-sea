@@ -207,7 +207,9 @@ _evaluate(board_t* board,
     move_t possible_move;
 
     if (try_remember(cache, state->hash, board, max_depth, &possible_eval, &possible_move)) {
+#ifdef MEASURE_EVAL_COUNT
       remember_count++;
+#endif
       *best_moves = possible_move;
       *evaluation = possible_eval;
       return 1;
