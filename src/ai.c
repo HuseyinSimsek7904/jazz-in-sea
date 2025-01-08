@@ -50,7 +50,7 @@ int compare_eval(eval_t eval1, eval_t eval2) {
   case BLACK_WINS:
     // Unless eval2 is BLACK_WINS, always eval2.
     // Otherwise compare the depths.
-    return eval2.type != BLACK_WINS ? -1 : eval2.strength - eval1.strength;
+    return eval2.type != BLACK_WINS ? -1 : eval1.strength - eval2.strength;
 
   case DRAW:
     switch (eval2.type) {
