@@ -282,6 +282,10 @@ command(evaluate) {
   cli_info printf("remembered %d (%d %%) times.\n", get_remember_count(), get_remember_count() * 100 / get_evaluate_count());
 #endif
 
+#ifdef MM_OPT_AB_PRUNING
+  cli_info printf("cut %d branches.\n", get_ab_branch_cut_count());
+#endif
+
 #endif
 
   switch (evaluation_type) {

@@ -155,6 +155,11 @@ size_t remember_count = 0;
 unsigned int get_remember_count() { return remember_count; }
 #endif
 
+#ifdef MM_OPT_AB_PRUNING
+size_t ab_branch_cut_count = 0;
+unsigned int get_ab_branch_cut_count() { return ab_branch_cut_count; }
+#endif
+
 #endif
 
 // Find the best continuing moves available and their evaluation value.
@@ -302,11 +307,6 @@ _evaluate(board_t* board,
     *best_moves = move;
 
 #ifdef MM_OPT_AB_PRUNING
-    // If beta is worse than or equal to alpha, break.
-    if (compare_eval(beta, alpha) <= 0) {
-      break;
-    }
-
     // Update the limit variables alpha and beta.
     if (board->turn) {
       if (compare_eval(new_evaluation, alpha) > 0)
@@ -314,6 +314,14 @@ _evaluate(board_t* board,
     } else {
       if (compare_eval(new_evaluation, beta) < 0)
         beta = new_evaluation;
+    }
+
+    // If beta is worse than or equal to alpha, break.
+    if (compare_eval(beta, alpha) <= 0) {
+#ifdef MEASURE_EVAL_COUNT
+      ab_branch_cut_count++;
+#endif
+      break;
     }
 #endif
   }
@@ -333,6 +341,10 @@ size_t evaluate(board_t* board, state_cache_t* state, size_t max_depth, move_t* 
 
 #ifdef MM_OPT_MEMOIZATION
   remember_count = 0;
+#endif
+
+#ifdef MM_OPT_AB_PRUNING
+  ab_branch_cut_count = 0;
 #endif
 
 #endif

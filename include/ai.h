@@ -49,9 +49,17 @@ int compare_eval_by(eval_t, eval_t, bool);
 
 #ifdef MEASURE_EVAL_COUNT
 unsigned int get_evaluate_count();
-unsigned int get_remember_count();
 unsigned int get_game_end_count();
 unsigned int get_leaf_count();
+
+#ifdef MM_OPT_MEMOIZATION
+unsigned int get_remember_count();
+#endif
+
+#ifdef MM_OPT_AB_PRUNING
+unsigned int get_ab_branch_cut_count();
+#endif
+
 #endif
 
 size_t evaluate(board_t*, state_cache_t*, size_t, move_t*, eval_t*);
