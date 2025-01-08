@@ -52,6 +52,7 @@ void make_automove() {
   // Check if the game ended.
   if (game_state.status != NORMAL) {
     cli_info printf("could not automove, game ended\n");
+    cli_info printf("%s\n", board_status_text(game_state.status));
 
     white_automove = false;
     black_automove = false;
@@ -64,10 +65,16 @@ void make_automove() {
   eval_t eval;
 
   size_t length = evaluate(&game_board, &game_state, ai_depth, moves, &eval);
+  move_t chosen_move = moves[rand() % length];
 
-  do_move(&game_board, &game_state, moves[rand() % length]);
+  do_move(&game_board, &game_state, chosen_move);
   game_all_moves_length = generate_moves(&game_board, game_all_moves);
   cli_info printf("done\n");
+  cli_info printf("Played ");
+  cli_info print_move(chosen_move);
+  cli_info printf(" with evaluation ");
+  cli_info print_eval(eval, &game_board);
+  cli_info print_board(&game_board, false);
 
   make_automove();
 }
