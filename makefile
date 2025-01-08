@@ -1,24 +1,23 @@
-SRC-DIR		:= ./src
-INC-DIR		:= ./include
-BUILD-DIR	:= ./build
-SCRIPTS-DIR	:= ./scripts
+SRC-DIR		?= ./src
+INC-DIR		?= ./include
+BUILD-DIR	?= ./build
+TESTS-DIR	?= ./tests
 
-# EVALCOUNT enables counting calls to the _evaluate function.
-# AB_PRUNING enables alpha-beta pruning.
-# MEMOIZATION enables memoization for the AI.
+DEBUG-MACROS	?=	\
+-UTEST_EVAL_STATE	\
+-UTEST_BOARD_INIT	\
 
-CMACROS		:=	\
+CMACROS		?=	\
+-DMEASURE_EVAL_COUNT	\
+-DMEASURE_EVAL_TIME	\
 -DMM_OPT_MEMOIZATION	\
 -UMM_OPT_UPDATE_MEMO	\
 -UMM_OPT_AB_PRUNING	\
--DMEASURE_EVAL_COUNT	\
--DMEASURE_EVAL_TIME	\
--UTEST_EVAL_STATE	\
--UTEST_BOARD_INIT	\
--UNDEBUG		\
+
+INSTALL-PATH	:= $(BUILD-DIR)/main
 
 CC		:= gcc
-CFLAGS		:= -O2 -Wall -Werror $(CMACROS)
+CFLAGS		:= -Wall -Werror $(CMACROS)
 CPPFLAGS	:= -I $(INC-DIR)
 
 LDLIBS		:=	\
@@ -32,27 +31,35 @@ OBJ		:=	\
 $(SRC-DIR)/main.o	\
 $(LDLIBS)		\
 
-.PHONY: build-all link install clean
+.PHONY: gdb debug build \
+	compile setup-dir install \
+	clean \
+	gen-bear tests
 
-all: build-all link install
+gdb: CFLAGS += -g $(DEBUG_MACROS)
+gdb: compile install
 
-build-all: $(OBJ)
+debug: CFLAGS += -O3 $(DEBUG_MACROS)
+debug: compile install
 
-link: $(SRC-DIR)/main
+build: CFLAGS += -O3 -DNDEBUG
+build: compile install
 
-install: $(BUILD-DIR)
+compile: $(OBJ) $(SRC-DIR)/main
+
+setup-dir:
+	mkdir -p $(BUILD-DIR)
+
+install: setup-dir
 	cp $(SRC-DIR)/main $(BUILD-DIR)/main
 
 clean:
 	rm -f $(SRC-DIR)/main $(OBJ)
 
-$(BUILD-DIR):
-	mkdir $(BUILD-DIR)
-
-generate-compile-commands:
-	make clean
+gen-bear: clean
 	bear -- make
 
-test:
-	./tests/branch_test.sh   || :
-	./tests/valgrind_test.sh || :
+tests:
+	@for path in $$(ls $(TESTS-DIR)); do	\
+		$(TESTS-DIR)/$$path;		\
+	done					\
