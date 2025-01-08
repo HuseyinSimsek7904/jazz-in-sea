@@ -3,3 +3,4 @@ build/
 src/main
 .cache
 compile_commands.json
+.gdb_history
