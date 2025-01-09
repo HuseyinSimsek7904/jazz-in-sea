@@ -38,6 +38,11 @@ typedef struct ai_cache_node_t {
 } ai_cache_node_t;
 
 typedef struct {
+  int pawn_adv_table[256];
+  int pawn_island_adv_table[256];
+  int knight_adv_table[256];
+  int knight_island_adv_table[256];
+
 #ifdef MM_OPT_MEMOIZATION
   ai_cache_node_t* memorized[AI_HASHMAP_SIZE];
 #endif
@@ -64,14 +69,16 @@ unsigned int get_ab_branch_cut_count();
 
 size_t evaluate(board_t*, state_cache_t*, size_t, move_t*, eval_t*);
 
-void setup_cache(ai_cache_t *);
+void setup_cache(ai_cache_t *,
+                 const int[4][4],
+                 const int[4][4],
+                 const int[4][4],
+                 const int[4][4]);
 void free_cache(ai_cache_t *);
 
 #ifdef MM_OPT_MEMOIZATION
 void memorize(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, eval_t eval, move_t move);
 bool try_remember(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, eval_t* eval, move_t* move);
 #endif
-
-void setup_adv_tables();
 
 #endif

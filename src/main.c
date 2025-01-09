@@ -552,9 +552,6 @@ void initialize() {
   generate_state_cache(&game_board, &game_state);
 
   game_all_moves_length = generate_moves(&game_board, game_all_moves);
-
-  setup_adv_tables();
-
 }
 
 #define expect_command(command_name)            \

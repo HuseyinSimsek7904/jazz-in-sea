@@ -120,13 +120,13 @@ int compare_eval_by(eval_t eval1, eval_t eval2, bool color) {
   return cmp;
 }
 
-static inline int _get_delta_eval_place(state_cache_t* state, pos_t to, piece_t piece) {
+static inline int _get_delta_eval_place(ai_cache_t* cache, state_cache_t* state, pos_t to, piece_t piece) {
   switch (get_piece_type(piece)) {
   case MOD_PAWN:
-    return state->islands[to] ? PAWN_ISLAND_ADV_TABLE[to] : PAWN_ADV_TABLE[to];
+    return state->islands[to] ? cache->pawn_island_adv_table[to] : cache->pawn_adv_table[to];
     break;
   case MOD_KNIGHT:
-    return state->islands[to] ? KNIGHT_ISLAND_ADV_TABLE[to] : KNIGHT_ADV_TABLE[to];
+    return state->islands[to] ? cache->knight_island_adv_table[to] : cache->knight_adv_table[to];
     break;
   default:
     assert(false);
@@ -134,20 +134,20 @@ static inline int _get_delta_eval_place(state_cache_t* state, pos_t to, piece_t 
   }
 }
 
-static inline int _get_delta_eval(state_cache_t* state, board_t* board, move_t move) {
+static inline int _get_delta_eval(ai_cache_t* cache, state_cache_t* state, board_t* board, move_t move) {
   int delta_evaluation = 0;
 
   // Add the advantage of the piece.
   // It is a "good" thing that we take the opponent's piece as these pieces have a base value.
   // Losing a piece will make you lose that base value.
   if (is_valid_pos(move.capture)) {
-    delta_evaluation += _get_delta_eval_place(state, move.capture, move.capture_piece);
+    delta_evaluation += _get_delta_eval_place(cache, state, move.capture, move.capture_piece);
   }
 
   // Add the advantage difference of the from and to positions.
   piece_t piece = get_piece(board, move.from);
-  delta_evaluation += _get_delta_eval_place(state, move.to, piece);
-  delta_evaluation -= _get_delta_eval_place(state, move.from, piece);
+  delta_evaluation += _get_delta_eval_place(cache, state, move.to, piece);
+  delta_evaluation -= _get_delta_eval_place(cache, state, move.from, piece);
 
   return board->turn ? delta_evaluation : -delta_evaluation;
 }
@@ -295,7 +295,7 @@ _evaluate(board_t* board,
 
     // If the evaluation type was CONTINUE, then add the move delta evaluation.
     if (new_evaluation.type == CONTINUE)
-      new_evaluation.strength += _get_delta_eval(state, board, move);
+      new_evaluation.strength += _get_delta_eval(cache, state, board, move);
 
     // If this move is not the first move, compare this move with the best move.
     if (found_moves) {
@@ -361,7 +361,11 @@ size_t evaluate(board_t* board, state_cache_t* state, size_t max_depth, move_t* 
 #endif
 
   ai_cache_t cache;
-  setup_cache(&cache);
+  setup_cache(&cache,
+              TOPLEFT_PAWN_ADV_TABLE,
+              TOPLEFT_PAWN_ISLAND_ADV_TABLE,
+              TOPLEFT_KNIGHT_ADV_TABLE,
+              TOPLEFT_KNIGHT_ISLAND_ADV_TABLE);
 
   size_t length = _evaluate(board,
                             state,
@@ -380,7 +384,30 @@ size_t evaluate(board_t* board, state_cache_t* state, size_t max_depth, move_t* 
   return length;
 }
 
-void setup_cache(ai_cache_t* cache) {
+void setup_cache(ai_cache_t* cache,
+                 const int topleft_pawn[4][4],
+                 const int topleft_pawn_island[4][4],
+                 const int topleft_knight[4][4],
+                 const int topleft_knight_island[4][4]) {
+
+  // Load the advantage tables.
+  for (int row=0; row<8; row++) {
+    for (int col=0; col<8; col++) {
+      int topleft_row = row;
+      int topleft_col = col;
+
+      if (row >= 4) topleft_row = 7 - row;
+      if (col >= 4) topleft_col = 7 - col;
+
+      pos_t pos = to_position(row, col);
+
+      cache->pawn_adv_table[pos] = topleft_pawn[topleft_row][topleft_col];
+      cache->knight_adv_table[pos] = topleft_knight[topleft_row][topleft_col];
+      cache->pawn_island_adv_table[pos] = topleft_pawn_island[topleft_row][topleft_col];
+      cache->knight_island_adv_table[pos] = topleft_knight_island[topleft_row][topleft_col];
+    }
+  }
+
 #ifdef MM_OPT_MEMOIZATION
   for (size_t i=0; i<AI_HASHMAP_SIZE; i++) {
     ai_cache_node_t* node = cache->memorized[i] = malloc(sizeof(ai_cache_node_t));
@@ -469,22 +496,3 @@ bool try_remember(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, 
   return false;
 }
 #endif
-
-void setup_adv_tables() {
-  for (int row=0; row<8; row++) {
-    for (int col=0; col<8; col++) {
-      int topleft_row = row;
-      int topleft_col = col;
-
-      if (row >= 4) topleft_row = 7 - row;
-      if (col >= 4) topleft_col = 7 - col;
-
-      pos_t pos = to_position(row, col);
-
-      PAWN_ADV_TABLE[pos] = TOPLEFT_PAWN_ADV_TABLE[topleft_row][topleft_col];
-      KNIGHT_ADV_TABLE[pos] = TOPLEFT_KNIGHT_ADV_TABLE[topleft_row][topleft_col];
-      PAWN_ISLAND_ADV_TABLE[pos] = TOPLEFT_PAWN_ISLAND_ADV_TABLE[topleft_row][topleft_col];
-      KNIGHT_ISLAND_ADV_TABLE[pos] = TOPLEFT_KNIGHT_ISLAND_ADV_TABLE[topleft_row][topleft_col];
-    }
-  }
-}
