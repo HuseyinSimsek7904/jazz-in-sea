@@ -22,15 +22,31 @@ const int TOPLEFT_PAWN_ADV_TABLE[4][4] = {
   {-320, -270, -220,  -20},
 };
 
+const int TOPLEFT_PAWN_ISLAND_ADV_TABLE[4][4] = {
+  {-150, -100,  -50,    0},
+  {-100,  -50,    0,   50},
+  { -50,    0,   50,  100},
+  {   0,   50,  100,  120},
+};
+
 const int TOPLEFT_KNIGHT_ADV_TABLE[4][4] = {
   { 400,  450,  500,  600},
   { 450,  500,  550,  660},
   { 500,  550,  670,  650},
+  { 600,  670,  650,  670}
+};
+
+const int TOPLEFT_KNIGHT_ISLAND_ADV_TABLE[4][4] = {
+  { 400,  450,  500,  600},
+  { 450,  500,  550,  660},
+  { 500,  550,  720,  650},
   { 600,  670,  650,  700}
 };
 
 int PAWN_ADV_TABLE[256];
+int PAWN_ISLAND_ADV_TABLE[256];
 int KNIGHT_ADV_TABLE[256];
+int KNIGHT_ISLAND_ADV_TABLE[256];
 
 // Compare eval1 and eval2 by whether they are favorable for the white player.
 // <0 => eval2 is more favorable than eval1
@@ -104,36 +120,34 @@ int compare_eval_by(eval_t eval1, eval_t eval2, bool color) {
   return cmp;
 }
 
-static inline int get_delta_eval(board_t* board, move_t move) {
+static inline int _get_delta_eval_place(state_cache_t* state, pos_t to, piece_t piece) {
+  switch (get_piece_type(piece)) {
+  case MOD_PAWN:
+    return state->islands[to] ? PAWN_ISLAND_ADV_TABLE[to] : PAWN_ADV_TABLE[to];
+    break;
+  case MOD_KNIGHT:
+    return state->islands[to] ? KNIGHT_ISLAND_ADV_TABLE[to] : KNIGHT_ADV_TABLE[to];
+    break;
+  default:
+    assert(false);
+    return 0;
+  }
+}
+
+static inline int _get_delta_eval(state_cache_t* state, board_t* board, move_t move) {
   int delta_evaluation = 0;
 
   // Add the advantage of the piece.
   // It is a "good" thing that we take the opponent's piece as these pieces have a base value.
   // Losing a piece will make you lose that base value.
   if (is_valid_pos(move.capture)) {
-    switch (get_piece_type(move.capture_piece)) {
-    case MOD_PAWN:
-      delta_evaluation += PAWN_ADV_TABLE[move.capture];
-      break;
-    case MOD_KNIGHT:
-      delta_evaluation += KNIGHT_ADV_TABLE[move.capture];
-      break;
-    default:
-      assert(false);
-    }
+    delta_evaluation += _get_delta_eval_place(state, move.capture, move.capture_piece);
   }
 
   // Add the advantage difference of the from and to positions.
-  switch (get_piece_type(get_piece(board, move.from))) {
-  case MOD_PAWN:
-    delta_evaluation += PAWN_ADV_TABLE[move.to] - PAWN_ADV_TABLE[move.from];
-    break;
-  case MOD_KNIGHT:
-    delta_evaluation += KNIGHT_ADV_TABLE[move.to] - KNIGHT_ADV_TABLE[move.from];
-    break;
-  default:
-    assert(false);
-  }
+  piece_t piece = get_piece(board, move.from);
+  delta_evaluation += _get_delta_eval_place(state, move.to, piece);
+  delta_evaluation -= _get_delta_eval_place(state, move.from, piece);
 
   return board->turn ? delta_evaluation : -delta_evaluation;
 }
@@ -281,7 +295,7 @@ _evaluate(board_t* board,
 
     // If the evaluation type was CONTINUE, then add the move delta evaluation.
     if (new_evaluation.type == CONTINUE)
-      new_evaluation.strength += get_delta_eval(board, move);
+      new_evaluation.strength += _get_delta_eval(state, board, move);
 
     // If this move is not the first move, compare this move with the best move.
     if (found_moves) {
@@ -469,6 +483,8 @@ void setup_adv_tables() {
 
       PAWN_ADV_TABLE[pos] = TOPLEFT_PAWN_ADV_TABLE[topleft_row][topleft_col];
       KNIGHT_ADV_TABLE[pos] = TOPLEFT_KNIGHT_ADV_TABLE[topleft_row][topleft_col];
+      PAWN_ISLAND_ADV_TABLE[pos] = TOPLEFT_PAWN_ISLAND_ADV_TABLE[topleft_row][topleft_col];
+      KNIGHT_ISLAND_ADV_TABLE[pos] = TOPLEFT_KNIGHT_ISLAND_ADV_TABLE[topleft_row][topleft_col];
     }
   }
 }
