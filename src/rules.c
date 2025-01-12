@@ -208,9 +208,6 @@ void _generate_islands(board_t* board, state_cache_t* state) {
   // Quick check for if the number of island pieces are greater than the total number of pieces.
   assert(state->white_island_count <= state->white_count);
   assert(state->black_island_count <= state->black_count);
-
-  // After updating the islands table, we must update the game status.
-  _generate_board_status(board, state);
 }
 
 // Generate the square hashes table.
@@ -262,9 +259,6 @@ void generate_state_cache(board_t* board, state_cache_t* state) {
 
   // Update the islands.
   _generate_islands(board, state);
-
-  // Update the game status.
-  _generate_board_status(board, state);
 
   // Generate the hash value for the board.
   _generate_square_hash(state);
@@ -414,6 +408,7 @@ void do_move(board_t* board, state_cache_t* state, move_t move) {
   // Update the necessary caches.
   if (update_islands_table) {
     _generate_islands(board, state);
+    _generate_board_status(board, state);
   } else if (is_capture(move)) {
     _generate_board_status(board, state);
   }
@@ -455,6 +450,7 @@ void undo_move(board_t* board, state_cache_t* state, move_t move) {
   // Update the necessary caches.
   if (update_islands_table) {
     _generate_islands(board, state);
+    _generate_board_status(board, state);
   } else if (is_capture(move)) {
     _generate_board_status(board, state);
   }
