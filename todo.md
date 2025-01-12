@@ -21,7 +21,7 @@
 - [x] #20  (feat) implement pvp, pvb and bvb (requires #1, #2, #19)
 - [x] #21  (feat) `generate_moves` should generate moves in the order that would help the alpha-beta pruning algorithm, aka best moves first (best moves are usually the moves that get the piece closer to the center or moves that forces the opponent to take the piece)
 - [x] #22  (chore) some frequently used functions should be placed in headers as inline functions
-- [ ] #23  (feat) create a database of all the <=n piece boards and their evaluations, which can also be used for optimising the ai
+- [ ] #23  (feat) create the endgame tablebase
 - [x] #24  (feat) implement memoisation for the ai
 - [ ] #25  (feat) implement long term memoisation for absolute evaluations like `WHITE_WINS` and `BLACK_WINS`
 - [ ] #26  (chore) convert the recursive ai to iterative ai, which will make it possible to find the mate in 6 without having to check 10 nodes deep branches
@@ -50,3 +50,4 @@
 - [x] #49  (chore) update the hash value of the board every move instead of calculating it from scratch every time it is needed
 - [ ] #50  (fix) `placeat` and `removeat` commands do not update the status of the board
 - [x] #51  (feat) turn `ai_cache_t.memorized` to a linked list
+- [ ] #52  (chore) evaluate should not generate the moves and instead should only return the evaluation information. The ai cache can then be checked to determine the best moves
