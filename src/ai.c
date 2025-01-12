@@ -270,7 +270,11 @@ _evaluate(board_t* board,
     // If the move was a capture move, do not decrement the depth.
     move_t move = moves[i];
     eval_t new_evaluation;
+#ifdef MM_OPT_EXC_DEEPENING
+    size_t new_depth = is_capture(move) ? max_depth : max_depth - 1;
+#else
     size_t new_depth = max_depth - 1;
+#endif
     move_t new_moves[256];
 
 #if defined(TEST_EVAL_STATE) && !defined(NDEBUG)
