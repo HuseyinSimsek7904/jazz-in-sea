@@ -287,6 +287,7 @@ command(evaluate) {
 
 #ifdef MM_OPT_MEMOIZATION
   cli_info printf("remembered %d (%d %%) times.\n", get_remember_count(), get_remember_count() * 100 / get_evaluate_count());
+  cli_info printf("memorized %u boards.\n", get_saved_count());
 #endif
 
 #ifdef MM_OPT_AB_PRUNING

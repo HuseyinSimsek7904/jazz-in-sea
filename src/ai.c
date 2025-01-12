@@ -163,7 +163,9 @@ unsigned int get_leaf_count() { return leaf_count; }
 
 #ifdef MM_OPT_MEMOIZATION
 size_t remember_count = 0;
+size_t saved_count = 0;
 unsigned int get_remember_count() { return remember_count; }
+unsigned int get_saved_count() { return saved_count; }
 #endif
 
 #ifdef MM_OPT_AB_PRUNING
@@ -352,6 +354,7 @@ size_t evaluate(board_t* board, state_cache_t* state, size_t max_depth, move_t* 
 
 #ifdef MM_OPT_MEMOIZATION
   remember_count = 0;
+  saved_count = 0;
 #endif
 
 #ifdef MM_OPT_AB_PRUNING
@@ -437,6 +440,7 @@ void memorize(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, eval
 
   while (true) {
 #ifdef MM_OPT_UPDATE_MEMO
+    // Loop through all of the items memorized in this node and check if any outdated information exist.
     for (size_t i=0; i<node->size; i++) {
       if (node->array[i].hash != hash || !compare(board, &node->array[i].board))
         continue;
@@ -449,8 +453,10 @@ void memorize(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, eval
     }
 #endif
 
+    // If the node is not full, break the loop.
     if (node->size < AI_LL_NODE_SIZE) break;
 
+    // If the node has no next item, create a new node.
     if (!node->next) {
       node->next = malloc(sizeof(ai_cache_node_t));
       node = node->next;
@@ -468,6 +474,9 @@ void memorize(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, eval
   }
 
   node->array[node->size++] = (struct memorized_t) { .board=*board, .hash=hash, .depth=depth, .eval=eval, .move=move };
+#ifdef MEASURE_EVAL_COUNT
+  saved_count++;
+#endif
 }
 
 // Get if the board was saved for memoization before.

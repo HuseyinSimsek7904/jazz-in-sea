@@ -59,6 +59,7 @@ unsigned int get_leaf_count();
 
 #ifdef MM_OPT_MEMOIZATION
 unsigned int get_remember_count();
+unsigned int get_saved_count();
 #endif
 
 #ifdef MM_OPT_AB_PRUNING
