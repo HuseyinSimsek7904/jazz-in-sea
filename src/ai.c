@@ -174,17 +174,16 @@ unsigned int get_ab_branch_cut_count() { return ab_branch_cut_count; }
 #endif
 
 // Find the best continuing moves available and their evaluation value.
-size_t
+// TODO: This function should not take best_moves or best_moves_length arguments.
+eval_t
 _evaluate(board_t* board,
           state_cache_t* state,
           ai_cache_t* cache,
           size_t max_depth,
           move_t* best_moves,
-          eval_t* evaluation,
-#ifdef MM_OPT_AB_PRUNING
+          size_t* best_moves_length,
           eval_t alpha,
           eval_t beta,
-#endif
           bool starting_move) {
 
   // Can be used to debug whilst trying to optimise the evaluate function.
@@ -192,28 +191,26 @@ _evaluate(board_t* board,
   evaluate_count++;
 #endif
 
+  int type;
   // Check for the board state.
   // If the game should not continue, return the evaluation.
   // No need to memorize, as it will take equally as long.
   switch (state->status & 0x30) {
   case 0x10:
-#ifdef MEASURE_EVAL_COUNT
-    game_end_count++;
-#endif
-    *evaluation = (eval_t) { .type=DRAW,       .strength=board->move_count };
-    return 0;
+    type = DRAW;
+    goto return_end_game;
   case 0x20:
-#ifdef MEASURE_EVAL_COUNT
-    game_end_count++;
-#endif
-    *evaluation = (eval_t) { .type=WHITE_WINS, .strength=board->move_count };
-    return 0;
+    type = WHITE_WINS;
+    goto return_end_game;
   case 0x30:
+    type = BLACK_WINS;
+    goto return_end_game;
+
+  return_end_game:
 #ifdef MEASURE_EVAL_COUNT
     game_end_count++;
 #endif
-    *evaluation = (eval_t) { .type=BLACK_WINS, .strength=board->move_count };
-    return 0;
+    return (eval_t) { .type=type, .strength=board->move_count };
   }
 
 #ifdef MM_OPT_MEMOIZATION
@@ -226,9 +223,9 @@ _evaluate(board_t* board,
 #ifdef MEASURE_EVAL_COUNT
       remember_count++;
 #endif
-      *best_moves = possible_move;
-      *evaluation = possible_eval;
-      return 1;
+      best_moves[0] = possible_move;
+      *best_moves_length = 1;
+      return possible_eval;
     }
   }
 #endif
@@ -241,8 +238,7 @@ _evaluate(board_t* board,
     leaf_count++;
 #endif
 
-    *evaluation = (eval_t) { .type=CONTINUE, .strength=_get_evaluation(cache, state, board) };
-    return 0;
+    return (eval_t) { .type=CONTINUE, .strength=_get_evaluation(cache, state, board) };
   }
 
   move_t moves[256];
@@ -257,24 +253,25 @@ _evaluate(board_t* board,
 #ifdef MEASURE_EVAL_COUNT
     leaf_count++;
 #endif
-    *evaluation = (eval_t) { .type=NOT_CALCULATED };
-    *best_moves = moves[0];
-    return 1;
+    best_moves[0] = moves[0];
+    *best_moves_length = 1;
+    return (eval_t) { .type=NOT_CALCULATED };
   }
 
-  size_t found_moves = 0;
+  eval_t best_evaluation;
+  *best_moves_length = 0;
 
   // Loop through all of the available moves except the first, and recursively get the next moves.
   for (int i=0; i<moves_length; i++) {
     // If the move was a capture move, do not decrement the depth.
     move_t move = moves[i];
-    eval_t new_evaluation;
 #ifdef MM_OPT_EXC_DEEPENING
     size_t new_depth = is_capture(move) ? max_depth : max_depth - 1;
 #else
     size_t new_depth = max_depth - 1;
 #endif
     move_t new_moves[256];
+    size_t new_moves_length;
 
 #if defined(TEST_EVAL_STATE) && !defined(NDEBUG)
     board_t _test_old_board = *board;
@@ -282,11 +279,7 @@ _evaluate(board_t* board,
 #endif
 
     do_move(board, state, move);
-    _evaluate(board, state, cache, new_depth, new_moves, &new_evaluation,
-#ifdef MM_OPT_AB_PRUNING
-              alpha, beta,
-#endif
-              false);
+    eval_t evaluation = _evaluate(board, state, cache, new_depth, new_moves, &new_moves_length, alpha, beta, false);
     undo_move(board, state, move);
 
 #ifdef TEST_EVAL_STATE
@@ -299,9 +292,9 @@ _evaluate(board_t* board,
 #endif
 
     // If this move is not the first move, compare this move with the best move.
-    if (found_moves) {
+    if (*best_moves_length) {
       // Compare this move and the old best move.
-      int cmp = compare_eval_by(new_evaluation, *evaluation, board->turn);
+      int cmp = compare_eval_by(evaluation, best_evaluation, board->turn);
 
       if (cmp < 0) {
         // If this move is worse than the found moves, continue.
@@ -309,13 +302,13 @@ _evaluate(board_t* board,
 
       } else if (cmp == 0) {
         // If this move is equally as good as the best move, add this move to the list.
-        best_moves[found_moves++] = move;
+        best_moves[(*best_moves_length)++] = move;
         continue;
       }
     }
 
-    *evaluation = new_evaluation;
-    found_moves = 1;
+    best_evaluation = evaluation;
+    *best_moves_length = 1;
     *best_moves = move;
 
 #ifdef MM_OPT_AB_PRUNING
@@ -339,13 +332,25 @@ _evaluate(board_t* board,
   }
 
 #ifdef MM_OPT_MEMOIZATION
-  memorize(cache, state->hash, board, (evaluation->type == WHITE_WINS || evaluation->type == BLACK_WINS) ? LONG_MAX : max_depth, *evaluation, best_moves[rand() % found_moves]);
+  memorize(
+      cache, state->hash, board,
+      (best_evaluation.type == WHITE_WINS || best_evaluation.type == BLACK_WINS)
+          ? LONG_MAX
+          : max_depth,
+      best_evaluation, best_moves[0]);
 #endif
 
-  return found_moves;
+  return best_evaluation;
 }
 
-size_t evaluate(board_t* board, state_cache_t* state, size_t max_depth, move_t* moves, eval_t* evaluation) {
+eval_t
+evaluate(board_t *board,
+         state_cache_t *state,
+         size_t max_depth,
+         move_t *best_moves,
+         size_t *best_moves_length) {
+
+  // Reset the measuring variables.
 #ifdef MEASURE_EVAL_COUNT
   evaluate_count = 0;
   game_end_count = 0;
@@ -369,21 +374,19 @@ size_t evaluate(board_t* board, state_cache_t* state, size_t max_depth, move_t* 
               TOPLEFT_KNIGHT_ADV_TABLE,
               TOPLEFT_KNIGHT_ISLAND_ADV_TABLE);
 
-  size_t length = _evaluate(board,
-                            state,
-                            &cache,
-                            max_depth,
-                            moves,
-                            evaluation,
-#ifdef MM_OPT_AB_PRUNING
-                            (eval_t) { .type=BLACK_WINS, .strength=0 },  // best possible evaluation for black
-                            (eval_t) { .type=WHITE_WINS, .strength=0 },  // best possible evaluation for white
-#endif
-                            true);
+  eval_t evaluation = _evaluate(board,
+                                state,
+                                &cache,
+                                max_depth,
+                                best_moves,
+                                best_moves_length,
+                                (eval_t) { .type=BLACK_WINS, .strength=0 },  // best possible evaluation for black
+                                (eval_t) { .type=WHITE_WINS, .strength=0 },  // best possible evaluation for white
+                                true);
 
   free_cache(&cache);
 
-  return length;
+  return evaluation;
 }
 
 void setup_cache(ai_cache_t* cache,

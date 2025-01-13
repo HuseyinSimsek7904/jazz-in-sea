@@ -33,6 +33,7 @@ typedef struct ai_cache_node_t {
     hash_t hash;
     size_t depth;
     eval_t eval;
+    // TODO: Do not store the move.
     move_t move;
   } array[AI_LL_NODE_SIZE];
 } ai_cache_node_t;
@@ -68,7 +69,7 @@ unsigned int get_ab_branch_cut_count();
 
 #endif
 
-size_t evaluate(board_t*, state_cache_t*, size_t, move_t*, eval_t*);
+eval_t evaluate(board_t*, state_cache_t*, size_t, move_t*, size_t*);
 
 void setup_cache(ai_cache_t *,
                  const int[4][4],
