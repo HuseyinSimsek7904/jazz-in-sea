@@ -65,31 +65,12 @@ int compare_eval(eval_t eval1, eval_t eval2) {
     // Otherwise compare the depths.
     return eval2.type != BLACK_WINS ? -1 : eval1.strength - eval2.strength;
 
-  case DRAW:
-    switch (eval2.type) {
-      // If eval2 is WHITE_WINS, always eval2.
-    case WHITE_WINS: return -1;
-      // If eval2 is BLACK_WINS, always eval1.
-    case BLACK_WINS: return 1;
-      // If eval2 is DRAW, check for moves.
-      // This comparison is not actually necessary, we are just trying to make the AI choose the simpler lines.
-    case DRAW: return eval2.strength - eval1.strength;
-      // If eval2 is CONTINUE, check for the evaluation.
-    case CONTINUE: return eval2.strength;
-
-    case NOT_CALCULATED:
-      assert(false);
-      break;
-    }
-
   case CONTINUE:
     switch (eval2.type) {
       // If eval2 is WHITE_WINS, always eval2.
     case WHITE_WINS: return -1;
       // If eval2 is BLACK_WINS, always eval1.
     case BLACK_WINS: return 1;
-      // If eval2 is DRAW, check for the evaluation.
-    case DRAW: return eval1.strength;
       // If eval2 is CONTINUE, check for the evaluation difference.
     case CONTINUE: return eval1.strength - eval2.strength;
 
@@ -178,6 +159,7 @@ unsigned int get_ab_branch_cut_count() { return ab_branch_cut_count; }
 eval_t
 _evaluate(board_t* board,
           state_cache_t* state,
+          history_t* history,
           ai_cache_t* cache,
           size_t max_depth,
           move_t* best_moves,
@@ -191,26 +173,25 @@ _evaluate(board_t* board,
   evaluate_count++;
 #endif
 
-  int type;
   // Check for the board state.
   // If the game should not continue, return the evaluation.
   // No need to memorize, as it will take equally as long.
   switch (state->status & 0x30) {
   case 0x10:
-    type = DRAW;
-    goto return_end_game;
-  case 0x20:
-    type = WHITE_WINS;
-    goto return_end_game;
-  case 0x30:
-    type = BLACK_WINS;
-    goto return_end_game;
-
-  return_end_game:
 #ifdef MEASURE_EVAL_COUNT
     game_end_count++;
 #endif
-    return (eval_t) { .type=type, .strength=board->move_count };
+    return (eval_t) { .type=CONTINUE, .strength=0 };
+  case 0x20:
+#ifdef MEASURE_EVAL_COUNT
+    game_end_count++;
+#endif
+    return (eval_t) { .type=WHITE_WINS, .strength=history->size };
+  case 0x30:
+#ifdef MEASURE_EVAL_COUNT
+    game_end_count++;
+#endif
+    return (eval_t) { .type=BLACK_WINS, .strength=history->size };
   }
 
 #ifdef MM_OPT_MEMOIZATION
@@ -219,7 +200,7 @@ _evaluate(board_t* board,
     eval_t possible_eval;
     move_t possible_move;
 
-    if (try_remember(cache, state->hash, board, max_depth, &possible_eval, &possible_move)) {
+    if (try_remember(cache, state->hash, board, history, max_depth, &possible_eval, &possible_move)) {
 #ifdef MEASURE_EVAL_COUNT
       remember_count++;
 #endif
@@ -244,8 +225,10 @@ _evaluate(board_t* board,
   move_t moves[256];
   int moves_length = generate_moves(board, moves);
 
-  // There must be at least 1 moves, otherwise we should not pass the state check step.
-  assert(moves_length);
+  // Check for draw by no moves.
+  if (!moves_length) {
+    return (eval_t) { .type=CONTINUE, .strength=0 };
+  }
 
   // If this move is the first move and if there are only one possible moves, return the only move.
   // No need to search recursively or memorize.
@@ -278,9 +261,9 @@ _evaluate(board_t* board,
     state_cache_t _test_old_state = *state;
 #endif
 
-    do_move(board, state, move);
-    eval_t evaluation = _evaluate(board, state, cache, new_depth, new_moves, &new_moves_length, alpha, beta, false);
-    undo_move(board, state, move);
+    do_move(board, state, history, move);
+    eval_t evaluation = _evaluate(board, state, history, cache, new_depth, new_moves, &new_moves_length, alpha, beta, false);
+    undo_last_move(board, state, history);
 
 #ifdef TEST_EVAL_STATE
     assert(_test_old_state.hash == state->hash && compare(board, (board_t *)&_test_old_board));
@@ -314,11 +297,11 @@ _evaluate(board_t* board,
 #ifdef MM_OPT_AB_PRUNING
     // Update the limit variables alpha and beta.
     if (board->turn) {
-      if (compare_eval(new_evaluation, alpha) > 0)
-        alpha = new_evaluation;
+      if (compare_eval(evaluation, alpha) > 0)
+        alpha = evaluation;
     } else {
-      if (compare_eval(new_evaluation, beta) < 0)
-        beta = new_evaluation;
+      if (compare_eval(evaluation, beta) < 0)
+        beta = evaluation;
     }
 
     // If beta is worse than or equal to alpha, break.
@@ -333,11 +316,11 @@ _evaluate(board_t* board,
 
 #ifdef MM_OPT_MEMOIZATION
   memorize(
-      cache, state->hash, board,
-      (best_evaluation.type == WHITE_WINS || best_evaluation.type == BLACK_WINS)
-          ? LONG_MAX
-          : max_depth,
-      best_evaluation, best_moves[0]);
+           cache, state->hash, board, history,
+           (best_evaluation.type == WHITE_WINS || best_evaluation.type == BLACK_WINS)
+           ? LONG_MAX
+           : max_depth,
+           best_evaluation, best_moves[0]);
 #endif
 
   return best_evaluation;
@@ -346,6 +329,7 @@ _evaluate(board_t* board,
 eval_t
 evaluate(board_t *board,
          state_cache_t *state,
+         history_t *history,
          size_t max_depth,
          move_t *best_moves,
          size_t *best_moves_length) {
@@ -376,6 +360,7 @@ evaluate(board_t *board,
 
   eval_t evaluation = _evaluate(board,
                                 state,
+                                history,
                                 &cache,
                                 max_depth,
                                 best_moves,
@@ -437,7 +422,7 @@ void free_cache(ai_cache_t* cache) {
 
 #ifdef MM_OPT_MEMOIZATION
 // Add the board to the memorized boards.
-void memorize(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, eval_t eval, move_t move) {
+void memorize(ai_cache_t* cache, hash_t hash, board_t* board, history_t* history, size_t depth, eval_t eval, move_t move) {
   ai_cache_node_t* node = cache->memorized[hash % AI_HASHMAP_SIZE];
 
   while (true) {
@@ -471,8 +456,8 @@ void memorize(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, eval
   }
 
   // If the eval is an absolute evaluation, convert the depth relative.
-  if (eval.type == WHITE_WINS || eval.type == BLACK_WINS || eval.type == DRAW) {
-    eval.strength += board->move_count;
+  if (eval.type == WHITE_WINS || eval.type == BLACK_WINS) {
+    eval.strength += history->size;
   }
 
   node->array[node->size++] = (struct memorized_t) { .board=*board, .hash=hash, .depth=depth, .eval=eval, .move=move };
@@ -482,7 +467,7 @@ void memorize(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, eval
 }
 
 // Get if the board was saved for memoization before.
-bool try_remember(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, eval_t* eval, move_t* move) {
+bool try_remember(ai_cache_t* cache, hash_t hash, board_t* board, history_t* history, size_t depth, eval_t* eval, move_t* move) {
   for (ai_cache_node_t* node = cache->memorized[hash % AI_HASHMAP_SIZE]; node != NULL; node = node->next) {
     for (int i=0; i<node->size; i++) {
       struct memorized_t* memorized = &node->array[i];
@@ -495,8 +480,8 @@ bool try_remember(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, 
         *move = memorized->move;
 
         // If the eval is an absolute evaluation, convert the depth absolute as well.
-        if (eval->type == WHITE_WINS || eval->type == BLACK_WINS || eval->type == DRAW) {
-          eval->strength -= board->move_count;
+        if (eval->type == WHITE_WINS || eval->type == BLACK_WINS) {
+          eval->strength -= history->size;
         }
 
         return true;

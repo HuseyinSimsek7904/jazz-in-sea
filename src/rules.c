@@ -18,6 +18,8 @@
 #define LEFT  -0x01
 #define RIGHT +0x01
 
+#define REPETITION_COUNT 3
+
 const int deltas[] = { RIGHT, DOWN, LEFT, UP };
 
 // Generate all possible moves on the board, and place them on the moves array.
@@ -101,7 +103,7 @@ size_t generate_moves(board_t* board, move_t moves[256]) {
 // This is because this function does not need to be fast right now, we will be
 // improving all of the functions as we progress.
 // Get the board status.
-void _generate_board_status(board_t* board, state_cache_t* state) {
+void _generate_board_status(board_t* board, state_cache_t* state, history_t* history) {
   // Check for insufficient material.
   if (!state->white_count) {
     state->status = state->black_count ? BLACK_WON_BY_INSUF_MAT : DRAW_BY_INSUF_MAT;
@@ -122,6 +124,18 @@ void _generate_board_status(board_t* board, state_cache_t* state) {
   if (state->black_count == state->black_island_count) {
     state->status = BLACK_WON_BY_ISLANDS;
     return;
+  }
+
+  // Check for draw by repetition.
+  int repetition_count = 1;
+  for (size_t i=0; i<history->size; i++) {
+    history_item_t item = history->history[i];
+    if (item.hash == state->hash && compare(&item.board, board)) {
+      if (++repetition_count >= REPETITION_COUNT) {
+        state->status = DRAW_BY_REPETITION;
+        return;
+      }
+    }
   }
 
   state->status = NORMAL;
@@ -265,6 +279,10 @@ void generate_state_cache(board_t* board, state_cache_t* state) {
   _hash_board(board, state);
 }
 
+void clear_history(history_t* history) {
+  history->size = 0;
+}
+
 // Remove a piece on the board.
 // Returns the removed piece.
 // NOTE: Does not alter the state cache.
@@ -313,7 +331,8 @@ static inline void _place_piece(board_t* board, const state_cache_t* state, pos_
 }
 
 // Remove a piece from the board.
-bool remove_piece(board_t* board, state_cache_t* state, pos_t pos) {
+// Clears the history.
+bool remove_piece(board_t* board, state_cache_t* state, history_t* history, pos_t pos) {
   bool update_islands_table = false;
   piece_t piece = _remove_piece(board, state, pos, &update_islands_table);
 
@@ -330,13 +349,15 @@ bool remove_piece(board_t* board, state_cache_t* state, pos_t pos) {
   if (update_islands_table)
     _generate_islands(board, state);
 
-  _generate_board_status(board, state);
+  clear_history(history);
+  _generate_board_status(board, state, history);
 
   return true;
 }
 
 // Place a piece on the board.
-bool place_piece(board_t* board, state_cache_t* state, pos_t pos, piece_t piece) {
+// Clears the history.
+bool place_piece(board_t* board, state_cache_t* state, history_t* history, pos_t pos, piece_t piece) {
   _update_hash(state, piece, pos);
   char color = get_piece_color(piece);
 
@@ -356,7 +377,8 @@ bool place_piece(board_t* board, state_cache_t* state, pos_t pos, piece_t piece)
   if (update_islands_table)
     _generate_islands(board, state);
 
-  _generate_board_status(board, state);
+  clear_history(history);
+  _generate_board_status(board, state, history);
 
   return true;
 }
@@ -364,7 +386,14 @@ bool place_piece(board_t* board, state_cache_t* state, pos_t pos, piece_t piece)
 // Make a move on the board and update the state of the board.
 // Both the board and move objects are assumed to be valid, so no checks are
 // performed.
-void do_move(board_t* board, state_cache_t* state, move_t move) {
+void do_move(board_t* board, state_cache_t* state, history_t* history, move_t move) {
+  // Add the move and the old board to the history.
+  history->history[history->size++] = (history_item_t) {
+    .move = move,
+    .board = *board,
+    .hash = state->hash,
+  };
+
   // There must not be any piece on the position where we are moving the piece.
   assert(get_piece(board, move.to) == EMPTY);
 
@@ -403,19 +432,23 @@ void do_move(board_t* board, state_cache_t* state, move_t move) {
 
   // Update the board turn and increment the move counter.
   next_turn(board);
-  board->move_count++;
 
   // Update the necessary caches.
   if (update_islands_table) {
     _generate_islands(board, state);
-    _generate_board_status(board, state);
-  } else if (is_capture(move)) {
-    _generate_board_status(board, state);
   }
+
+  _generate_board_status(board, state, history);
 }
 
 // Undo a move on the board and update the state of the board.
-void undo_move(board_t* board, state_cache_t* state, move_t move) {
+void undo_last_move(board_t* board, state_cache_t* state, history_t* history) {
+  // There must be at least one move in the history.
+  assert(history->size > 0);
+
+  // Get the last move from the history.
+  move_t move = history->history[--history->size].move;
+
   bool update_islands_table = false;
 
   // Low level move the piece.
@@ -445,13 +478,11 @@ void undo_move(board_t* board, state_cache_t* state, move_t move) {
 
   // Update the board turn and decrement the move counter.
   next_turn(board);
-  board->move_count--;
 
   // Update the necessary caches.
   if (update_islands_table) {
     _generate_islands(board, state);
-    _generate_board_status(board, state);
-  } else if (is_capture(move)) {
-    _generate_board_status(board, state);
   }
+
+  _generate_board_status(board, state, history);
 }

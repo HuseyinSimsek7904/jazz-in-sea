@@ -8,7 +8,20 @@
 #include "piece.h"
 #include "position.h"
 
+#define HISTORY_DEPTH 0x1000
+
 typedef unsigned int hash_t;
+
+typedef struct {
+  hash_t hash;
+  board_t board;
+  move_t move;
+} history_item_t;
+
+typedef struct {
+  history_item_t history[HISTORY_DEPTH];
+  size_t size;
+} history_t;
 
 typedef enum {
   NORMAL                 = 0x00,
@@ -47,12 +60,14 @@ typedef struct {
 size_t generate_moves(board_t*, move_t[256]);
 const char *board_status_text(status_t);
 
+void clear_history(history_t*);
+
 void generate_state_cache(board_t *, state_cache_t *);
 
-bool place_piece(board_t*, state_cache_t*, pos_t, piece_t);
-bool remove_piece(board_t*, state_cache_t*, pos_t);
+bool place_piece(board_t*, state_cache_t*, history_t*, pos_t, piece_t);
+bool remove_piece(board_t*, state_cache_t*, history_t*, pos_t);
 
-void do_move(board_t*, state_cache_t*, move_t);
-void undo_move(board_t*, state_cache_t*, move_t);
+void do_move(board_t*, state_cache_t*, history_t*, move_t);
+void undo_last_move(board_t*, state_cache_t*, history_t*);
 
 #endif

@@ -216,16 +216,13 @@ void print_islands(board_t* board, state_cache_t* state, bool player) {
   }
 }
 
-void print_eval(eval_t eval, board_t *board) {
+void print_eval(eval_t eval, board_t *board, history_t* history) {
   switch (eval.type) {
   case WHITE_WINS:
-    printf("white mates in %d\n", eval.strength - board->move_count);
+    printf("white mates in %lu\n", eval.strength - history->size);
     break;
   case BLACK_WINS:
-    printf("black mates in %d\n", eval.strength - board->move_count);
-    break;
-  case DRAW:
-    printf("draw in %u\n", eval.strength);
+    printf("black mates in %lu\n", eval.strength - history->size);
     break;
   case CONTINUE:
     printf("continue with advantage %i\n", eval.strength);

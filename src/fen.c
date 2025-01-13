@@ -55,7 +55,7 @@ static inline bool _char_to_player(char c) {
 }
 
 // Load and initialize a board and its state cache from FEN string.
-bool load_fen(const char* fen, state_cache_t* state, board_t* board) {
+bool load_fen(const char* fen, board_t* board, state_cache_t* state, history_t* history) {
   int row = 0, col = 0;
 
   for (; *fen != ' '; fen++) {
@@ -115,8 +115,8 @@ bool load_fen(const char* fen, state_cache_t* state, board_t* board) {
   board->initialized = true;
 #endif
 
-  // Reset the move count.
-  board->move_count = 0;
+  // Reset the history.
+  clear_history(history);
 
   // Update the board state.
   generate_state_cache(board, state);

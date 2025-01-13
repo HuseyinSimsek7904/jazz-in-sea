@@ -24,6 +24,7 @@ bool cli_logs = true;
 bool be_descriptive = false;
 board_t game_board;
 state_cache_t game_state;
+history_t game_history;
 bool black_automove;
 bool white_automove;
 
@@ -62,16 +63,16 @@ void make_automove() {
   move_t best_moves[256];
   size_t best_moves_length;
 
-  eval_t eval = evaluate(&game_board, &game_state, ai_depth, best_moves, &best_moves_length);
+  eval_t eval = evaluate(&game_board, &game_state, &game_history, ai_depth, best_moves, &best_moves_length);
   move_t chosen_move = best_moves[rand() % best_moves_length];
 
-  do_move(&game_board, &game_state, chosen_move);
+  do_move(&game_board, &game_state, &game_history, chosen_move);
 
   cli_info printf("done\n");
   cli_info printf("Played ");
   cli_info print_move(chosen_move);
   cli_info printf(" with evaluation ");
-  cli_info print_eval(eval, &game_board);
+  cli_info print_eval(eval, &game_board, &game_history);
   cli_info print_board(&game_board, false);
 
   make_automove();
@@ -81,7 +82,7 @@ command(loadfen) {
   expect_n_arguments("loadfen", 1);
 
   board_t new_board;
-  if (!load_fen(argv[1], &game_state, &new_board)) {
+  if (!load_fen(argv[1], &new_board, &game_state, &game_history)) {
     cli_error("invalid fen\n");
     return;
   }
@@ -153,7 +154,7 @@ command(makemove) {
 
   for (int i=0; i<moves_length; i++) {
     if (cmp_move(moves[i], move)) {
-      do_move(&game_board, &game_state, move);
+      do_move(&game_board, &game_state, &game_history, move);
       moves_length = generate_moves(&game_board, moves);
 
       make_automove();
@@ -224,10 +225,10 @@ command(playai) {
   cli_info printf("playing... ");
   move_t best_moves[256];
   size_t best_moves_length;
-  eval_t eval = evaluate(&game_board, &game_state, ai_depth, best_moves, &best_moves_length);
+  eval_t eval = evaluate(&game_board, &game_state, &game_history, ai_depth, best_moves, &best_moves_length);
 
-  do_move(&game_board, &game_state, best_moves[rand() % best_moves_length]);
-  cli_info print_eval(eval, &game_board);
+  do_move(&game_board, &game_state, &game_history, best_moves[rand() % best_moves_length]);
+  cli_info print_eval(eval, &game_board, &game_history);
   cli_info printf("done\n");
 
   make_automove();
@@ -274,7 +275,7 @@ command(evaluate) {
     clock_t start = clock();
 #endif
 
-    eval = evaluate(&game_board, &game_state, ai_depth, best_moves, &best_moves_length);
+    eval = evaluate(&game_board, &game_state, &game_history, ai_depth, best_moves, &best_moves_length);
     cli_info printf("done\n");
 
 #ifdef MEASURE_EVAL_TIME
@@ -308,7 +309,7 @@ command(evaluate) {
     printf("\n");
     break;
   case EVAL_TEXT:
-    print_eval(eval, &game_board);
+    print_eval(eval, &game_board, &game_history);
     break;
   }
 }
@@ -324,7 +325,7 @@ command(placeat) {
     return;
   }
 
-  place_piece(&game_board, &game_state, pos, piece);
+  place_piece(&game_board, &game_state, &game_history, pos, piece);
 }
 
 command(removeat) {
@@ -337,7 +338,7 @@ command(removeat) {
     return;
   }
 
-  remove_piece(&game_board, &game_state, pos);
+  remove_piece(&game_board, &game_state, &game_history, pos);
 }
 
 command(aidepth) {
@@ -362,11 +363,9 @@ static inline size_t count_branches(size_t depth) {
   move_t moves[256];
   size_t length = generate_moves(&game_board, moves);
   for (size_t i=0; i<length; i++) {
-    do_move(&game_board, &game_state, moves[i]);
-
+    do_move(&game_board, &game_state, &game_history, moves[i]);
     branches += count_branches(depth - 1);
-
-    undo_move(&game_board, &game_state, moves[i]);
+    undo_last_move(&game_board, &game_state, &game_history);
   }
 
   return branches;
@@ -549,7 +548,7 @@ int generate_argv(char* arg_buffer, char** argv) {
 
 
 void initialize() {
-  load_fen(DEFAULT_BOARD, &game_state, &game_board);
+  load_fen(DEFAULT_BOARD, &game_board, &game_state, &game_history);
   generate_state_cache(&game_board, &game_state);
 }
 
@@ -591,6 +590,8 @@ int main(int argc, char** argv) {
   initialize();
 
   while (true) {
+    fflush(stdout);
+    fflush(stderr);
     if (feof(stdin)) return 0;
 
     char* argv[32];

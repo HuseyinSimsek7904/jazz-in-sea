@@ -16,7 +16,7 @@
 typedef struct {
   // Type of evaluation, explains what is the result of the line.
   enum {
-    CONTINUE, DRAW, WHITE_WINS, BLACK_WINS, NOT_CALCULATED
+    CONTINUE, WHITE_WINS, BLACK_WINS, NOT_CALCULATED
   } type;
 
   // For "CONTINUE" type evaluation, explains how much favorable this position is for white.
@@ -49,7 +49,6 @@ typedef struct {
 #endif
 } ai_cache_t;
 
-void print_eval(eval_t, board_t*);
 int compare_eval(eval_t, eval_t);
 int compare_eval_by(eval_t, eval_t, bool);
 
@@ -69,7 +68,7 @@ unsigned int get_ab_branch_cut_count();
 
 #endif
 
-eval_t evaluate(board_t*, state_cache_t*, size_t, move_t*, size_t*);
+eval_t evaluate(board_t*, state_cache_t*, history_t*, size_t, move_t*, size_t*);
 
 void setup_cache(ai_cache_t *,
                  const int[4][4],
@@ -79,8 +78,8 @@ void setup_cache(ai_cache_t *,
 void free_cache(ai_cache_t *);
 
 #ifdef MM_OPT_MEMOIZATION
-void memorize(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, eval_t eval, move_t move);
-bool try_remember(ai_cache_t* cache, hash_t hash, board_t* board, size_t depth, eval_t* eval, move_t* move);
+void memorize(ai_cache_t*, hash_t, board_t*, history_t*, size_t, eval_t, move_t);
+bool try_remember(ai_cache_t*, hash_t, board_t*, history_t*, size_t, eval_t*, move_t*);
 #endif
 
 #endif
