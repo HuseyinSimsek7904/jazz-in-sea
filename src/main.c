@@ -24,8 +24,6 @@ bool cli_logs = true;
 bool be_descriptive = false;
 board_t game_board;
 state_cache_t game_state;
-move_t game_all_moves[256];
-size_t game_all_moves_length;
 bool black_automove;
 bool white_automove;
 
@@ -68,7 +66,7 @@ void make_automove() {
   move_t chosen_move = best_moves[rand() % best_moves_length];
 
   do_move(&game_board, &game_state, chosen_move);
-  game_all_moves_length = generate_moves(&game_board, game_all_moves);
+
   cli_info printf("done\n");
   cli_info printf("Played ");
   cli_info print_move(chosen_move);
@@ -90,7 +88,6 @@ command(loadfen) {
 
   game_board = new_board;
   generate_state_cache(&game_board, &game_state);
-  game_all_moves_length = generate_moves(&game_board, game_all_moves);
 
   cli_info printf("successfully loaded from fen\n");
   cli_info print_board(&game_board, false);
@@ -151,10 +148,13 @@ command(makemove) {
     return;
   }
 
-  for (int i=0; i<game_all_moves_length; i++) {
-    if (cmp_move(game_all_moves[i], move)) {
+  move_t moves[256];
+  size_t moves_length = generate_moves(&game_board, moves);
+
+  for (int i=0; i<moves_length; i++) {
+    if (cmp_move(moves[i], move)) {
       do_move(&game_board, &game_state, move);
-      game_all_moves_length = generate_moves(&game_board, game_all_moves);
+      moves_length = generate_moves(&game_board, moves);
 
       make_automove();
       return;
@@ -174,7 +174,10 @@ command(status) {
 command(allmoves) {
   expect_n_arguments("allmoves", 0);
 
-  print_moves(game_all_moves, game_all_moves_length);
+  move_t moves[256];
+  size_t length = generate_moves(&game_board, moves);
+
+  print_moves(moves, length);
   printf("\n");
 }
 
@@ -224,7 +227,6 @@ command(playai) {
   eval_t eval = evaluate(&game_board, &game_state, ai_depth, best_moves, &best_moves_length);
 
   do_move(&game_board, &game_state, best_moves[rand() % best_moves_length]);
-  game_all_moves_length = generate_moves(&game_board, game_all_moves);
   cli_info print_eval(eval, &game_board);
   cli_info printf("done\n");
 
@@ -323,7 +325,6 @@ command(placeat) {
   }
 
   place_piece(&game_board, &game_state, pos, piece);
-  game_all_moves_length = generate_moves(&game_board, game_all_moves);
 }
 
 command(removeat) {
@@ -337,7 +338,6 @@ command(removeat) {
   }
 
   remove_piece(&game_board, &game_state, pos);
-  game_all_moves_length = generate_moves(&game_board, game_all_moves);
 }
 
 command(aidepth) {
@@ -551,8 +551,6 @@ int generate_argv(char* arg_buffer, char** argv) {
 void initialize() {
   load_fen(DEFAULT_BOARD, &game_state, &game_board);
   generate_state_cache(&game_board, &game_state);
-
-  game_all_moves_length = generate_moves(&game_board, game_all_moves);
 }
 
 #define expect_command(command_name)            \
