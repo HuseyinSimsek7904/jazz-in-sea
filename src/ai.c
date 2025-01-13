@@ -120,36 +120,34 @@ int compare_eval_by(eval_t eval1, eval_t eval2, bool color) {
   return cmp;
 }
 
-static inline int _get_delta_eval_place(ai_cache_t* cache, state_cache_t* state, pos_t to, piece_t piece) {
-  switch (get_piece_type(piece)) {
-  case MOD_PAWN:
-    return state->islands[to] ? cache->pawn_island_adv_table[to] : cache->pawn_adv_table[to];
-    break;
-  case MOD_KNIGHT:
-    return state->islands[to] ? cache->knight_island_adv_table[to] : cache->knight_adv_table[to];
-    break;
-  default:
-    assert(false);
-    return 0;
+static inline int _get_evaluation(ai_cache_t* cache, state_cache_t* state, board_t* board) {
+  int eval = 0;
+  for (int row=0; row<8; row++) {
+    for (int col=0; col<8; col++) {
+      pos_t pos = to_position(row, col);
+      piece_t piece = get_piece(board, pos);
+      char piece_color = get_piece_color(piece);
+      int piece_eval;
+
+      if (piece_color == MOD_EMPTY) continue;
+
+      switch (get_piece_type(piece)) {
+      case MOD_PAWN:
+        piece_eval = state->islands[pos] ? cache->pawn_island_adv_table[pos] : cache->pawn_adv_table[pos];
+        break;
+      case MOD_KNIGHT:
+        piece_eval = state->islands[pos] ? cache->knight_island_adv_table[pos] : cache->knight_adv_table[pos];
+        break;
+      default:
+        assert(false);
+        return 0;
+      }
+
+      if (piece_color == MOD_BLACK) piece_eval = -piece_eval;
+      eval += piece_eval;
+    }
   }
-}
-
-static inline int _get_delta_eval(ai_cache_t* cache, state_cache_t* state, board_t* board, move_t move) {
-  int delta_evaluation = 0;
-
-  // Add the advantage of the piece.
-  // It is a "good" thing that we take the opponent's piece as these pieces have a base value.
-  // Losing a piece will make you lose that base value.
-  if (is_valid_pos(move.capture)) {
-    delta_evaluation += _get_delta_eval_place(cache, state, move.capture, move.capture_piece);
-  }
-
-  // Add the advantage difference of the from and to positions.
-  piece_t piece = get_piece(board, move.from);
-  delta_evaluation += _get_delta_eval_place(cache, state, move.to, piece);
-  delta_evaluation -= _get_delta_eval_place(cache, state, move.from, piece);
-
-  return board->turn ? delta_evaluation : -delta_evaluation;
+  return eval;
 }
 
 #ifdef MEASURE_EVAL_COUNT
@@ -242,7 +240,8 @@ _evaluate(board_t* board,
 #ifdef MEASURE_EVAL_COUNT
     leaf_count++;
 #endif
-    *evaluation = (eval_t) { .type=CONTINUE, .strength=0 };
+
+    *evaluation = (eval_t) { .type=CONTINUE, .strength=_get_evaluation(cache, state, board) };
     return 0;
   }
 
@@ -298,10 +297,6 @@ _evaluate(board_t* board,
     assert(_test_old_state.black_island_count == state->black_island_count);
     assert(_test_old_state.status == state->status);
 #endif
-
-    // If the evaluation type was CONTINUE, then add the move delta evaluation.
-    if (new_evaluation.type == CONTINUE)
-      new_evaluation.strength += _get_delta_eval(cache, state, board, move);
 
     // If this move is not the first move, compare this move with the best move.
     if (found_moves) {

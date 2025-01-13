@@ -51,3 +51,4 @@
 - [ ] #50  (fix) `placeat` and `removeat` commands do not update the status of the board
 - [x] #51  (feat) turn `ai_cache_t.memorized` to a linked list
 - [ ] #52  (chore) evaluate should not generate the moves and instead should only return the evaluation information. The ai cache can then be checked to determine the best moves
+- [ ] #53  (feat) implement delta evaluation with proper test functions
