@@ -38,7 +38,8 @@ static inline bool cmp_move(move_t move1, move_t move2) {
   // move.capture_piece does not contain any information about the move, rather it has information about the board.
   // Because of that, we should expect them to be the same.
   // Otherwise means that the boards that these moves are generated from are different.
-  assert(move1.capture_piece == move2.capture_piece);
+
+  assert(!is_valid_pos(move1.capture) || move1.capture_piece == move2.capture_piece);
   return true;
 }
 
