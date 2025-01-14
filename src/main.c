@@ -22,9 +22,10 @@
 size_t ai_depth = 8;
 bool cli_logs = true;
 bool be_descriptive = false;
-board_t game_board;
-state_cache_t game_state;
+
+board_state_t game_state;
 history_t game_history;
+
 bool black_automove;
 bool white_automove;
 
@@ -45,7 +46,7 @@ bool white_automove;
 
 void make_automove() {
   // Check if the current player should be automoved.
-  if (game_board.turn ? !white_automove : !black_automove)
+  if (game_state.board.turn ? !white_automove : !black_automove)
     return;
 
   // Check if the game ended.
@@ -63,17 +64,17 @@ void make_automove() {
   move_t best_moves[256];
   size_t best_moves_length;
 
-  eval_t eval = evaluate(&game_board, &game_state, &game_history, ai_depth, best_moves, &best_moves_length);
+  eval_t eval = evaluate(&game_state, &game_history, ai_depth, best_moves, &best_moves_length);
   move_t chosen_move = best_moves[rand() % best_moves_length];
 
-  do_move(&game_board, &game_state, &game_history, chosen_move);
+  do_move(&game_state, &game_history, chosen_move);
 
   cli_info printf("done\n");
   cli_info printf("Played ");
   cli_info print_move(chosen_move);
   cli_info printf(" with evaluation ");
-  cli_info print_eval(eval, &game_board, &game_history);
-  cli_info print_board(&game_board, false);
+  cli_info print_eval(eval, &game_state.board, &game_history);
+  cli_info print_board(&game_state.board, false);
 
   make_automove();
 }
@@ -87,10 +88,10 @@ command(loadfen) {
     case '?':
       return;
     case 's':
-      load_fen_string(optarg, &game_board, &game_state, &game_history);
+      load_fen_string(optarg, &game_state, &game_history);
       return;
     case 'p':
-      if (!load_fen_from_path(optarg, &game_board, &game_state, &game_history)) {
+      if (!load_fen_from_path(optarg, &game_state, &game_history)) {
         cli_error("could not load FEN\n");
       }
       return;
@@ -109,12 +110,12 @@ command(savefen) {
     case 's':
       {
         char buffer[256];
-        get_fen_string(buffer, &game_board);
+        get_fen_string(buffer, &game_state);
         printf("%s\n", buffer);
         return;
       }
     case 'p':
-      if (!save_fen_to_path(optarg, &game_board)) {
+      if (!save_fen_to_path(optarg, &game_state)) {
         cli_error("could save load FEN\n");
       }
       return;
@@ -148,13 +149,13 @@ command(show) {
  end_of_parsing:
   switch (show_type) {
   case BOARD:
-    print_board(&game_board, false);
+    print_board(&game_state.board, false);
     break;
   case HASH:
     printf("%lx\n", game_state.hash);
     break;
   case ISLANDS:
-    print_islands(&game_board, &game_state, false);
+    print_islands(&game_state, false);
   }
 }
 
@@ -162,18 +163,18 @@ command(makemove) {
   expect_n_arguments("makemove", 1);
 
   move_t move;
-  if (!string_to_move(argv[1], &game_board, &move)) {
+  if (!string_to_move(argv[1], &game_state.board, &move)) {
     cli_error("invalid move notation '%s'\n", argv[1]);
     return;
   }
 
   move_t moves[256];
-  size_t moves_length = generate_moves(&game_board, moves);
+  size_t moves_length = generate_moves(&game_state, moves);
 
   for (int i=0; i<moves_length; i++) {
     if (compare_move(moves[i], move)) {
-      do_move(&game_board, &game_state, &game_history, move);
-      moves_length = generate_moves(&game_board, moves);
+      do_move(&game_state, &game_history, move);
+      moves_length = generate_moves(&game_state, moves);
 
       make_automove();
       return;
@@ -194,7 +195,7 @@ command(allmoves) {
   expect_n_arguments("allmoves", 0);
 
   move_t moves[256];
-  size_t length = generate_moves(&game_board, moves);
+  size_t length = generate_moves(&game_state, moves);
 
   print_moves(moves, length);
   printf("\n");
@@ -243,10 +244,10 @@ command(playai) {
   cli_info printf("playing... ");
   move_t best_moves[256];
   size_t best_moves_length;
-  eval_t eval = evaluate(&game_board, &game_state, &game_history, ai_depth, best_moves, &best_moves_length);
+  eval_t eval = evaluate(&game_state, &game_history, ai_depth, best_moves, &best_moves_length);
 
-  do_move(&game_board, &game_state, &game_history, best_moves[rand() % best_moves_length]);
-  cli_info print_eval(eval, &game_board, &game_history);
+  do_move(&game_state, &game_history, best_moves[rand() % best_moves_length]);
+  cli_info print_eval(eval, &game_state.board, &game_history);
   cli_info printf("done\n");
 
   make_automove();
@@ -293,7 +294,7 @@ command(evaluate) {
     clock_t start = clock();
 #endif
 
-    eval = evaluate(&game_board, &game_state, &game_history, ai_depth, best_moves, &best_moves_length);
+    eval = evaluate(&game_state, &game_history, ai_depth, best_moves, &best_moves_length);
     cli_info printf("done\n");
 
 #ifdef MEASURE_EVAL_TIME
@@ -327,7 +328,7 @@ command(evaluate) {
     printf("\n");
     break;
   case EVAL_TEXT:
-    print_eval(eval, &game_board, &game_history);
+    print_eval(eval, &game_state.board, &game_history);
     break;
   }
 }
@@ -343,7 +344,7 @@ command(placeat) {
     return;
   }
 
-  place_piece(&game_board, &game_state, &game_history, pos, piece);
+  place_piece(&game_state, &game_history, pos, piece);
 }
 
 command(removeat) {
@@ -356,7 +357,7 @@ command(removeat) {
     return;
   }
 
-  remove_piece(&game_board, &game_state, &game_history, pos);
+  remove_piece(&game_state, &game_history, pos);
 }
 
 command(aidepth) {
@@ -379,11 +380,11 @@ static inline size_t count_branches(size_t depth) {
   size_t branches = 0;
 
   move_t moves[256];
-  size_t length = generate_moves(&game_board, moves);
+  size_t length = generate_moves(&game_state, moves);
   for (size_t i=0; i<length; i++) {
-    do_move(&game_board, &game_state, &game_history, moves[i]);
+    do_move(&game_state, &game_history, moves[i]);
     branches += count_branches(depth - 1);
-    undo_last_move(&game_board, &game_state, &game_history);
+    undo_last_move(&game_state, &game_history);
   }
 
   return branches;
@@ -567,7 +568,7 @@ int generate_argv(char* arg_buffer, char** argv) {
 
 
 void initialize() {
-  if (!load_fen_from_path("board_fen/starting", &game_board, &game_state, &game_history)) {
+  if (!load_fen_from_path("board_fen/starting", &game_state, &game_history)) {
     cli_error("could not load starting position\n");
     exit(1);
   }

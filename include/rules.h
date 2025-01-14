@@ -36,6 +36,9 @@ typedef enum {
 } status_t;
 
 typedef struct {
+  // The current board.
+  board_t board;
+
   // The current board status.
   status_t status;
 
@@ -55,19 +58,17 @@ typedef struct {
 
   // The current hash value.
   hash_t hash;
-} state_cache_t;
+} board_state_t;
 
-size_t generate_moves(board_t*, move_t[256]);
+size_t generate_moves(board_state_t*, move_t[256]);
 const char *board_status_text(status_t);
 
-void clear_history(history_t*);
+void generate_state_cache(board_state_t *, history_t *);
 
-void generate_state_cache(board_t *, state_cache_t *, history_t *);
+bool place_piece(board_state_t*, history_t*, pos_t, piece_t);
+bool remove_piece(board_state_t*, history_t*, pos_t);
 
-bool place_piece(board_t*, state_cache_t*, history_t*, pos_t, piece_t);
-bool remove_piece(board_t*, state_cache_t*, history_t*, pos_t);
-
-void do_move(board_t*, state_cache_t*, history_t*, move_t);
-void undo_last_move(board_t*, state_cache_t*, history_t*);
+void do_move(board_state_t*, history_t*, move_t);
+void undo_last_move(board_state_t*, history_t*);
 
 #endif

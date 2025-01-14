@@ -30,7 +30,6 @@ typedef struct {
   hash_t hash;
   size_t depth;
   eval_t eval;
-  move_t move;
   node_type_t node_type;
 } memorized_t;
 
@@ -64,7 +63,7 @@ unsigned int get_ab_branch_cut_count();
 
 #endif
 
-eval_t evaluate(board_t*, state_cache_t*, history_t*, size_t, move_t*, size_t*);
+eval_t evaluate(board_state_t*, history_t*, size_t, move_t*, size_t*);
 
 void setup_cache(ai_cache_t *,
                  const int[4][4],
@@ -74,8 +73,8 @@ void setup_cache(ai_cache_t *,
 void free_cache(ai_cache_t *);
 
 #ifdef MM_OPT_MEMOIZATION
-void memorize(ai_cache_t*, hash_t, board_t*, history_t*, size_t, eval_t, node_type_t);
-eval_t try_remember(ai_cache_t*, hash_t, board_t*, history_t*, size_t, eval_t, eval_t);
+void memorize(ai_cache_t*, hash_t, history_t*, size_t, eval_t, node_type_t);
+eval_t try_remember(ai_cache_t*, hash_t, history_t*, size_t, eval_t, eval_t);
 #endif
 
 #endif

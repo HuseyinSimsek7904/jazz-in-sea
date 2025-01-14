@@ -96,12 +96,12 @@ int compare_eval_by(eval_t eval1, eval_t eval2, bool color) {
   return cmp;
 }
 
-static inline int _get_evaluation(ai_cache_t* cache, state_cache_t* state, board_t* board) {
+static inline int _get_evaluation(board_state_t* state, ai_cache_t* cache) {
   int eval = 0;
   for (int row=0; row<8; row++) {
     for (int col=0; col<8; col++) {
       pos_t pos = to_position(row, col);
-      piece_t piece = get_piece(board, pos);
+      piece_t piece = get_piece(&state->board, pos);
       char piece_color = get_piece_color(piece);
       int piece_eval;
 
@@ -151,8 +151,7 @@ unsigned int get_ab_branch_cut_count() { return ab_branch_cut_count; }
 
 // Find the best continuing moves available and their evaluation value.
 eval_t
-_evaluate(board_t* board,
-          state_cache_t* state,
+_evaluate(board_state_t* state,
           history_t* history,
           ai_cache_t* cache,
           size_t max_depth,
@@ -193,7 +192,6 @@ _evaluate(board_t* board,
   {
     eval_t possible_eval = try_remember(cache,
                                         state->hash,
-                                        board,
                                         history,
                                         max_depth,
                                         alpha,
@@ -216,11 +214,11 @@ _evaluate(board_t* board,
     leaf_count++;
 #endif
 
-    return (eval_t) { .type=CONTINUE, .strength=_get_evaluation(cache, state, board) };
+    return (eval_t) { .type=CONTINUE, .strength=_get_evaluation(state, cache) };
   }
 
   move_t moves[256];
-  int moves_length = generate_moves(board, moves);
+  int moves_length = generate_moves(state, moves);
 
   // Check for draw by no moves.
   if (!moves_length) {
@@ -257,9 +255,9 @@ _evaluate(board_t* board,
     state_cache_t _test_old_state = *state;
 #endif
 
-    do_move(board, state, history, move);
-    eval_t evaluation = _evaluate(board, state, history, cache, new_depth, NULL, &new_moves_length, alpha, beta, false);
-    undo_last_move(board, state, history);
+    do_move(state, history, move);
+    eval_t evaluation = _evaluate(state, history, cache, new_depth, NULL, &new_moves_length, alpha, beta, false);
+    undo_last_move(state, history);
 
 #ifdef TEST_EVAL_STATE
     assert(_test_old_state.hash == state->hash && compare(board, (board_t *)&_test_old_board));
@@ -273,7 +271,7 @@ _evaluate(board_t* board,
     // If this move is not the first move, compare this move with the best move.
     if (*best_moves_length) {
       // Compare this move and the old best move.
-      int cmp = compare_eval_by(evaluation, best_evaluation, board->turn);
+      int cmp = compare_eval_by(evaluation, best_evaluation, state->board.turn);
 
       if (cmp < 0) {
         // If this move is worse than the found moves, continue.
@@ -292,12 +290,12 @@ _evaluate(board_t* board,
 
 #ifdef MM_OPT_AB_PRUNING
     // Update the limit variables alpha and beta.
-    if (board->turn) {
+    if (state->board.turn) {
       if (compare_eval(evaluation, beta) > 0) {
 #ifdef MM_OPT_AB_PRUNING
         ab_branch_cut_count++;
 #endif
-        memorize(cache, state->hash, board, history, max_depth, best_evaluation, LOWER);
+        memorize(cache, state->hash, history, max_depth, best_evaluation, LOWER);
         return best_evaluation;
       }
 
@@ -309,7 +307,7 @@ _evaluate(board_t* board,
 #ifdef MM_OPT_AB_PRUNING
         ab_branch_cut_count++;
 #endif
-        memorize(cache, state->hash, board, history, max_depth, best_evaluation, UPPER);
+        memorize(cache, state->hash, history, max_depth, best_evaluation, UPPER);
         return best_evaluation;
       }
 
@@ -320,15 +318,14 @@ _evaluate(board_t* board,
   }
 
 #ifdef MM_OPT_MEMOIZATION
-  memorize(cache, state->hash, board, history, max_depth, best_evaluation, EXACT);
+  memorize(cache, state->hash, history, max_depth, best_evaluation, EXACT);
 #endif
 
   return best_evaluation;
 }
 
 eval_t
-evaluate(board_t *board,
-         state_cache_t *state,
+evaluate(board_state_t *state,
          history_t *history,
          size_t max_depth,
          move_t *best_moves,
@@ -358,8 +355,7 @@ evaluate(board_t *board,
               TOPLEFT_KNIGHT_ADV_TABLE,
               TOPLEFT_KNIGHT_ISLAND_ADV_TABLE);
 
-  eval_t evaluation = _evaluate(board,
-                                state,
+  eval_t evaluation = _evaluate(state,
                                 history,
                                 &cache,
                                 max_depth,
@@ -418,7 +414,6 @@ void free_cache(ai_cache_t* cache) {
 void
 memorize(ai_cache_t* cache,
          hash_t hash,
-         board_t* board,
          history_t* history,
          size_t depth,
          eval_t eval,
@@ -450,7 +445,6 @@ memorize(ai_cache_t* cache,
 eval_t
 try_remember(ai_cache_t* cache,
              hash_t hash,
-             board_t* board,
              history_t* history,
              size_t depth,
              eval_t alpha,

@@ -57,7 +57,7 @@ static inline bool _char_to_player(char c) {
 }
 
 // Load and initialize a board and its state cache from FEN string.
-bool load_fen_string(const char* fen, board_t* board, state_cache_t* state, history_t* history) {
+bool load_fen_string(const char* fen, board_state_t* state, history_t* history) {
   int row = 0, col = 0;
 
   for (; *fen != ' '; fen++) {
@@ -76,7 +76,7 @@ bool load_fen_string(const char* fen, board_t* board, state_cache_t* state, hist
       // However checking this seems unnecessary.
       int spaces = *fen - '0';
       if (col + spaces > 8) return false;
-      while (spaces--) set_piece(board, to_position(row, col++), EMPTY);
+      while (spaces--) set_piece(&state->board, to_position(row, col++), EMPTY);
       break;
 
     case FEN_WHITE_PAWN:
@@ -86,7 +86,7 @@ bool load_fen_string(const char* fen, board_t* board, state_cache_t* state, hist
       if (row > 7 || col > 7) return false;
 
       // Add the corresponding piece.
-      set_piece(board, to_position(row, col++), _char_to_piece(*fen));
+      set_piece(&state->board, to_position(row, col++), _char_to_piece(*fen));
       break;
 
     default:
@@ -101,10 +101,10 @@ bool load_fen_string(const char* fen, board_t* board, state_cache_t* state, hist
   fen++;
   switch (*fen++) {
   case 'w':
-    board->turn = true;
+    state->board.turn = true;
     break;
   case 'b':
-    board->turn = false;
+    state->board.turn = false;
     break;
   default:
     return false;
@@ -118,20 +118,20 @@ bool load_fen_string(const char* fen, board_t* board, state_cache_t* state, hist
 #endif
 
   // Reset the history.
-  clear_history(history);
+  history->size = 0;
 
   // Update the board state.
-  generate_state_cache(board, state, history);
+  generate_state_cache(state, history);
 
   return true;
 }
 
 // Save a board to FEN string.
 // fen must be an array of chars at least 75 bytes long. Just use 256 bytes.
-char* get_fen_string(char* fen, board_t* board) {
+char* get_fen_string(char* fen, board_state_t* state) {
   for (int row=0; row<8; row++) {
     for (int col=0; col<8; col++) {
-      piece_t piece = get_piece(board, to_position(row, col));
+      piece_t piece = get_piece(&state->board, to_position(row, col));
 
       if (piece == EMPTY) {
         if (*(fen - 1) >= '1' && *(fen - 1) <= '8') {
@@ -150,7 +150,7 @@ char* get_fen_string(char* fen, board_t* board) {
   }
 
   *fen++ = ' ';
-  *fen++ = _player_to_char(board->turn);
+  *fen++ = _player_to_char(state->board.turn);
 
   *fen = '\0';
   return fen;
@@ -160,7 +160,7 @@ char* get_fen_string(char* fen, board_t* board) {
 #define MAX_BUFFER 0x1000
 
 // Load a board from a FEN file.
-bool load_fen_from_path(const char *path, board_t *board, state_cache_t* state, history_t *history) {
+bool load_fen_from_path(const char *path, board_state_t* state, history_t *history) {
   char buffer[MAX_BUFFER];
 
   FILE* file = fopen(path, "r");
@@ -172,14 +172,14 @@ bool load_fen_from_path(const char *path, board_t *board, state_cache_t* state, 
 
   fclose(file);
 
-  return load_fen_string(buffer, board, state, history);
+  return load_fen_string(buffer, state, history);
 }
 
 // Save a board to a FEN file.
-bool save_fen_to_path(const char* path, board_t *board) {
+bool save_fen_to_path(const char* path, board_state_t* state) {
   char buffer[256];
 
-  get_fen_string(buffer, board);
+  get_fen_string(buffer, state);
 
   FILE* file = fopen(path, "w");
   if (!file)

@@ -197,7 +197,7 @@ void print_board(board_t *board, bool player) {
   }
 }
 
-void print_islands(board_t* board, state_cache_t* state, bool player) {
+void print_islands(board_state_t* state, bool player) {
   for (int prow=0; prow<8; prow++) {
     int row = perspective_row(prow, player);
 
@@ -205,7 +205,7 @@ void print_islands(board_t* board, state_cache_t* state, bool player) {
       int col = perspective_col(pcol, player);
       pos_t pos = to_position(row, col);
       char c;
-      if (get_piece(board, pos) == EMPTY) {
+      if (get_piece(&state->board, pos) == EMPTY) {
         c = CLI_ISLANDS_EMPTY;
       } else {
         c = state->islands[pos] ? CLI_ISLANDS_YES : CLI_ISLANDS_NO;

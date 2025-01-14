@@ -12,7 +12,7 @@ bool string_to_position(const char*, pos_t*);
 bool string_to_move(const char*, board_t* board, move_t*);
 
 void print_board(board_t *, bool);
-void print_islands(board_t *, state_cache_t *, bool);
+void print_islands(board_state_t *, bool);
 
 void print_eval(eval_t, board_t*, history_t*);
 void print_move(move_t);
