@@ -255,7 +255,7 @@ static inline void _hash_board(board_t* board, state_cache_t* state) {
 }
 
 // Generate a state cache from only the information given on the board.
-void generate_state_cache(board_t* board, state_cache_t* state) {
+void generate_state_cache(board_t* board, state_cache_t* state, history_t* history) {
   // Count the pieces on the board.
   state->white_count = 0;
   state->black_count = 0;
@@ -271,12 +271,13 @@ void generate_state_cache(board_t* board, state_cache_t* state) {
     }
   }
 
-  // Update the islands.
-  _generate_islands(board, state);
-
   // Generate the hash value for the board.
   _generate_square_hash(state);
   _hash_board(board, state);
+
+  // Update the islands and the game status.
+  _generate_islands(board, state);
+  _generate_board_status(board, state, history);
 }
 
 void clear_history(history_t* history) {

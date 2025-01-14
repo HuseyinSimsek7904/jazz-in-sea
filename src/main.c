@@ -571,8 +571,6 @@ void initialize() {
     cli_error("could not load starting position\n");
     exit(1);
   }
-
-  generate_state_cache(&game_board, &game_state);
 }
 
 #define expect_command(command_name)            \

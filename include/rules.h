@@ -62,7 +62,7 @@ const char *board_status_text(status_t);
 
 void clear_history(history_t*);
 
-void generate_state_cache(board_t *, state_cache_t *);
+void generate_state_cache(board_t *, state_cache_t *, history_t *);
 
 bool place_piece(board_t*, state_cache_t*, history_t*, pos_t, piece_t);
 bool remove_piece(board_t*, state_cache_t*, history_t*, pos_t);

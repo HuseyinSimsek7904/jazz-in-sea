@@ -121,7 +121,7 @@ bool load_fen_string(const char* fen, board_t* board, state_cache_t* state, hist
   clear_history(history);
 
   // Update the board state.
-  generate_state_cache(board, state);
+  generate_state_cache(board, state, history);
 
   return true;
 }
