@@ -76,7 +76,7 @@ bool load_fen_string(const char* fen, board_state_t* state, history_t* history) 
       // However checking this seems unnecessary.
       int spaces = *fen - '0';
       if (col + spaces > 8) return false;
-      while (spaces--) set_piece(&state->board, to_position(row, col++), EMPTY);
+      while (spaces--) set_piece(state->board, to_position(row, col++), EMPTY);
       break;
 
     case FEN_WHITE_PAWN:
@@ -86,7 +86,7 @@ bool load_fen_string(const char* fen, board_state_t* state, history_t* history) 
       if (row > 7 || col > 7) return false;
 
       // Add the corresponding piece.
-      set_piece(&state->board, to_position(row, col++), _char_to_piece(*fen));
+      set_piece(state->board, to_position(row, col++), _char_to_piece(*fen));
       break;
 
     default:
@@ -101,10 +101,10 @@ bool load_fen_string(const char* fen, board_state_t* state, history_t* history) 
   fen++;
   switch (*fen++) {
   case 'w':
-    state->board.turn = true;
+    state->turn = true;
     break;
   case 'b':
-    state->board.turn = false;
+    state->turn = false;
     break;
   default:
     return false;
@@ -131,7 +131,7 @@ bool load_fen_string(const char* fen, board_state_t* state, history_t* history) 
 char* get_fen_string(char* fen, board_state_t* state) {
   for (int row=0; row<8; row++) {
     for (int col=0; col<8; col++) {
-      piece_t piece = get_piece(&state->board, to_position(row, col));
+      piece_t piece = get_piece(state->board, to_position(row, col));
 
       if (piece == EMPTY) {
         if (*(fen - 1) >= '1' && *(fen - 1) <= '8') {
@@ -150,7 +150,7 @@ char* get_fen_string(char* fen, board_state_t* state) {
   }
 
   *fen++ = ' ';
-  *fen++ = _player_to_char(state->board.turn);
+  *fen++ = _player_to_char(state->turn);
 
   *fen = '\0';
   return fen;

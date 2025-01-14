@@ -101,7 +101,7 @@ static inline int _get_evaluation(board_state_t* state, ai_cache_t* cache) {
   for (int row=0; row<8; row++) {
     for (int col=0; col<8; col++) {
       pos_t pos = to_position(row, col);
-      piece_t piece = get_piece(&state->board, pos);
+      piece_t piece = get_piece(state->board, pos);
       char piece_color = get_piece_color(piece);
       int piece_eval;
 
@@ -271,7 +271,7 @@ _evaluate(board_state_t* state,
     // If this move is not the first move, compare this move with the best move.
     if (*best_moves_length) {
       // Compare this move and the old best move.
-      int cmp = compare_eval_by(evaluation, best_evaluation, state->board.turn);
+      int cmp = compare_eval_by(evaluation, best_evaluation, state->turn);
 
       if (cmp < 0) {
         // If this move is worse than the found moves, continue.
@@ -290,7 +290,7 @@ _evaluate(board_state_t* state,
 
 #ifdef MM_OPT_AB_PRUNING
     // Update the limit variables alpha and beta.
-    if (state->board.turn) {
+    if (state->turn) {
       if (compare_eval(evaluation, beta) > 0) {
 #ifdef MM_OPT_AB_PRUNING
         ab_branch_cut_count++;

@@ -39,7 +39,7 @@ int _capture_delta_to_regular_delta(int dist) {
 }
 
 // Try to convert a string to a move.
-bool string_to_move(const char* s, board_t* board, move_t* move) {
+bool string_to_move(const char* s, board_t board, move_t* move) {
   char row_name = *s++;
   if (row_name < 'a' || row_name > 'h') return false;
 
@@ -151,7 +151,7 @@ const char CLI_ISLANDS_EMPTY = '.';
 const char CLI_ISLANDS_NO = '+';
 const char CLI_ISLANDS_YES = '#';
 
-void print_board(board_t *board, bool player) {
+void print_board(board_t board, bool player) {
   printf("%s", player ? CLI_TOP_ROW_INV : CLI_TOP_ROW);
 
   for (int prow = 0; prow < 8; prow++) {
@@ -205,7 +205,7 @@ void print_islands(board_state_t* state, bool player) {
       int col = perspective_col(pcol, player);
       pos_t pos = to_position(row, col);
       char c;
-      if (get_piece(&state->board, pos) == EMPTY) {
+      if (get_piece(state->board, pos) == EMPTY) {
         c = CLI_ISLANDS_EMPTY;
       } else {
         c = state->islands[pos] ? CLI_ISLANDS_YES : CLI_ISLANDS_NO;
@@ -216,7 +216,7 @@ void print_islands(board_state_t* state, bool player) {
   }
 }
 
-void print_eval(eval_t eval, board_t *board, history_t* history) {
+void print_eval(eval_t eval, board_t board, history_t* history) {
   switch (eval.type) {
   case WHITE_WINS:
     printf("white mates in %lu\n", eval.strength - history->size);

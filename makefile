@@ -5,12 +5,9 @@ TESTS-DIR	?= ./tests
 
 # TEST_EVAL_STATE	Test if the state object is the same before and
 #			after call to '_evaluate'.
-# TEST_BOARD_INIT	Test if the board object is initialized before
-#			being accessed.
 
 DEBUG-MACROS	?=	\
 -UTEST_EVAL_STATE	\
--UTEST_BOARD_INIT	\
 
 # MEASURE_EVAL_COUNT	Count the number of calls to the _evaluate function.
 # MEASURE_EVAL_TIME	Measure how long the _evaluate function takes.
@@ -31,7 +28,6 @@ CMACROS		?=	\
 -UMM_OPT_EXC_DEEPENING	\
 
 LDLIBS		:=	\
-src/board.o		\
 src/rules.o		\
 src/fen.o		\
 src/ai.o		\

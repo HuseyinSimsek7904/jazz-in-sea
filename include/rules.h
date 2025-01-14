@@ -37,7 +37,10 @@ typedef enum {
 
 typedef struct {
   // The current board.
-  board_t board;
+  piece_t board[256];
+
+  // The current color to move.
+  bool turn;
 
   // The current board status.
   status_t status;

@@ -46,7 +46,7 @@ bool white_automove;
 
 void make_automove() {
   // Check if the current player should be automoved.
-  if (game_state.board.turn ? !white_automove : !black_automove)
+  if (game_state.turn ? !white_automove : !black_automove)
     return;
 
   // Check if the game ended.
@@ -73,8 +73,8 @@ void make_automove() {
   cli_info printf("Played ");
   cli_info print_move(chosen_move);
   cli_info printf(" with evaluation ");
-  cli_info print_eval(eval, &game_state.board, &game_history);
-  cli_info print_board(&game_state.board, false);
+  cli_info print_eval(eval, game_state.board, &game_history);
+  cli_info print_board(game_state.board, false);
 
   make_automove();
 }
@@ -149,7 +149,7 @@ command(show) {
  end_of_parsing:
   switch (show_type) {
   case BOARD:
-    print_board(&game_state.board, false);
+    print_board(game_state.board, false);
     break;
   case HASH:
     printf("%lx\n", game_state.hash);
@@ -163,7 +163,7 @@ command(makemove) {
   expect_n_arguments("makemove", 1);
 
   move_t move;
-  if (!string_to_move(argv[1], &game_state.board, &move)) {
+  if (!string_to_move(argv[1], game_state.board, &move)) {
     cli_error("invalid move notation '%s'\n", argv[1]);
     return;
   }
@@ -247,7 +247,7 @@ command(playai) {
   eval_t eval = evaluate(&game_state, &game_history, ai_depth, best_moves, &best_moves_length);
 
   do_move(&game_state, &game_history, best_moves[rand() % best_moves_length]);
-  cli_info print_eval(eval, &game_state.board, &game_history);
+  cli_info print_eval(eval, game_state.board, &game_history);
   cli_info printf("done\n");
 
   make_automove();
@@ -328,7 +328,7 @@ command(evaluate) {
     printf("\n");
     break;
   case EVAL_TEXT:
-    print_eval(eval, &game_state.board, &game_history);
+    print_eval(eval, game_state.board, &game_history);
     break;
   }
 }
