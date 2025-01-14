@@ -11,7 +11,6 @@
 #include <stddef.h>
 
 #define AI_HASHMAP_SIZE 0x20000
-#define AI_LL_NODE_SIZE 0x30
 
 typedef struct {
   // Type of evaluation, explains what is the result of the line.

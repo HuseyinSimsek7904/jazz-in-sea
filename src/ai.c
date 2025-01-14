@@ -442,24 +442,24 @@ try_remember(ai_cache_t* cache,
              eval_t alpha,
              eval_t beta) {
 
-  memorized_t* memorized = &(*cache->memorized)[hash % AI_HASHMAP_SIZE];
+  memorized_t memorized = (*cache->memorized)[hash % AI_HASHMAP_SIZE];
 
-  if (memorized->hash != hash || memorized->depth < depth) return (eval_t) { .type=NOT_CALCULATED };
+  if (memorized.depth < depth || memorized.hash != hash) return (eval_t) { .type=NOT_CALCULATED };
 
   // If the eval is an absolute evaluation, convert the depth absolute as well.
-  if (memorized->eval.type == WHITE_WINS || memorized->eval.type == BLACK_WINS) {
-    memorized->eval.strength += history->size;
+  if (memorized.eval.type == WHITE_WINS || memorized.eval.type == BLACK_WINS) {
+    memorized.eval.strength += history->size;
   }
 
-  switch (memorized->node_type) {
+  switch (memorized.node_type) {
   case EXACT:
     break;
   case LOWER:
-    if (compare_eval(memorized->eval, alpha) > 0) return (eval_t) { .type=NOT_CALCULATED };
+    if (compare_eval(memorized.eval, alpha) > 0) return (eval_t) { .type=NOT_CALCULATED };
   case UPPER:
-    if (compare_eval(memorized->eval, beta) < 0) return (eval_t) { .type=NOT_CALCULATED };
+    if (compare_eval(memorized.eval, beta) < 0) return (eval_t) { .type=NOT_CALCULATED };
   }
 
-  return memorized->eval;
+  return memorized.eval;
 }
 #endif
