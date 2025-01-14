@@ -15,7 +15,6 @@ typedef u_int64_t hash_t;
 
 typedef struct {
   hash_t hash;
-  board_t board;
   move_t move;
 } history_item_t;
 

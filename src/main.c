@@ -171,7 +171,7 @@ command(makemove) {
   size_t moves_length = generate_moves(&game_board, moves);
 
   for (int i=0; i<moves_length; i++) {
-    if (cmp_move(moves[i], move)) {
+    if (compare_move(moves[i], move)) {
       do_move(&game_board, &game_state, &game_history, move);
       moves_length = generate_moves(&game_board, moves);
 

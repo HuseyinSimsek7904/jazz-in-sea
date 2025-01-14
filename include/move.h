@@ -30,7 +30,7 @@ typedef struct {
 // -- Header functions --
 
 // Check if two moves are the same.
-static inline bool cmp_move(move_t move1, move_t move2) {
+static inline bool compare_move(move_t move1, move_t move2) {
   if (move1.from != move2.from) return false;
 
   if (move1.to != move2.to) return false;

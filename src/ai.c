@@ -453,10 +453,12 @@ memorize(ai_cache_t* cache,
     for (size_t i=0; i<node->size; i++) {
       struct memorized_t memorized = node->array[i];
 
-      if (memorized.node_type != node_type ||
-          memorized.hash != hash ||
-          !compare(board, &memorized.board))
-        continue;
+  *memorized = (memorized_t) {
+    .hash = hash,
+    .depth = depth,
+    .eval = eval,
+    .node_type = node_type,
+  };
 
       assert(memorized.depth < depth);
 
@@ -504,7 +506,6 @@ try_remember(ai_cache_t* cache,
       struct memorized_t* memorized = &node->array[i];
 
       if (memorized->hash == hash &&
-          compare(board, &memorized->board) &&
           memorized->depth >= depth) {
 
         // If the eval is an absolute evaluation, convert the depth absolute as well.

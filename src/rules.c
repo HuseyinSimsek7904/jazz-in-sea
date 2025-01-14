@@ -127,7 +127,7 @@ void _generate_board_status(board_t* board, state_cache_t* state, history_t* his
   int repetition_count = 1;
   for (size_t i=0; i<history->size; i++) {
     history_item_t item = history->history[i];
-    if (item.hash == state->hash && compare(&item.board, board)) {
+    if (item.hash == state->hash) {
       if (++repetition_count >= REPETITION_COUNT) {
         state->status = DRAW_BY_REPETITION;
         return;
@@ -388,7 +388,6 @@ void do_move(board_t* board, state_cache_t* state, history_t* history, move_t mo
   // Add the move and the old board to the history.
   history->history[history->size++] = (history_item_t) {
     .move = move,
-    .board = *board,
     .hash = state->hash,
   };
 
