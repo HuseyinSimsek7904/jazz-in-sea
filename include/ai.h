@@ -24,6 +24,8 @@ typedef struct {
   int strength;
 } eval_t;
 
+typedef enum { EXACT, LOWER, UPPER } node_type_t;
+
 typedef struct ai_cache_node_t {
   struct ai_cache_node_t* next;
 
@@ -35,6 +37,7 @@ typedef struct ai_cache_node_t {
     eval_t eval;
     // TODO: Do not store the move.
     move_t move;
+    node_type_t node_type;
   } array[AI_LL_NODE_SIZE];
 } ai_cache_node_t;
 
@@ -78,8 +81,8 @@ void setup_cache(ai_cache_t *,
 void free_cache(ai_cache_t *);
 
 #ifdef MM_OPT_MEMOIZATION
-void memorize(ai_cache_t*, hash_t, board_t*, history_t*, size_t, eval_t, move_t);
-bool try_remember(ai_cache_t*, hash_t, board_t*, history_t*, size_t, eval_t*, move_t*);
+void memorize(ai_cache_t*, hash_t, board_t*, history_t*, size_t, eval_t, move_t, node_type_t);
+bool try_remember(ai_cache_t*, hash_t, board_t*, history_t*, size_t, eval_t*, move_t*, eval_t, eval_t);
 #endif
 
 #endif

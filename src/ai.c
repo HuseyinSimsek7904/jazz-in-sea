@@ -195,7 +195,15 @@ _evaluate(board_t* board,
     eval_t possible_eval;
     move_t possible_move;
 
-    if (try_remember(cache, state->hash, board, history, max_depth, &possible_eval, &possible_move)) {
+    if (try_remember(cache,
+                     state->hash,
+                     board,
+                     history,
+                     max_depth,
+                     &possible_eval,
+                     &possible_move,
+                     alpha,
+                     beta)) {
 #ifdef MEASURE_EVAL_COUNT
       remember_count++;
 #endif
@@ -296,6 +304,7 @@ _evaluate(board_t* board,
 #ifdef MM_OPT_AB_PRUNING
         ab_branch_cut_count++;
 #endif
+        memorize(cache, state->hash, board, history, max_depth, best_evaluation, best_moves[0], LOWER);
         return best_evaluation;
       }
 
@@ -307,6 +316,7 @@ _evaluate(board_t* board,
 #ifdef MM_OPT_AB_PRUNING
         ab_branch_cut_count++;
 #endif
+        memorize(cache, state->hash, board, history, max_depth, best_evaluation, best_moves[0], UPPER);
         return best_evaluation;
       }
 
@@ -317,7 +327,7 @@ _evaluate(board_t* board,
   }
 
 #ifdef MM_OPT_MEMOIZATION
-  memorize(cache, state->hash, board, history, max_depth, best_evaluation, best_moves[0]);
+  memorize(cache, state->hash, board, history, max_depth, best_evaluation, best_moves[0], EXACT);
 #endif
 
   return best_evaluation;
@@ -419,7 +429,16 @@ void free_cache(ai_cache_t* cache) {
 
 #ifdef MM_OPT_MEMOIZATION
 // Add the board to the memorized boards.
-void memorize(ai_cache_t* cache, hash_t hash, board_t* board, history_t* history, size_t depth, eval_t eval, move_t move) {
+void
+memorize(ai_cache_t* cache,
+         hash_t hash,
+         board_t* board,
+         history_t* history,
+         size_t depth,
+         eval_t eval,
+         move_t move,
+         node_type_t node_type) {
+
   // If the eval is an absolute evaluation, convert the depth relative.
   if (eval.type == WHITE_WINS || eval.type == BLACK_WINS) {
     eval.strength -= history->size;
@@ -432,13 +451,17 @@ void memorize(ai_cache_t* cache, hash_t hash, board_t* board, history_t* history
 #ifdef MM_OPT_UPDATE_MEMO
     // Loop through all of the items memorized in this node and check if any outdated information exist.
     for (size_t i=0; i<node->size; i++) {
-      if (node->array[i].hash != hash || !compare(board, &node->array[i].board))
+      struct memorized_t memorized = node->array[i];
+
+      if (memorized.node_type != node_type ||
+          memorized.hash != hash ||
+          !compare(board, &memorized.board))
         continue;
 
-      assert(node->array[i].depth < depth);
+      assert(memorized.depth < depth);
 
-      node->array[i].depth = depth;
-      node->array[i].eval = eval;
+      memorized.depth = depth;
+      memorized.eval = eval;
       return;
     }
 #endif
@@ -465,7 +488,17 @@ void memorize(ai_cache_t* cache, hash_t hash, board_t* board, history_t* history
 }
 
 // Get if the board was saved for memoization before.
-bool try_remember(ai_cache_t* cache, hash_t hash, board_t* board, history_t* history, size_t depth, eval_t* eval, move_t* move) {
+bool
+try_remember(ai_cache_t* cache,
+             hash_t hash,
+             board_t* board,
+             history_t* history,
+             size_t depth,
+             eval_t* eval,
+             move_t* move,
+             eval_t alpha,
+             eval_t beta) {
+
   for (ai_cache_node_t* node = cache->memorized[hash % AI_HASHMAP_SIZE]; node != NULL; node = node->next) {
     for (int i=0; i<node->size; i++) {
       struct memorized_t* memorized = &node->array[i];
@@ -474,13 +507,24 @@ bool try_remember(ai_cache_t* cache, hash_t hash, board_t* board, history_t* his
           compare(board, &memorized->board) &&
           memorized->depth >= depth) {
 
+        // If the eval is an absolute evaluation, convert the depth absolute as well.
+        if (memorized->eval.type == WHITE_WINS || memorized->eval.type == BLACK_WINS) {
+          memorized->eval.strength += history->size;
+        }
+
+        switch (memorized->node_type) {
+        case EXACT:
+          break;
+        case LOWER:
+          if (compare_eval(memorized->eval, alpha) > 0) continue;
+          break;
+        case UPPER:
+          if (compare_eval(memorized->eval, beta) < 0) continue;
+          break;
+        }
+
         *eval = memorized->eval;
         *move = memorized->move;
-
-        // If the eval is an absolute evaluation, convert the depth absolute as well.
-        if (eval->type == WHITE_WINS || eval->type == BLACK_WINS) {
-          eval->strength += history->size;
-        }
 
         return true;
       }
