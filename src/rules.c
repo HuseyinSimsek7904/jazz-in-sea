@@ -226,7 +226,7 @@ static inline void _generate_square_hash(state_cache_t *state) {
   for (int row=0; row<8; row++) {
     for (int col=0; col<8; col++) {
       for (int piece=0; piece<4; piece++) {
-        state->square_hash[piece][to_position(row, col)] = rand();
+        state->square_hash[piece][to_position(row, col)] = (long) rand() << 32 | rand();
       }
     }
   }

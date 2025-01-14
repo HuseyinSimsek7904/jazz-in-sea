@@ -151,7 +151,7 @@ command(show) {
     print_board(&game_board, false);
     break;
   case HASH:
-    printf("%u\n", game_state.hash);
+    printf("%lx\n", game_state.hash);
     break;
   case ISLANDS:
     print_islands(&game_board, &game_state, false);

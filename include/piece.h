@@ -2,6 +2,7 @@
 #define _PIECE_H
 
 #include <stdbool.h>
+#include <sys/types.h>
 
 #define MOD_EMPTY  0
 #define MOD_WHITE  4
@@ -17,7 +18,7 @@ enum {
   BLACK_KNIGHT = MOD_BLACK | MOD_KNIGHT,
 };
 
-typedef char piece_t;
+typedef u_int8_t piece_t;
 
 static inline char get_piece_color(piece_t piece) { return piece & 6; }
 static inline char get_piece_type(piece_t piece) { return piece & 5; }

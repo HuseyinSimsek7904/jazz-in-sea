@@ -2,6 +2,8 @@
 #define _MOVE_H
 
 #include "board.h"
+#include "piece.h"
+#include "position.h"
 
 #define INV_MOVE (move_t) { .from=INV_POSITION }
 
@@ -10,18 +12,18 @@
 
 typedef struct {
   // The position from where the piece moved.
-  int from;
+  pos_t from;
 
   // The position where the piece moved to.
-  int to;
+  pos_t to;
 
   // The position of the piece that the moving piece captured.
   // INV_POSITION if no capture.
-  int capture;
+  pos_t capture;
 
   // The type of the piece that the moving piece captured.
   // Does not matter if no capture.
-  int capture_piece;
+  piece_t capture_piece;
 } move_t;
 
 

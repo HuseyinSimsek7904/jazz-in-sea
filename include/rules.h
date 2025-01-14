@@ -2,6 +2,7 @@
 #define _RULES_H
 
 #include <stddef.h>
+#include <sys/types.h>
 
 #include "board.h"
 #include "move.h"
@@ -10,7 +11,7 @@
 
 #define HISTORY_DEPTH 0x1000
 
-typedef unsigned int hash_t;
+typedef u_int64_t hash_t;
 
 typedef struct {
   hash_t hash;

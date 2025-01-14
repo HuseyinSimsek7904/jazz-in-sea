@@ -2,11 +2,12 @@
 #define _POSITION_H
 
 #include <stdbool.h>
+#include <sys/types.h>
 
 #define INV_POSITION 0x88
 
 // -- The pos_t type --
-typedef unsigned char pos_t;
+typedef u_int8_t pos_t;
 
 
 // -- Header functions --
