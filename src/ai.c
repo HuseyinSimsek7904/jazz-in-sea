@@ -317,12 +317,7 @@ _evaluate(board_t* board,
   }
 
 #ifdef MM_OPT_MEMOIZATION
-  memorize(
-           cache, state->hash, board, history,
-           (best_evaluation.type == WHITE_WINS || best_evaluation.type == BLACK_WINS)
-           ? LONG_MAX
-           : max_depth,
-           best_evaluation, best_moves[0]);
+  memorize(cache, state->hash, board, history, max_depth, best_evaluation, best_moves[0]);
 #endif
 
   return best_evaluation;
@@ -425,6 +420,12 @@ void free_cache(ai_cache_t* cache) {
 #ifdef MM_OPT_MEMOIZATION
 // Add the board to the memorized boards.
 void memorize(ai_cache_t* cache, hash_t hash, board_t* board, history_t* history, size_t depth, eval_t eval, move_t move) {
+  // If the eval is an absolute evaluation, convert the depth relative.
+  if (eval.type == WHITE_WINS || eval.type == BLACK_WINS) {
+    eval.strength -= history->size;
+    depth = LONG_MAX;
+  }
+
   ai_cache_node_t* node = cache->memorized[hash % AI_HASHMAP_SIZE];
 
   while (true) {
@@ -457,11 +458,6 @@ void memorize(ai_cache_t* cache, hash_t hash, board_t* board, history_t* history
     node = node->next;
   }
 
-  // If the eval is an absolute evaluation, convert the depth relative.
-  if (eval.type == WHITE_WINS || eval.type == BLACK_WINS) {
-    eval.strength += history->size;
-  }
-
   node->array[node->size++] = (struct memorized_t) { .board=*board, .hash=hash, .depth=depth, .eval=eval, .move=move };
 #ifdef MEASURE_EVAL_COUNT
   saved_count++;
@@ -483,7 +479,7 @@ bool try_remember(ai_cache_t* cache, hash_t hash, board_t* board, history_t* his
 
         // If the eval is an absolute evaluation, convert the depth absolute as well.
         if (eval->type == WHITE_WINS || eval->type == BLACK_WINS) {
-          eval->strength -= history->size;
+          eval->strength += history->size;
         }
 
         return true;
