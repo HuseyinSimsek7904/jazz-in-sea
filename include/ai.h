@@ -26,20 +26,13 @@ typedef struct {
 
 typedef enum { EXACT, LOWER, UPPER } node_type_t;
 
-typedef struct ai_cache_node_t {
-  struct ai_cache_node_t* next;
-
-  size_t size;
-  struct memorized_t {
-    board_t board;
-    hash_t hash;
-    size_t depth;
-    eval_t eval;
-    // TODO: Do not store the move.
-    move_t move;
-    node_type_t node_type;
-  } array[AI_LL_NODE_SIZE];
-} ai_cache_node_t;
+typedef struct {
+  hash_t hash;
+  size_t depth;
+  eval_t eval;
+  move_t move;
+  node_type_t node_type;
+} memorized_t;
 
 typedef struct {
   int pawn_adv_table[256];
@@ -48,7 +41,7 @@ typedef struct {
   int knight_island_adv_table[256];
 
 #ifdef MM_OPT_MEMOIZATION
-  ai_cache_node_t* memorized[AI_HASHMAP_SIZE];
+  memorized_t (*memorized)[AI_HASHMAP_SIZE];
 #endif
 } ai_cache_t;
 

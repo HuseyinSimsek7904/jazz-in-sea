@@ -204,6 +204,7 @@ _evaluate(board_t* board,
                      &possible_move,
                      alpha,
                      beta)) {
+
 #ifdef MEASURE_EVAL_COUNT
       remember_count++;
 #endif
@@ -406,24 +407,17 @@ void setup_cache(ai_cache_t* cache,
   }
 
 #ifdef MM_OPT_MEMOIZATION
+  cache->memorized = malloc(sizeof(memorized_t) * AI_HASHMAP_SIZE);
+
   for (size_t i=0; i<AI_HASHMAP_SIZE; i++) {
-    ai_cache_node_t* node = cache->memorized[i] = malloc(sizeof(ai_cache_node_t));
-    node->next = NULL;
-    node->size = 0;
+    (*cache->memorized)[i].depth = 0;
   }
 #endif
 }
 
 void free_cache(ai_cache_t* cache) {
 #ifdef MM_OPT_MEMOIZATION
-  for (size_t i=0; i<AI_HASHMAP_SIZE; i++) {
-    ai_cache_node_t* node = cache->memorized[i];
-    while (node != NULL) {
-      ai_cache_node_t* next = node->next;
-      free(node);
-      node = next;
-    }
-  }
+  free(cache->memorized);
 #endif
 }
 
@@ -445,13 +439,9 @@ memorize(ai_cache_t* cache,
     depth = LONG_MAX;
   }
 
-  ai_cache_node_t* node = cache->memorized[hash % AI_HASHMAP_SIZE];
+  memorized_t* memorized = &(*cache->memorized)[hash % AI_HASHMAP_SIZE];
 
-  while (true) {
-#ifdef MM_OPT_UPDATE_MEMO
-    // Loop through all of the items memorized in this node and check if any outdated information exist.
-    for (size_t i=0; i<node->size; i++) {
-      struct memorized_t memorized = node->array[i];
+  if (depth <= memorized->depth) return;
 
   *memorized = (memorized_t) {
     .hash = hash,
@@ -460,30 +450,6 @@ memorize(ai_cache_t* cache,
     .node_type = node_type,
   };
 
-      assert(memorized.depth < depth);
-
-      memorized.depth = depth;
-      memorized.eval = eval;
-      return;
-    }
-#endif
-
-    // If the node is not full, break the loop.
-    if (node->size < AI_LL_NODE_SIZE) break;
-
-    // If the node has no next item, create a new node.
-    if (!node->next) {
-      node->next = malloc(sizeof(ai_cache_node_t));
-      node = node->next;
-      node->next = NULL;
-      node->size = 0;
-      break;
-    }
-
-    node = node->next;
-  }
-
-  node->array[node->size++] = (struct memorized_t) { .board=*board, .hash=hash, .depth=depth, .eval=eval, .move=move };
 #ifdef MEASURE_EVAL_COUNT
   saved_count++;
 #endif
@@ -501,37 +467,27 @@ try_remember(ai_cache_t* cache,
              eval_t alpha,
              eval_t beta) {
 
-  for (ai_cache_node_t* node = cache->memorized[hash % AI_HASHMAP_SIZE]; node != NULL; node = node->next) {
-    for (int i=0; i<node->size; i++) {
-      struct memorized_t* memorized = &node->array[i];
+  memorized_t* memorized = &(*cache->memorized)[hash % AI_HASHMAP_SIZE];
 
-      if (memorized->hash == hash &&
-          memorized->depth >= depth) {
+  if (memorized->hash != hash || memorized->depth < depth) return false;
 
-        // If the eval is an absolute evaluation, convert the depth absolute as well.
-        if (memorized->eval.type == WHITE_WINS || memorized->eval.type == BLACK_WINS) {
-          memorized->eval.strength += history->size;
-        }
-
-        switch (memorized->node_type) {
-        case EXACT:
-          break;
-        case LOWER:
-          if (compare_eval(memorized->eval, alpha) > 0) continue;
-          break;
-        case UPPER:
-          if (compare_eval(memorized->eval, beta) < 0) continue;
-          break;
-        }
-
-        *eval = memorized->eval;
-        *move = memorized->move;
-
-        return true;
-      }
-    }
+  // If the eval is an absolute evaluation, convert the depth absolute as well.
+  if (memorized->eval.type == WHITE_WINS || memorized->eval.type == BLACK_WINS) {
+    memorized->eval.strength += history->size;
   }
 
-  return false;
+  switch (memorized->node_type) {
+  case EXACT:
+    break;
+  case LOWER:
+    if (compare_eval(memorized->eval, alpha) > 0) return false;
+  case UPPER:
+    if (compare_eval(memorized->eval, beta) < 0) return false;
+  }
+
+  *eval = memorized->eval;
+  *move = memorized->move;
+
+  return true;
 }
 #endif
