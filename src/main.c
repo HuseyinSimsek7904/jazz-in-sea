@@ -79,29 +79,47 @@ void make_automove() {
 }
 
 command(loadfen) {
-  expect_n_arguments("loadfen", 1);
-
-  board_t new_board;
-  if (!load_fen(argv[1], &new_board, &game_state, &game_history)) {
-    cli_error("invalid fen\n");
-    return;
+  optind = 0;
+  while (true) {
+    int c = getopt(argc, argv, "s:p:");
+    switch (c) {
+    case -1:
+    case '?':
+      return;
+    case 's':
+      load_fen_string(optarg, &game_board, &game_state, &game_history);
+      return;
+    case 'p':
+      if (!load_fen_from_path(optarg, &game_board, &game_state, &game_history)) {
+        cli_error("could not load FEN\n");
+      }
+      return;
+    }
   }
-
-  game_board = new_board;
-  generate_state_cache(&game_board, &game_state);
-
-  cli_info printf("successfully loaded from fen\n");
-  cli_info print_board(&game_board, false);
-
-  make_automove();
 }
 
 command(savefen) {
-  expect_n_arguments("savefen", 0);
-
-  char buffer[256];
-  save_fen(buffer, &game_board);
-  printf("%s\n", buffer);
+  optind = 0;
+  while (true) {
+    int c = getopt(argc, argv, "sp:");
+    switch (c) {
+    case '?':
+      return;
+    case -1:
+    case 's':
+      {
+        char buffer[256];
+        get_fen_string(buffer, &game_board);
+        printf("%s\n", buffer);
+        return;
+      }
+    case 'p':
+      if (!save_fen_to_path(optarg, &game_board)) {
+        cli_error("could save load FEN\n");
+      }
+      return;
+    }
+  }
 }
 
 command(show) {
@@ -549,7 +567,11 @@ int generate_argv(char* arg_buffer, char** argv) {
 
 
 void initialize() {
-  load_fen(DEFAULT_BOARD, &game_board, &game_state, &game_history);
+  if (!load_fen_from_path("board_fen/starting", &game_board, &game_state, &game_history)) {
+    cli_error("could not load starting position\n");
+    exit(1);
+  }
+
   generate_state_cache(&game_board, &game_state);
 }
 

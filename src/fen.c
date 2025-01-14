@@ -5,6 +5,8 @@
 #include "rules.h"
 #include <assert.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #define FEN_WHITE_PAWN 'P'
 #define FEN_WHITE_KNIGHT 'N'
@@ -55,7 +57,7 @@ static inline bool _char_to_player(char c) {
 }
 
 // Load and initialize a board and its state cache from FEN string.
-bool load_fen(const char* fen, board_t* board, state_cache_t* state, history_t* history) {
+bool load_fen_string(const char* fen, board_t* board, state_cache_t* state, history_t* history) {
   int row = 0, col = 0;
 
   for (; *fen != ' '; fen++) {
@@ -126,7 +128,7 @@ bool load_fen(const char* fen, board_t* board, state_cache_t* state, history_t* 
 
 // Save a board to FEN string.
 // fen must be an array of chars at least 75 bytes long. Just use 256 bytes.
-char* save_fen(char* fen, board_t* board) {
+char* get_fen_string(char* fen, board_t* board) {
   for (int row=0; row<8; row++) {
     for (int col=0; col<8; col++) {
       piece_t piece = get_piece(board, to_position(row, col));
@@ -152,4 +154,40 @@ char* save_fen(char* fen, board_t* board) {
 
   *fen = '\0';
   return fen;
+}
+
+
+#define MAX_BUFFER 0x1000
+
+// Load a board from a FEN file.
+bool load_fen_from_path(const char *path, board_t *board, state_cache_t* state, history_t *history) {
+  char buffer[MAX_BUFFER];
+
+  FILE* file = fopen(path, "r");
+  if (!file)
+    return false;
+
+  if (!fgets(buffer, MAX_BUFFER, file))
+    return false;
+
+  fclose(file);
+
+  return load_fen_string(buffer, board, state, history);
+}
+
+// Save a board to a FEN file.
+bool save_fen_to_path(const char* path, board_t *board) {
+  char buffer[256];
+
+  get_fen_string(buffer, board);
+
+  FILE* file = fopen(path, "w");
+  if (!file)
+    return false;
+
+  fprintf(file, "%s\n", buffer);
+
+  fclose(file);
+
+  return true;
 }
