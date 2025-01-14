@@ -43,11 +43,6 @@ const int TOPLEFT_KNIGHT_ISLAND_ADV_TABLE[4][4] = {
   { 600,  670,  650,  700}
 };
 
-int PAWN_ADV_TABLE[256];
-int PAWN_ISLAND_ADV_TABLE[256];
-int KNIGHT_ADV_TABLE[256];
-int KNIGHT_ISLAND_ADV_TABLE[256];
-
 // Compare eval1 and eval2 by whether they are favorable for the white player.
 // <0 => eval2 is more favorable than eval1
 // =0 => neither is more favorable
