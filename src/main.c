@@ -513,6 +513,7 @@ int generate_argv(char* arg_buffer, char** argv) {
       if (c == '\0') {
         if (quote) {
           cli_error("unterminated quote\n");
+          return -1;
         }
 
         break;
