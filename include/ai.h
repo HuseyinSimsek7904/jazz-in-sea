@@ -74,8 +74,8 @@ void setup_cache(ai_cache_t *,
 void free_cache(ai_cache_t *);
 
 #ifdef MM_OPT_MEMOIZATION
-void memorize(ai_cache_t*, hash_t, board_t*, history_t*, size_t, eval_t, move_t, node_type_t);
-bool try_remember(ai_cache_t*, hash_t, board_t*, history_t*, size_t, eval_t*, move_t*, eval_t, eval_t);
+void memorize(ai_cache_t*, hash_t, board_t*, history_t*, size_t, eval_t, node_type_t);
+eval_t try_remember(ai_cache_t*, hash_t, board_t*, history_t*, size_t, eval_t, eval_t);
 #endif
 
 #endif

@@ -150,7 +150,6 @@ unsigned int get_ab_branch_cut_count() { return ab_branch_cut_count; }
 #endif
 
 // Find the best continuing moves available and their evaluation value.
-// TODO: This function should not take best_moves or best_moves_length arguments.
 eval_t
 _evaluate(board_t* board,
           state_cache_t* state,
@@ -192,24 +191,18 @@ _evaluate(board_t* board,
 #ifdef MM_OPT_MEMOIZATION
   // Check if this board was previously calcuated.
   {
-    eval_t possible_eval;
-    move_t possible_move;
+    eval_t possible_eval = try_remember(cache,
+                                        state->hash,
+                                        board,
+                                        history,
+                                        max_depth,
+                                        alpha,
+                                        beta);
 
-    if (try_remember(cache,
-                     state->hash,
-                     board,
-                     history,
-                     max_depth,
-                     &possible_eval,
-                     &possible_move,
-                     alpha,
-                     beta)) {
-
+    if (possible_eval.type != NOT_CALCULATED) {
 #ifdef MEASURE_EVAL_COUNT
       remember_count++;
 #endif
-      best_moves[0] = possible_move;
-      *best_moves_length = 1;
       return possible_eval;
     }
   }
@@ -257,7 +250,6 @@ _evaluate(board_t* board,
 #else
     size_t new_depth = max_depth - 1;
 #endif
-    move_t new_moves[256];
     size_t new_moves_length;
 
 #if defined(TEST_EVAL_STATE) && !defined(NDEBUG)
@@ -266,7 +258,7 @@ _evaluate(board_t* board,
 #endif
 
     do_move(board, state, history, move);
-    eval_t evaluation = _evaluate(board, state, history, cache, new_depth, new_moves, &new_moves_length, alpha, beta, false);
+    eval_t evaluation = _evaluate(board, state, history, cache, new_depth, NULL, &new_moves_length, alpha, beta, false);
     undo_last_move(board, state, history);
 
 #ifdef TEST_EVAL_STATE
@@ -289,14 +281,14 @@ _evaluate(board_t* board,
 
       } else if (cmp == 0) {
         // If this move is equally as good as the best move, add this move to the list.
-        best_moves[(*best_moves_length)++] = move;
+        if (starting_move) best_moves[(*best_moves_length)++] = move;
         continue;
       }
     }
 
     best_evaluation = evaluation;
     *best_moves_length = 1;
-    *best_moves = move;
+    if (starting_move) *best_moves = move;
 
 #ifdef MM_OPT_AB_PRUNING
     // Update the limit variables alpha and beta.
@@ -305,7 +297,7 @@ _evaluate(board_t* board,
 #ifdef MM_OPT_AB_PRUNING
         ab_branch_cut_count++;
 #endif
-        memorize(cache, state->hash, board, history, max_depth, best_evaluation, best_moves[0], LOWER);
+        memorize(cache, state->hash, board, history, max_depth, best_evaluation, LOWER);
         return best_evaluation;
       }
 
@@ -317,7 +309,7 @@ _evaluate(board_t* board,
 #ifdef MM_OPT_AB_PRUNING
         ab_branch_cut_count++;
 #endif
-        memorize(cache, state->hash, board, history, max_depth, best_evaluation, best_moves[0], UPPER);
+        memorize(cache, state->hash, board, history, max_depth, best_evaluation, UPPER);
         return best_evaluation;
       }
 
@@ -328,7 +320,7 @@ _evaluate(board_t* board,
   }
 
 #ifdef MM_OPT_MEMOIZATION
-  memorize(cache, state->hash, board, history, max_depth, best_evaluation, best_moves[0], EXACT);
+  memorize(cache, state->hash, board, history, max_depth, best_evaluation, EXACT);
 #endif
 
   return best_evaluation;
@@ -430,7 +422,6 @@ memorize(ai_cache_t* cache,
          history_t* history,
          size_t depth,
          eval_t eval,
-         move_t move,
          node_type_t node_type) {
 
   // If the eval is an absolute evaluation, convert the depth relative.
@@ -456,20 +447,18 @@ memorize(ai_cache_t* cache,
 }
 
 // Get if the board was saved for memoization before.
-bool
+eval_t
 try_remember(ai_cache_t* cache,
              hash_t hash,
              board_t* board,
              history_t* history,
              size_t depth,
-             eval_t* eval,
-             move_t* move,
              eval_t alpha,
              eval_t beta) {
 
   memorized_t* memorized = &(*cache->memorized)[hash % AI_HASHMAP_SIZE];
 
-  if (memorized->hash != hash || memorized->depth < depth) return false;
+  if (memorized->hash != hash || memorized->depth < depth) return (eval_t) { .type=NOT_CALCULATED };
 
   // If the eval is an absolute evaluation, convert the depth absolute as well.
   if (memorized->eval.type == WHITE_WINS || memorized->eval.type == BLACK_WINS) {
@@ -480,14 +469,11 @@ try_remember(ai_cache_t* cache,
   case EXACT:
     break;
   case LOWER:
-    if (compare_eval(memorized->eval, alpha) > 0) return false;
+    if (compare_eval(memorized->eval, alpha) > 0) return (eval_t) { .type=NOT_CALCULATED };
   case UPPER:
-    if (compare_eval(memorized->eval, beta) < 0) return false;
+    if (compare_eval(memorized->eval, beta) < 0) return (eval_t) { .type=NOT_CALCULATED };
   }
 
-  *eval = memorized->eval;
-  *move = memorized->move;
-
-  return true;
+  return memorized->eval;
 }
 #endif
