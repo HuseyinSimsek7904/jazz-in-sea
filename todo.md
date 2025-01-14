@@ -15,7 +15,7 @@
 - [x] #14  (feat) add fen saver
 - [x] #15  (feat) implement `DRAW_BY_REPETITION` and `DRAW_BY_NO_MOVES`
 - [ ] #16  (feat) implement quick mate search when either players are down to only 1 pieces
-- [ ] #17  (feat) implement game history and loading and storing game history
+- [ ] #17  (feat) implement game history
 - [x] #18  (feat) eval should return an array of best moves
 - [x] #19  (feat) imlement cli like commands (requires #1, #2)
 - [x] #20  (feat) implement pvp, pvb and bvb (requires #1, #2, #19)
@@ -34,7 +34,7 @@
 - [ ] #33  (cli) implement the `pieceat` subcommand
 - [x] #34  (cli) implement the `placeat` subcommand
 - [x] #35  (cli) implement the `removeat` subcommand
-- [ ] #36  (cli) implement the `undomove` subcommand
+- [x] #36  (cli) implement the `undomove` subcommand
 - [x] #37  (cli) implement the `automove` command
 - [x] #38  (cli) implement the `status` command
 - [x] #39  (cli) implement the `allmoves` command
@@ -52,4 +52,6 @@
 - [x] #51  (feat) turn `ai_cache_t.memorized` to a linked list
 - [ ] #52  (chore) evaluate should not generate the moves and instead should only return the evaluation information. The ai cache can then be checked to determine the best moves
 - [ ] #53  (feat) implement delta evaluation with proper test functions
-- [ ] #54  (feat) implement time management
+- [ ] #54  (feat) implement time management for the api
+- [ ] #55  (feat) implement time management for the ai
+- [ ] #56  (feat) implement a notation for game history

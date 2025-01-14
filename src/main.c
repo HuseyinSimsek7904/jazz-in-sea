@@ -185,6 +185,17 @@ command(makemove) {
   return;
 }
 
+command(undomove) {
+  expect_n_arguments("undomove", 0);
+
+  if (!game_history.size) {
+    cli_error("no previous move\n");
+    return;
+  }
+
+  undo_last_move(&game_state, &game_history);
+}
+
 command(status) {
   expect_n_arguments("status", 0);
 
@@ -247,8 +258,8 @@ command(playai) {
   eval_t eval = evaluate(&game_state, &game_history, ai_depth, best_moves, &best_moves_length);
 
   do_move(&game_state, &game_history, best_moves[rand() % best_moves_length]);
-  cli_info print_eval(eval, game_state.board, &game_history);
   cli_info printf("done\n");
+  cli_info print_eval(eval, game_state.board, &game_history);
 
   make_automove();
 }
@@ -447,6 +458,7 @@ command(help) {
                "    loadfen           load a board from its FEN\n"
                "    savefen           get the FEN string of the current board\n"
                "    makemove          make a move\n"
+               "    undomove          undo last move\n"
                "    automove          set or reset auto play by AI\n"
                "    status            get the status information of the current board\n"
                "    allmoves          list all of the available moves at the current board\n"
@@ -472,6 +484,7 @@ command(help) {
       help_command(loadfen, "loadfen <fen>: load a board configuration from a FEN string\n")
       help_command(savefen, "savefen: get the FEN string of the current board configuration\n")
       help_command(makemove, "makemove <move>: make a move on the current board\n")
+      help_command(undomove, "undomove: undo the last move made\n")
       help_command(automove, "automove: set or reset auto play mode by AI\n")
       help_command(status, "status: print the status of the board\n")
       help_command(allmoves, "allmoves: list all of the available moves at the current board\n")
@@ -646,6 +659,7 @@ int main(int argc, char** argv) {
       expect_command(savefen)
       expect_command(show)
       expect_command(makemove)
+      expect_command(undomove)
       expect_command(status)
       expect_command(allmoves)
       expect_command(automove)
