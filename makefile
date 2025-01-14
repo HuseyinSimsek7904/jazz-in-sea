@@ -19,7 +19,7 @@ DEBUG-MACROS	?=	\
 #			information exist. If so, update it. Kept only for
 #			tests and will be removed.
 # MM_OPT_AB_PRUNING	Use the alpha beta pruning technique to speed the AI
-#			up. Currently not working as intended.
+#			up.
 # MM_OPT_EXC_DEEPENING  Deepen searching the capture nodes.
 
 CMACROS		?=	\
@@ -27,7 +27,7 @@ CMACROS		?=	\
 -DMEASURE_EVAL_TIME	\
 -DMM_OPT_MEMOIZATION	\
 -UMM_OPT_UPDATE_MEMO	\
--UMM_OPT_AB_PRUNING	\
+-DMM_OPT_AB_PRUNING	\
 -UMM_OPT_EXC_DEEPENING	\
 
 LDLIBS		:=	\

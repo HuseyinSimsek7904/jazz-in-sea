@@ -28,7 +28,7 @@
 - [x] #27  (chore) replace `_pawn_pos_adv` and `_knight_pos_adv` with prebuilt arrays of advantage values
 - [x] #28  (feat) eval should not recalculate the board evaluation and instead should always look for the evaluation difference
 - [x] #29  (chore) create `piece_t`
-- [ ] #30  (fix) alpha-beta pruning does not generate valid output
+- [x] #30  (fix) alpha-beta pruning does not generate valid output
 - [ ] #31  (feat) for cli, update the tty attributes
 - [x] #32  (cli) implement the `evaluate` command
 - [ ] #33  (cli) implement the `pieceat` subcommand

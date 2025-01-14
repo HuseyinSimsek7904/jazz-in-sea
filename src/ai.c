@@ -297,19 +297,26 @@ _evaluate(board_t* board,
 #ifdef MM_OPT_AB_PRUNING
     // Update the limit variables alpha and beta.
     if (board->turn) {
+      if (compare_eval(evaluation, beta) > 0) {
+#ifdef MM_OPT_AB_PRUNING
+        ab_branch_cut_count++;
+#endif
+        return best_evaluation;
+      }
+
       if (compare_eval(evaluation, alpha) > 0)
         alpha = evaluation;
+
     } else {
+      if (compare_eval(evaluation, alpha) < 0) {
+#ifdef MM_OPT_AB_PRUNING
+        ab_branch_cut_count++;
+#endif
+        return best_evaluation;
+      }
+
       if (compare_eval(evaluation, beta) < 0)
         beta = evaluation;
-    }
-
-    // If beta is worse than or equal to alpha, break.
-    if (compare_eval(beta, alpha) <= 0) {
-#ifdef MEASURE_EVAL_COUNT
-      ab_branch_cut_count++;
-#endif
-      break;
     }
 #endif
   }
