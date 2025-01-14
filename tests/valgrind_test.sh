@@ -1,7 +1,7 @@
 #!/bin/sh
 
 echo "testing with valgrind..."
-echo "aidepth 6\nevaluate\n" | valgrind --quiet --error-exitcode=1 ./build/main -s
+echo -e "aidepth 6\nevaluate\n" | valgrind --quiet --error-exitcode=1 ./build/main -s
 exit=$?
 
 if [ "$exit" != 0 ]; then
