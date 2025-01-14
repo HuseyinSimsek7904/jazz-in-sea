@@ -138,10 +138,14 @@ unsigned int get_leaf_count() { return leaf_count; }
 unsigned int get_ab_branch_cut_count() { return ab_branch_cut_count; }
 
 #ifdef MM_OPT_MEMOIZATION
-size_t remember_count = 0;
-size_t saved_count = 0;
-unsigned int get_remember_count() { return remember_count; }
-unsigned int get_saved_count() { return saved_count; }
+size_t tt_remember_count = 0;
+size_t tt_saved_count = 0;
+size_t tt_overwritten_count = 0;
+size_t tt_rewritten_count = 0;
+unsigned int get_tt_remember_count() { return tt_remember_count; }
+unsigned int get_tt_saved_count() { return tt_saved_count; }
+unsigned int get_tt_overwritten_count() { return tt_overwritten_count; }
+unsigned int get_tt_rewritten_count() { return tt_rewritten_count; }
 #endif
 
 #endif
@@ -196,7 +200,7 @@ _evaluate(board_state_t* state,
 
     if (possible_eval.type != NOT_CALCULATED) {
 #ifdef MEASURE_EVAL_COUNT
-      remember_count++;
+      tt_remember_count++;
 #endif
       return possible_eval;
     }
@@ -334,8 +338,10 @@ evaluate(board_state_t *state,
   leaf_count = 0;
 
 #ifdef MM_OPT_MEMOIZATION
-  remember_count = 0;
-  saved_count = 0;
+  tt_remember_count = 0;
+  tt_saved_count = 0;
+  tt_overwritten_count = 0;
+  tt_rewritten_count = 0;
 #endif
 
 #endif
@@ -419,7 +425,17 @@ memorize(ai_cache_t* cache,
 
   memorized_t* memorized = &(*cache->memorized)[hash % AI_HASHMAP_SIZE];
 
-  if (depth <= memorized->depth) return;
+  if (depth <= memorized->depth)
+    return;
+
+#ifdef MEASURE_EVAL_COUNT
+  if (!memorized->depth)
+    tt_saved_count++;
+  else if (hash == memorized->hash)
+    tt_overwritten_count++;
+  else
+    tt_rewritten_count++;
+#endif
 
   *memorized = (memorized_t) {
     .hash = hash,
@@ -427,10 +443,6 @@ memorize(ai_cache_t* cache,
     .eval = eval,
     .node_type = node_type,
   };
-
-#ifdef MEASURE_EVAL_COUNT
-  saved_count++;
-#endif
 }
 
 // Get if the board was saved for memoization before.

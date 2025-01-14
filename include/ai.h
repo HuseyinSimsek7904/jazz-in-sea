@@ -53,8 +53,10 @@ unsigned int get_game_end_count();
 unsigned int get_leaf_count();
 
 #ifdef MM_OPT_MEMOIZATION
-unsigned int get_remember_count();
-unsigned int get_saved_count();
+unsigned int get_tt_remember_count();
+unsigned int get_tt_saved_count();
+unsigned int get_tt_overwritten_count();
+unsigned int get_tt_rewritten_count();
 #endif
 
 #endif

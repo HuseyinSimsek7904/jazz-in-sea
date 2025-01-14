@@ -298,19 +298,36 @@ command(evaluate) {
     cli_info printf("done\n");
 
 #ifdef MEASURE_EVAL_TIME
-    cli_info printf("took %ldms\n", (clock() - start) / (CLOCKS_PER_SEC / 1000));
+    cli_info printf("info: took %ldms\n", (clock() - start) / (CLOCKS_PER_SEC / 1000));
   }
 #endif
 
 #ifdef MEASURE_EVAL_COUNT
-  cli_info printf("called _evaluate %d times.\n", get_evaluate_count());
-  cli_info printf("cut %d branches.\n", get_ab_branch_cut_count());
-  cli_info printf("found %d (%d %%) different game ends.\n", get_game_end_count(), get_game_end_count() * 100 / get_evaluate_count());
-  cli_info printf("found total %d (%d %%) leaves.\n", get_leaf_count(), get_leaf_count() * 100 / get_evaluate_count());
+  cli_info printf("info: called _evaluate %d times.\n",
+                  get_evaluate_count());
+  cli_info printf("info: cut %d branches.\n",
+                  get_ab_branch_cut_count());
+  cli_info printf("info: found %d (%d %%) different game ends.\n",
+                  get_game_end_count(),
+                  get_game_end_count() * 100 / get_evaluate_count());
+  cli_info printf("info: found total %d (%d %%) leaves.\n",
+                  get_leaf_count(),
+                  get_leaf_count() * 100 / get_evaluate_count());
 
 #ifdef MM_OPT_MEMOIZATION
-  cli_info printf("remembered %d (%d %%) times.\n", get_remember_count(), get_remember_count() * 100 / get_evaluate_count());
-  cli_info printf("memorized %u boards.\n", get_saved_count());
+  cli_info printf("info: in total, used %d (%d %%) transposition tables entries.\n",
+                  get_tt_saved_count(),
+                  get_tt_saved_count() * 100 / AI_HASHMAP_SIZE);
+  cli_info printf("info: remembered %d (%d %% per call, %d %% per entry) times.\n",
+                  get_tt_remember_count(),
+                  get_tt_remember_count() * 100 / get_evaluate_count(),
+                  get_tt_remember_count() * 100 / get_tt_saved_count());
+  cli_info printf("info: overwritten the same board %u (%u %%) times.\n",
+                  get_tt_overwritten_count(),
+                  get_tt_overwritten_count() * 100 / get_tt_saved_count());
+  cli_info printf("info: rewritten a different board %u (%u %%) times.\n",
+                  get_tt_rewritten_count(),
+                  get_tt_rewritten_count() * 100 / get_tt_saved_count());
 #endif
 
 
