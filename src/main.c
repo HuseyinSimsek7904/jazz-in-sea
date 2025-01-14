@@ -304,6 +304,7 @@ command(evaluate) {
 
 #ifdef MEASURE_EVAL_COUNT
   cli_info printf("called _evaluate %d times.\n", get_evaluate_count());
+  cli_info printf("cut %d branches.\n", get_ab_branch_cut_count());
   cli_info printf("found %d (%d %%) different game ends.\n", get_game_end_count(), get_game_end_count() * 100 / get_evaluate_count());
   cli_info printf("found total %d (%d %%) leaves.\n", get_leaf_count(), get_leaf_count() * 100 / get_evaluate_count());
 
@@ -312,9 +313,6 @@ command(evaluate) {
   cli_info printf("memorized %u boards.\n", get_saved_count());
 #endif
 
-#ifdef MM_OPT_AB_PRUNING
-  cli_info printf("cut %d branches.\n", get_ab_branch_cut_count());
-#endif
 
 #endif
 

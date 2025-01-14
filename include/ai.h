@@ -49,16 +49,13 @@ int compare_eval_by(eval_t, eval_t, bool);
 
 #ifdef MEASURE_EVAL_COUNT
 unsigned int get_evaluate_count();
+unsigned int get_ab_branch_cut_count();
 unsigned int get_game_end_count();
 unsigned int get_leaf_count();
 
 #ifdef MM_OPT_MEMOIZATION
 unsigned int get_remember_count();
 unsigned int get_saved_count();
-#endif
-
-#ifdef MM_OPT_AB_PRUNING
-unsigned int get_ab_branch_cut_count();
 #endif
 
 #endif

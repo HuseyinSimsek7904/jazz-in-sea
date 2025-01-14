@@ -130,21 +130,18 @@ static inline int _get_evaluation(board_state_t* state, ai_cache_t* cache) {
 size_t evaluate_count = 0;
 size_t game_end_count = 0;
 size_t leaf_count = 0;
+size_t ab_branch_cut_count = 0;
 
 unsigned int get_evaluate_count() { return evaluate_count; }
 unsigned int get_game_end_count() { return game_end_count; }
 unsigned int get_leaf_count() { return leaf_count; }
+unsigned int get_ab_branch_cut_count() { return ab_branch_cut_count; }
 
 #ifdef MM_OPT_MEMOIZATION
 size_t remember_count = 0;
 size_t saved_count = 0;
 unsigned int get_remember_count() { return remember_count; }
 unsigned int get_saved_count() { return saved_count; }
-#endif
-
-#ifdef MM_OPT_AB_PRUNING
-size_t ab_branch_cut_count = 0;
-unsigned int get_ab_branch_cut_count() { return ab_branch_cut_count; }
 #endif
 
 #endif
@@ -288,11 +285,10 @@ _evaluate(board_state_t* state,
     *best_moves_length = 1;
     if (starting_move) *best_moves = move;
 
-#ifdef MM_OPT_AB_PRUNING
     // Update the limit variables alpha and beta.
     if (state->turn) {
       if (compare_eval(evaluation, beta) > 0) {
-#ifdef MM_OPT_AB_PRUNING
+#ifdef MEASURE_EVAL_COUNT
         ab_branch_cut_count++;
 #endif
         memorize(cache, state->hash, history, max_depth, best_evaluation, LOWER);
@@ -304,7 +300,7 @@ _evaluate(board_state_t* state,
 
     } else {
       if (compare_eval(evaluation, alpha) < 0) {
-#ifdef MM_OPT_AB_PRUNING
+#ifdef MEASURE_EVAL_COUNT
         ab_branch_cut_count++;
 #endif
         memorize(cache, state->hash, history, max_depth, best_evaluation, UPPER);
@@ -314,7 +310,6 @@ _evaluate(board_state_t* state,
       if (compare_eval(evaluation, beta) < 0)
         beta = evaluation;
     }
-#endif
   }
 
 #ifdef MM_OPT_MEMOIZATION
@@ -334,16 +329,13 @@ evaluate(board_state_t *state,
   // Reset the measuring variables.
 #ifdef MEASURE_EVAL_COUNT
   evaluate_count = 0;
+  ab_branch_cut_count = 0;
   game_end_count = 0;
   leaf_count = 0;
 
 #ifdef MM_OPT_MEMOIZATION
   remember_count = 0;
   saved_count = 0;
-#endif
-
-#ifdef MM_OPT_AB_PRUNING
-  ab_branch_cut_count = 0;
 #endif
 
 #endif

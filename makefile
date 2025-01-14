@@ -15,7 +15,6 @@ DEBUG-MACROS	?=	\
 # MM_OPT_UPDATE_MEMO	While memorizing, check if an outdated memorized
 #			information exist. If so, update it. Kept only for
 #			tests and will be removed.
-# MM_OPT_AB_PRUNING	Use the alpha beta pruning technique to speed the AI
 #			up.
 # MM_OPT_EXC_DEEPENING  Deepen searching the capture nodes.
 
@@ -24,7 +23,6 @@ CMACROS		?=	\
 -DMEASURE_EVAL_TIME	\
 -DMM_OPT_MEMOIZATION	\
 -UMM_OPT_UPDATE_MEMO	\
--DMM_OPT_AB_PRUNING	\
 -UMM_OPT_EXC_DEEPENING	\
 
 LDLIBS		:=	\
