@@ -99,9 +99,6 @@ size_t generate_moves(board_t* board, move_t moves[256]) {
   return length;
 }
 
-// As can be seen very clearly, this function is written very poorly.
-// This is because this function does not need to be fast right now, we will be
-// improving all of the functions as we progress.
 // Get the board status.
 void _generate_board_status(board_t* board, state_cache_t* state, history_t* history) {
   // Check for insufficient material.
