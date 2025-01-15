@@ -295,7 +295,9 @@ _evaluate(board_state_t* state,
 #ifdef MEASURE_EVAL_COUNT
         ab_branch_cut_count++;
 #endif
+#ifdef MM_OPT_MEMOIZATION
         memorize(cache, state->hash, history, max_depth, best_evaluation, LOWER);
+#endif
         return best_evaluation;
       }
 
@@ -307,7 +309,9 @@ _evaluate(board_state_t* state,
 #ifdef MEASURE_EVAL_COUNT
         ab_branch_cut_count++;
 #endif
+#ifdef MM_OPT_MEMOIZATION
         memorize(cache, state->hash, history, max_depth, best_evaluation, UPPER);
+#endif
         return best_evaluation;
       }
 
