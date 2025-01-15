@@ -29,20 +29,17 @@ history_t game_history;
 bool black_automove;
 bool white_automove;
 
-
 // -- Commands --
-#define command(name)                           \
-  void command_ ## name(int argc, char** argv)  \
+#define command(name, simple, usage)                            \
+  const char* command_ ## name ## _simple = simple;             \
+  const char* command_ ## name ## _usage = usage;               \
+  bool command_ ## name(int argc, char** argv)                  \
 
 #define cli            if (cli_logs)
 #define cli_info       if (be_descriptive) cli
-#define cli_error(...) if (cli_logs) fprintf(stderr, "error: " __VA_ARGS__); else exit(1);
 
-#define expect_n_arguments(s, n)                                        \
-  if (argc != n + 1) {                                                  \
-    printf("error: command '%s' expects exactly %u argument.\n", s, n); \
-    return;                                                             \
-  }
+#define cli_error(...)                          \
+  fprintf(stderr, "error: " __VA_ARGS__);       \
 
 void make_automove() {
   // Check if the current player should be automoved.
@@ -79,64 +76,107 @@ void make_automove() {
   make_automove();
 }
 
-command(loadfen) {
+command(loadfen,
+        "Load a board position using FEN",
+        "Usage: loadfen FEN\n"
+        "   or: loadfen PATH -f\n"
+        "\n"
+        "Load a board configuration from FEN string.\n"
+        "\n"
+        "  -f            Load FEN from PATH\n"
+        ) {
+
+  bool from_file = false;
+
   optind = 0;
   while (true) {
-    int c = getopt(argc, argv, "s:p:");
+    int c = getopt(argc, argv, "f");
     switch (c) {
-    case -1:
     case '?':
-      return;
-    case 's':
-      load_fen_string(optarg, &game_state, &game_history);
-      return;
-    case 'p':
-      if (!load_fen_from_path(optarg, &game_state, &game_history)) {
-        cli_error("could not load FEN\n");
+      return false;
+    case 'f':
+      from_file = true;
+      break;
+    case -1:
+      if (optind >= argc) {
+        cli_error("loadfen requires an argument\n");
+        return false;
       }
-      return;
+
+      if (from_file) {
+
+        if (!load_fen_from_path(argv[optind], &game_state, &game_history)) {
+          cli_error("could not load FEN string from file\n");
+          return false;
+        }
+      } else {
+        if (!load_fen_string(argv[optind], &game_state, &game_history)) {
+          cli_error("could not load FEN string\n");
+          return false;
+        }
+      }
+      return true;
     }
   }
 }
 
-command(savefen) {
+command(savefen,
+        "Print the board position FEN",
+        "\n"
+        "Usage: savefen"
+        "\n"
+        "Print the current board configuration.\n"
+        "\n"
+        "  -f PATH       Save the FEN to PATH\n"
+        ) {
+
+  bool to_file = false;
+
   optind = 0;
   while (true) {
-    int c = getopt(argc, argv, "sp:");
+    int c = getopt(argc, argv, "f");
     switch (c) {
     case '?':
-      return;
+      return false;
+    case 'f':
+      to_file = true;
+      break;
     case -1:
-    case 's':
-      {
+      if (to_file) {
+        if (!save_fen_to_path(argv[optind], &game_state)) {
+          cli_error("could not load FEN string from file\n");
+          return false;
+        }
+      } else {
         char buffer[256];
         get_fen_string(buffer, &game_state);
         printf("%s\n", buffer);
-        return;
       }
-    case 'p':
-      if (!save_fen_to_path(optarg, &game_state)) {
-        cli_error("could save load FEN\n");
-      }
-      return;
+      return true;
     }
   }
 }
 
-command(show) {
+command(show,
+        "Print the current board position",
+        "Usage: show [OPTION]...\n"
+        "\n"
+        "Print the current board position.\n"
+        "\n"
+        "  -h            Print the hash value of the board instead\n"
+        "  -i            Print the island table instead\n"
+        ) {
+
   enum { BOARD, HASH, ISLANDS } show_type = BOARD;
 
   optind = 0;
   while (true) {
     int c = getopt(argc, argv, "bhi");
     switch (c) {
+    case '?':
+      return false;
     case -1:
       goto end_of_parsing;
-    case '?':
-      return;
-    case 'b':
-      show_type = BOARD;
-      break;
     case 'h':
       show_type = HASH;
       break;
@@ -150,22 +190,30 @@ command(show) {
   switch (show_type) {
   case BOARD:
     print_board(game_state.board, false);
-    break;
+    return true;
   case HASH:
     printf("%lx\n", game_state.hash);
-    break;
+    return true;
   case ISLANDS:
     print_islands(&game_state, false);
+    return true;
   }
+
+  // Dummy return
+  return false;
 }
 
-command(makemove) {
-  expect_n_arguments("makemove", 1);
+command(makemove,
+        "Make a move",
+        "Usage: makemove MOVE\n"
+        "\n"
+        "Try to make MOVE if it is a valid move.\n"
+        ) {
 
   move_t move;
   if (!string_to_move(argv[1], game_state.board, &move)) {
     cli_error("invalid move notation '%s'\n", argv[1]);
-    return;
+    return false;
   }
 
   move_t moves[256];
@@ -177,78 +225,112 @@ command(makemove) {
       moves_length = generate_moves(&game_state, moves);
 
       make_automove();
-      return;
+      return true;
     }
   }
 
   cli_error("invalid move\n");
-  return;
+  return false;
 }
 
-command(undomove) {
-  expect_n_arguments("undomove", 0);
+command(undomove,
+        "Undo the last move in history",
+        "Usage: undomove\n"
+        "\n"
+        "Undo the last move in history, if there exists one.\n"
+        ) {
 
   if (!game_history.size) {
     cli_error("no previous move\n");
-    return;
+    return false;
   }
 
   undo_last_move(&game_state, &game_history);
+  return true;
 }
 
-command(status) {
-  expect_n_arguments("status", 0);
+command(status,
+        "Print the current board status",
+        "Usage: status\n"
+        "\n"
+        "Print the current board status.\n"
+        ) {
 
   printf("%s\n", board_status_text(game_state.status));
+  return true;
 }
 
-command(allmoves) {
-  expect_n_arguments("allmoves", 0);
+command(allmoves,
+        "Print the available moves on the current board",
+        "Usage: allmoves\n"
+        "\n"
+        "Print the available moves on the current board.\n"
+        ) {
 
   move_t moves[256];
   size_t length = generate_moves(&game_state, moves);
 
   print_moves(moves, length);
   printf("\n");
+  return true;
 }
 
-command(automove) {
-  expect_n_arguments("automove", 2);
+command(automove,
+        "Set or unset the automove flag",
+        "Usage: automove [OPTION]..."
+        "\n"
+        "Set the automove flag for both players. When a players automove flag is on and it is their move to play, the AI automatically generates and plays a random move.\n"
+        "\n"
+        "  -d            Unset the flags instead of setting them\n"
+        "  -w            Set or unset only the white players automove flag\n"
+        "  -b            Set or unset only the black players automove flag\n"
+        ) {
 
-  bool set;
-  if (!strcmp(argv[2], "on")) {
-    set = true;
-  } else if (!strcmp(argv[2], "off")) {
-    set = false;
-  } else {
-    cli_error("second argument must be either 'on' or 'off'\n");
-    return;
+  bool set = true;
+  enum { WHITE, BLACK, BOTH } color = BOTH;
+
+  optind = 0;
+  while (true) {
+    int c = getopt(argc, argv, "dwb");
+    switch (c) {
+    case -1:
+      goto end_of_parsing;
+    case '?':
+      break;
+    case 'd':
+      set = false;
+      break;
+    case 'w':
+      color = WHITE;
+      break;
+    case 'b':
+      color = BLACK;
+      break;
+    }
   }
 
-  if (!strcmp(argv[1], "white")) {
+ end_of_parsing:
+  if (color == WHITE || color == BOTH)
     white_automove = set;
 
-  } else if (!strcmp(argv[1], "black")) {
+  if (color == BLACK || color == BOTH)
     black_automove = set;
-
-  } else if (!strcmp(argv[1], "both")) {
-    white_automove = set;
-    black_automove = set;
-
-  } else {
-    cli_error("first argument must be either 'white', 'black' or 'both'\n");
-  }
 
   make_automove();
+  return true;
 }
 
-command(playai) {
-  expect_n_arguments("playai", 0);
+command(playai,
+        "Make a random move generated by AI",
+        "Usage: playai\n"
+        "\n"
+        "Make a random move generated by AI.\n"
+        ) {
 
   // Check if the game ended.
   if (game_state.status != NORMAL) {
     cli_info printf("could not play any moves, game ended\n");
-    return;
+    return false;
   }
 
   // Select one of the moves generated by the AI and make move.
@@ -262,21 +344,27 @@ command(playai) {
   cli_info print_eval(eval, game_state.board, &game_history);
 
   make_automove();
+  return true;
 }
 
-command(evaluate) {
+command(evaluate,
+        "Evaluate the board and print evaluation information",
+        "Usage: evaluate [OPTION]...\n"
+        "\n"
+        "Evaluate the board and print evaluation score.\n"
+        "\n"
+        "  -r                 Print one of the generated moves\n"
+        "  -l                 Print the list of generated moves\n"
+        ) {
+
   enum { LIST, RANDOM_MOVE, EVAL_TEXT } evaluation_type = EVAL_TEXT;
 
   optind = 0;
   while (true) {
-    int c = getopt(argc, argv, "trl");
+    int c = getopt(argc, argv, "rl");
     switch (c) {
-    case -1:
-      goto end_of_parsing;
     case '?':
-      return;
-    case 't':
-      evaluation_type = EVAL_TEXT;
+      return false;
       break;
     case 'r':
       evaluation_type = RANDOM_MOVE;
@@ -284,6 +372,8 @@ command(evaluate) {
     case 'l':
       evaluation_type = LIST;
       break;
+    case -1:
+      goto end_of_parsing;
     }
   }
 
@@ -291,7 +381,7 @@ command(evaluate) {
   // Check if the game ended.
   if (game_state.status != NORMAL) {
     cli printf("game ended\n");
-    return;
+    return true;
   }
 
   // Print the calculated evaluation of the AI.
@@ -357,54 +447,85 @@ command(evaluate) {
     print_eval(eval, game_state.board, &game_history);
     break;
   }
+
+  return true;
 }
 
-command(placeat) {
-  expect_n_arguments("placeat", 2);
+command(placeat,
+        "Place a piece at a position",
+        "Usage: placeat POS PIECE\n"
+        "\n"
+        "Place PIECE at POS.\n"
+        ) {
+
+  if (argc != 3) {
+    cli_error("placeat requires exactly 2 arguments.\n");
+    return false;
+  }
 
   pos_t pos;
   char piece = argv[2][0];
   if (!string_to_position(argv[1], &pos)) {
-    printf("%s\n", argv[1]);
-    cli_error("invalid position\n");
-    return;
+    cli_error("invalid position '%s'\n", argv[1]);
+    return false;
   }
 
   place_piece(&game_state, &game_history, pos, piece);
+  return true;
 }
 
-command(removeat) {
-  expect_n_arguments("removeat", 1);
+command(removeat,
+        "Remove the piece at a position",
+        "Usage: removeat POS\n"
+        "\n"
+        "Remove the piece at POS.\n"
+        ) {
+
+  if (argc != 2) {
+    cli_error("placeat requires exactly 1 arguments.\n");
+    return false;
+  }
 
   pos_t pos;
   if (!string_to_position(argv[1], &pos)) {
-    printf("%s\n", argv[1]);
-    cli_error("invalid position\n");
-    return;
+    cli_error("invalid position '%s'\n", argv[1]);
+    return false;
   }
 
   remove_piece(&game_state, &game_history, pos);
+  return true;
 }
 
-command(aidepth) {
+command(aidepth,
+        "Set the search depth of the AI",
+        "Usage: aidepth [DEPTH]\n"
+        "\n"
+        "Set the search depth of the AI to DEPTH if DEPTH is given. Otherwise print.\n"
+        ) {
+
   switch (argc) {
   case 1:
     cli printf("%zu\n", ai_depth);
-    break;
+    return true;
   case 2:
     ai_depth = atoi(argv[1]);
-    break;
+    return true;
   default:
     cli_error("command 'aidepth' expects 0 or 1 argument.\n");
-    return;
+    return false;
   }
 }
 
 static inline size_t count_branches(size_t depth) {
   if (!depth) return 1;
 
-  size_t branches = 0;
+  // Check if reached a end of game node.
+  if (game_state.status != NORMAL) {
+    return 1;
+  }
 
+  // Count all of the nodes.
+  size_t branches = 0;
   move_t moves[256];
   size_t length = generate_moves(&game_state, moves);
   for (size_t i=0; i<length; i++) {
@@ -416,7 +537,15 @@ static inline size_t count_branches(size_t depth) {
   return branches;
 }
 
-command(test) {
+command(test,
+        "Run a test command",
+        "Usage: test [OPTION]...\n"
+        "\n"
+        "Run a test command.\n"
+        "\n"
+        "  -l [DEPTH]                   Count the number of reachable leaves in DEPTH ply.\n"
+        ) {
+
   size_t depth = 0;
   enum { LEAF_COUNT } test = LEAF_COUNT;
 
@@ -424,90 +553,63 @@ command(test) {
   while (true) {
     int c = getopt(argc, argv, "l:");
     switch (c) {
-    case -1:
-      goto end_of_parsing;
     case '?':
-      return;
+      return false;
     case 'l':
       depth = atoi(optarg);
       test = LEAF_COUNT;
       break;
+    case -1:
+      switch (test) {
+      case LEAF_COUNT:
+        printf("%zu\n", count_branches(depth));
+        return true;
+      }
     }
-  }
-
- end_of_parsing:
-  switch (test) {
-  case LEAF_COUNT:
-    printf("%zu\n", count_branches(depth));
-    break;
   }
 }
 
-#define help_command(command_name, ...)         \
-  else if (!strcmp(argv[1], #command_name)) {   \
-    cli printf(__VA_ARGS__);                    \
-  }                                             \
+typedef struct {
+  const char* name;
+  bool (* function) (int, char**);
+  const char* simple_description;
+  const char* full_description;
+} command_entry_t;
 
-command(help) {
+command_entry_t* command_entries;
+
+command(help,
+        "Get information about commands",
+        "Usage: help [COMMAND]\n"
+        "\n"
+        "Print this message or get information about COMMAND.\n"
+        ) {
+
   if (argc == 1) {
-    cli printf("cli commands (these will not do anything if run with '-s'):\n"
-               "    help              get information about commands\n"
-               "    show              show the current board\n"
-               "\n"
-               "board commands:\n"
-               "    loadfen           load a board from its FEN\n"
-               "    savefen           get the FEN string of the current board\n"
-               "    makemove          make a move\n"
-               "    undomove          undo last move\n"
-               "    automove          set or reset auto play by AI\n"
-               "    status            get the status information of the current board\n"
-               "    allmoves          list all of the available moves at the current board\n"
-               "    placeat           place a piece on the board\n"
-               "    removeat          remove a piece on the board\n"
-               "\n"
-               "ai commands:\n"
-               "    aidepth           set the depth of the AI search\n"
-               "    playai            play one of the moves that AI generates\n"
-               "    evaluate          get AI evaluation on the board\n"
-               "\n"
-               "test commands:\n"
-               "    test              produce a test information\n"
-               );
-
-  } else if (argc == 2) {
-    if (false) { }
-    // CLI commands
-    help_command(help, "help [<command>]: list or get information about commands\n")
-      help_command(show, "show: print the current board configuration\n")
-
-      // Board commands
-      help_command(loadfen, "loadfen <fen>: load a board configuration from a FEN string\n")
-      help_command(savefen, "savefen: get the FEN string of the current board configuration\n")
-      help_command(makemove, "makemove <move>: make a move on the current board\n")
-      help_command(undomove, "undomove: undo the last move made\n")
-      help_command(automove, "automove: set or reset auto play mode by AI\n")
-      help_command(status, "status: print the status of the board\n")
-      help_command(allmoves, "allmoves: list all of the available moves at the current board\n")
-      help_command(placeat, "placeat <pos> <piece>: place PIECE on the board at POS\n")
-      help_command(placeat, "removeat <pos>: remove the PIECE on the board\n")
-
-      // AI commands
-      help_command(aidepth, "aidepth [<depth>]: get or set the AI's searching depth\n")
-      help_command(playai, "playai: play a randomly selected move that AI generated\n")
-      help_command(evaluate, "evaluate: get AI evaluation on the current board\n")
-
-      // Test commands
-      help_command(test, "test: produce test information\n")
-
-    else {
-      cli_error("unknown command\n");
-      return;
+    printf("For more information on a command, use 'help COMMAND'\n\n");
+    for (size_t i=0; command_entries[i].function != NULL; i++) {
+      const int message_x = 16;
+      command_entry_t command = command_entries[i];
+      printf("  %s", command.name);
+      for (int i=0; i<message_x - strlen(command.name); i++) {
+        printf(" ");
+      }
+      printf("%s\n", command.simple_description);
     }
-
-  } else {
-    cli_error("command 'help' requires either 0 or 1 arguments.\n");
-    return;
+    printf("\n");
+    return true;
   }
+
+  // Check for the command name in the command entries.
+  for (size_t command_id=0; command_entries[command_id].name != NULL; command_id++) {
+    if (!strcmp(argv[1], command_entries[command_id].name)) {
+      printf("\n%s\n", command_entries[command_id].full_description);
+      return true;
+    }
+  }
+
+  cli_error("unknown command '%s'\n", argv[1]);
+  return false;
 }
 
 
@@ -602,15 +704,39 @@ void initialize() {
   }
 }
 
-#define expect_command(command_name)            \
-  else if (!strcmp(command, #command_name))     \
-    command_ ## command_name(argc, argv);       \
+#define command_entry(_name)                            \
+  (command_entry_t) {                                   \
+    .name = #_name,                                     \
+    .function = command_##_name,                        \
+    .simple_description = command_##_name##_simple,     \
+    .full_description = command_##_name##_usage,        \
+  }                                                     \
 
-int main(int argc, char** argv) {
-  // Get the global flags.
-  const char* const global_opts = "hsdr";
+int main(int argc, char **argv){
+  command_entry_t _commands[] = {
+    command_entry(help),
+    command_entry(show),
+    command_entry(loadfen),
+    command_entry(savefen),
+    command_entry(makemove),
+    command_entry(undomove),
+    command_entry(automove),
+    command_entry(status),
+    command_entry(allmoves),
+    command_entry(placeat),
+    command_entry(removeat),
+    command_entry(aidepth),
+    command_entry(playai),
+    command_entry(evaluate),
+    command_entry(test),
+    { NULL, NULL, NULL, NULL },
+  };
+  command_entries = _commands;
 
   srand(time(NULL));
+
+  // Get the global flags.
+  const char* const global_opts = "hsdr";
 
   while (argv[optind]) {
     char c = getopt(argc, argv, global_opts);
@@ -642,6 +768,7 @@ int main(int argc, char** argv) {
   while (true) {
     fflush(stdout);
     fflush(stderr);
+
     if (feof(stdin)) return 0;
 
     char* argv[32];
@@ -652,26 +779,23 @@ int main(int argc, char** argv) {
 
     char* command = argv[0];
 
-    // Check for the commands.
-    if (false) {}
-    expect_command(help)
-      expect_command(loadfen)
-      expect_command(savefen)
-      expect_command(show)
-      expect_command(makemove)
-      expect_command(undomove)
-      expect_command(status)
-      expect_command(allmoves)
-      expect_command(automove)
-      expect_command(playai)
-      expect_command(evaluate)
-      expect_command(placeat)
-      expect_command(removeat)
-      expect_command(aidepth)
-      expect_command(test)
-    else {
+    // Check for the command name in the command entries.
+    size_t command_id=0;
+    for (; command_entries[command_id].name != NULL; command_id++) {
+      if (!strcmp(command, command_entries[command_id].name)) {
+        bool success = command_entries[command_id].function(argc, argv);
+
+        if (!success && !cli_logs)
+          return 1;
+
+        break;
+      }
+    }
+
+    if (command_entries[command_id].name == NULL) {
       cli_error("unknown command '%s'\n", command);
-      continue;
+
+      if (!cli_logs) return 1;
     }
   }
 }
