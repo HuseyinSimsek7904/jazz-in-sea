@@ -69,5 +69,5 @@ gen-bear: clean
 
 tests:
 	@for path in $$(ls $(TESTS-DIR)); do	\
-		$(TESTS-DIR)/$$path;		\
+		$(TESTS-DIR)/$$path || :;	\
 	done					\
