@@ -1,35 +1,63 @@
 #!/bin/sh
 
-echo "testing for branch count..."
-
 branch_check() {
-    branches=$(echo -e "test -l $1\n" | ./build/main -s)
-    exit=$?
+    path="board_fen/$1"
+    name=$1[@]
+    branches=("${!name}")
+    total=${#branches[@]}
 
-    if [ "$exit" != 0 ]; then
-        echo -e "exit with error code $exit"
-        echo $branches
-        exit 1
-    fi
+    echo -e "testing for '$1', fen: '$(cat $path)'"
 
-    if [ "$branches" != "$2" ]; then
-        >&2 echo -e "\e[1;31m"
-        >&2 echo -e "error: did not pass branch test:"
-        >&2 echo -e "error: for depth $1, got $branches expected $2"
-        >&2 echo -e "\e[0m"
-        exit 1
-    fi
+    echo -en "progress: ("
+    for i in $(seq 1 $[ $total ]); do
+        echo -en "."
+    done
+    echo -e ")"
 
-    echo -e "passed for depth $1"
+    for i in $(seq 0 $[ $total - 1 ]); do
+        expect="${branches[i]}"
+        got=$(echo -e "loadfen -f '$path'\ntest -l $i\n" | ./build/main -s 2>&1)
+        exit=$?
+
+        if [ "$exit" != 0 ]; then
+            echo
+            >&2 echo -e "\e[1;31m"
+            >&2 echo -e "jazz exit with exit code $exit"
+            >&2 echo -e "$branches"
+            >&2 echo -e "\e[0m"
+            return
+        fi
+
+        if [ "$got" != "$expect" ]; then
+            echo -en "\e[F"
+            echo -en "\e[$[ 11 + $i ]C"
+            echo -en '\e[1;31m?\e[0m\e[E'
+
+            >&2 echo -en "\e[1;31m"
+            >&2 echo -e "error: did not pass branch test:"
+            >&2 echo -e "error: for depth $i, got $got expected $expect"
+            >&2 echo -en "\e[0m"
+            return
+        fi
+
+        echo -en "\e[F"
+        echo -en "\e[$[ 11 + $i ]C"
+        echo -en '\e[1;32m#\e[0m\e[E'
+    done
 }
 
+# Since there is no other source of information
+# for these values I am just using the current
+# output of the program. They may be incorrect.
+starting=(1 12 144 2112 30872 482432 7499456 122915700)
+mate_test_1=(1 7 95 600 10481 61441 1092688 6325065 113968601)
+mate_test_2=(1 3 47 137 2601 7939 142210 434478 8313911 25972105)
+mate_test_3=(1 3 47 139 3023 9591 167296 533185 10779520 35160921)
 
-branch_check 0 1
-branch_check 1 12
-branch_check 2 144
-branch_check 3 2112
-branch_check 4 30872
-branch_check 5 482432
-branch_check 6 7499456
-branch_check 7 122915700
-echo "passed all branch tests"
+
+echo "testing for branch count..."
+
+branch_check starting
+branch_check mate_test_1
+branch_check mate_test_2
+branch_check mate_test_3
