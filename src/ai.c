@@ -395,8 +395,11 @@ void setup_cache(ai_cache_t* cache,
 #ifdef MM_OPT_MEMOIZATION
   cache->memorized = malloc(sizeof(memorized_t) * AI_HASHMAP_SIZE);
 
+  // Depth < 0 on a memorized item indicates not set.
   for (size_t i=0; i<AI_HASHMAP_SIZE; i++) {
-    (*cache->memorized)[i].depth = 0;
+    (*cache->memorized)[i] = (memorized_t) {
+      .eval = (eval_t) { .type=NOT_CALCULATED }
+    };
   }
 #endif
 }
@@ -456,7 +459,9 @@ try_remember(ai_cache_t* cache,
 
   memorized_t memorized = (*cache->memorized)[hash % AI_HASHMAP_SIZE];
 
-  if (memorized.depth < depth || memorized.hash != hash) return (eval_t) { .type=NOT_CALCULATED };
+  if (memorized.eval.type == NOT_CALCULATED || memorized.depth < depth || memorized.hash != hash) {
+    return (eval_t) { .type=NOT_CALCULATED };
+  }
 
   // If the eval is an absolute evaluation, convert the depth absolute as well.
   if (memorized.eval.type == WHITE_WINS || memorized.eval.type == BLACK_WINS) {
