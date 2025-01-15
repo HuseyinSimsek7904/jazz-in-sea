@@ -55,3 +55,4 @@
 - [ ] #54  (feat) implement time management for the api
 - [ ] #55  (feat) implement time management for the ai
 - [ ] #56  (feat) implement a notation for game history
+- [ ] #57  (feat) implement move ordering
