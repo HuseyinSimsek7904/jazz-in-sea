@@ -6,6 +6,7 @@
 #include "ai.h"
 #include "board.h"
 #include "move.h"
+#include "piece.h"
 #include "position.h"
 #include "rules.h"
 
@@ -15,6 +16,7 @@
 char col_name(int);
 char row_name(int);
 
+piece_t char_to_piece(char);
 bool string_to_position(const char*, pos_t*);
 bool string_to_move(const char*, board_t, move_t*);
 

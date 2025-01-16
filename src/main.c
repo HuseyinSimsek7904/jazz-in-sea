@@ -9,6 +9,7 @@
 #include "ai.h"
 #include "board.h"
 #include "options.h"
+#include "piece.h"
 #include "position.h"
 #include "move.h"
 #include "rules.h"
@@ -431,10 +432,16 @@ command(placeat,
   }
 
   pos_t pos;
-  char piece = argv[2][0];
   if (!string_to_position(argv[1], &pos)) {
     io_error();
     pp_f("error: invalid position '%s'\n", argv[1]);
+    return false;
+  }
+
+  piece_t piece = char_to_piece(argv[2][0]);
+  if (!piece) {
+    io_error();
+    pp_f("error: invalid piece '%c'\n", argv[2][0]);
     return false;
   }
 

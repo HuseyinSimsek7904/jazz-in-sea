@@ -11,6 +11,22 @@
 #include "position.h"
 #include "rules.h"
 
+// Try to convert a char to a piece.
+piece_t char_to_piece(char c) {
+  switch (c) {
+  case 'P':
+    return WHITE_PAWN;
+  case 'N':
+    return WHITE_KNIGHT;
+  case 'p':
+    return BLACK_PAWN;
+  case 'n':
+    return BLACK_KNIGHT;
+  default:
+    return 0;
+      }
+}
+
 // Try to convert a string to a position.
 bool string_to_position(const char* s, pos_t* pos) {
   char col_name = *s++;
