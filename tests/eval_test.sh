@@ -45,3 +45,5 @@ eval_check mate_test_2 11 WM#8
 eval_check mate_test_4 11 WM#11
 eval_check mate_test_4 12 WM#11
 eval_check mate_test_4 13 WM#11
+
+eval_check mate_test_5 13 BM#12
