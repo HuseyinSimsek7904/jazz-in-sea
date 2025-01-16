@@ -239,7 +239,7 @@ static inline void _update_hash(board_state_t* state, piece_t piece, pos_t pos) 
 
 // Generate the hash value for a board.
 static inline void _generate_full_hash(board_state_t* state) {
-  state->hash = 0;
+  state->hash = state->turn ? state->turn_hash : 0;
   for (int row=0; row<8; row++) {
     for (int col=0; col<8; col++) {
       pos_t pos = to_position(row, col);
@@ -269,6 +269,7 @@ void generate_state_cache(board_state_t* state, history_t* history) {
   }
 
   // Generate the hash value for the board.
+  state->turn_hash = (long) rand() << 32 | rand();
   _generate_square_hash(state);
   _generate_full_hash(state);
 
@@ -400,6 +401,7 @@ void do_move(board_state_t* state, history_t* history, move_t move) {
 
   _update_hash(state, piece, move.from);
   _update_hash(state, piece, move.to);
+  state->hash ^= state->turn_hash;
 
   // If the move is a capture move, remove the piece.
   // There must be a piece where we are going to capture of type capture_piece.
@@ -452,6 +454,7 @@ void undo_last_move(board_state_t* state, history_t* history) {
 
   _update_hash(state, piece, move.from);
   _update_hash(state, piece, move.to);
+  state->hash ^= state->turn_hash;
 
   // If the move is a capture move, add the piece.
   // There must be no piece where we are going to add the piece.

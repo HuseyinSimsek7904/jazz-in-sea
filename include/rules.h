@@ -58,6 +58,7 @@ typedef struct {
 
   // Square hashes table used to generate a hash value for boards.
   hash_t square_hash[4][256];
+  hash_t turn_hash;
 
   // The current hash value.
   hash_t hash;
