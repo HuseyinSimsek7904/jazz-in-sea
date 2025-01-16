@@ -460,6 +460,7 @@ command(evaluate,
   case EVAL_TEXT:
     io_basic();
     pp_eval(eval, game_state.board, &game_history);
+    pp_f("\n");
     break;
   }
 

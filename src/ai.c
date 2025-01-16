@@ -216,6 +216,15 @@ _evaluate(board_state_t* state,
     assert(_test_old_state.status == state->status);
 #endif
 
+    if (starting_move) {
+      io_debug();
+      pp_f("debug: ");
+      pp_move(move);
+      pp_f(" -> ");
+      pp_eval(evaluation, state->board, history);
+      pp_f("\n");
+    }
+
     // If this move is not the first move, compare this move with the best move.
     if (*best_moves_length) {
       // Compare this move and the old best move.
@@ -313,6 +322,48 @@ evaluate(board_state_t *state,
                                 EVAL_BLACK_MATES,
                                 EVAL_WHITE_MATES,
                                 true);
+
+  io_debug();
+  pp_moves(best_moves, *best_moves_length);
+  pp_f(" -> ");
+  pp_eval(evaluation, state->board, history);
+  pp_f("\n");
+
+#ifdef MEASURE_EVAL_TIME
+  pp_f("measure: took %dms\n", (clock() - start) / (CLOCKS_PER_SEC / 1000));
+#endif
+
+#ifdef MEASURE_EVAL_COUNT
+  pp_f("measure: called _evaluate %d times.\n",
+       get_evaluate_count());
+  pp_f("measure: cut %d branches.\n",
+       get_ab_branch_cut_count());
+  pp_f("measure: found %d (%d %%) different game ends.\n",
+       get_game_end_count(),
+       get_game_end_count() * 100 / get_evaluate_count());
+  pp_f("measure: found total %d (%d %%) leaves.\n",
+       get_leaf_count(),
+       get_leaf_count() * 100 / get_evaluate_count());
+
+#ifdef MM_OPT_MEMOIZATION
+  pp_f("measure: in total, used %d (%d %%) transposition tables entries.\n",
+       get_tt_saved_count(),
+       get_tt_saved_count() * 100 / AI_HASHMAP_SIZE);
+  if (get_tt_saved_count() != 0) {
+    pp_f("measure: remembered %d (%d %% per call, %d %% per entry) times.\n",
+         get_tt_remember_count(),
+         get_tt_remember_count() * 100 / get_evaluate_count(),
+         get_tt_remember_count() * 100 / get_tt_saved_count());
+    pp_f("measure: overwritten the same board %u (%u %%) times.\n",
+         get_tt_overwritten_count(),
+         get_tt_overwritten_count() * 100 / get_tt_saved_count());
+    pp_f("measure: rewritten a different board %u (%u %%) times.\n",
+         get_tt_rewritten_count(),
+         get_tt_rewritten_count() * 100 / get_tt_saved_count());
+  }
+#endif
+
+#endif
 
   free_cache(&cache);
 
