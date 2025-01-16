@@ -217,19 +217,16 @@ void fprint_islands(FILE* file, board_state_t* state, bool player) {
 }
 
 void fprint_eval(FILE* file, eval_t eval, history_t* history) {
-  switch (eval.type) {
-  case WHITE_WINS:
-    fprintf(file, "white mates in %lu\n", eval.strength - history->size);
-    break;
-  case BLACK_WINS:
-    fprintf(file, "black mates in %lu\n", eval.strength - history->size);
-    break;
-  case CONTINUE:
-    fprintf(file, "continue with advantage %i\n", eval.strength);
-    break;
-  case NOT_CALCULATED:
+  if (eval == EVAL_INVALID) {
     fprintf(file, "not calculated\n");
-    break;
+  } else if (is_mate(eval)) {
+    if (eval > 0) {
+      fprintf(file, "white mates in %lu\n", mate_depth(eval) - history->size);
+    } else {
+      fprintf(file, "black mates in %lu\n", mate_depth(eval) - history->size);
+    }
+  } else {
+    fprintf(file, "continue with advantage %i\n", eval);
   }
 }
 

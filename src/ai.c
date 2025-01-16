@@ -43,59 +43,6 @@ const int TOPLEFT_KNIGHT_ISLAND_ADV_TABLE[4][4] = {
   { 600,  670,  650,  700}
 };
 
-// Compare eval1 and eval2 by whether they are favorable for the white player.
-// <0 => eval2 is more favorable than eval1
-// =0 => neither is more favorable
-// >0 => eval1 is more favorable than eval2
-// NOT_CALCULATED evals can not be compared.
-int compare_eval(eval_t eval1, eval_t eval2) {
-  switch (eval1.type) {
-  case WHITE_WINS:
-    // Unless eval2 is WHITE_WINS, always eval1.
-    // Otherwise compare the depths.
-    return eval2.type != WHITE_WINS ? 1 : eval2.strength - eval1.strength;
-
-  case BLACK_WINS:
-    // Unless eval2 is BLACK_WINS, always eval2.
-    // Otherwise compare the depths.
-    return eval2.type != BLACK_WINS ? -1 : eval1.strength - eval2.strength;
-
-  case CONTINUE:
-    switch (eval2.type) {
-      // If eval2 is WHITE_WINS, always eval2.
-    case WHITE_WINS: return -1;
-      // If eval2 is BLACK_WINS, always eval1.
-    case BLACK_WINS: return 1;
-      // If eval2 is CONTINUE, check for the evaluation difference.
-    case CONTINUE: return eval1.strength - eval2.strength;
-
-    case NOT_CALCULATED:
-      assert(false);
-      break;
-    }
-
-  case NOT_CALCULATED:
-    assert(false);
-    break;
-  }
-
-  return 0;
-}
-
-// Compare eval1 and eval2 by whether they are favorable for the colored player.
-// <0 => eval2 is more favorable than eval1
-// =0 => neither is more favorable
-// >0 => eval1 is more favorable than eval2
-// NOT_CALCULATED evals can not be compared.
-int compare_eval_by(eval_t eval1, eval_t eval2, bool color) {
-  int cmp = compare_eval(eval1, eval2);
-
-  if (!color)
-    cmp = -cmp;
-
-  return cmp;
-}
-
 static inline int _get_evaluation(board_state_t* state, ai_cache_t* cache) {
   int eval = 0;
   for (int row=0; row<8; row++) {
@@ -175,17 +122,17 @@ _evaluate(board_state_t* state,
 #ifdef MEASURE_EVAL_COUNT
     game_end_count++;
 #endif
-    return (eval_t) { .type=CONTINUE, .strength=0 };
+    return 0;
   case 0x20:
 #ifdef MEASURE_EVAL_COUNT
     game_end_count++;
 #endif
-    return (eval_t) { .type=WHITE_WINS, .strength=history->size };
+    return EVAL_WHITE_MATES - history->size;
   case 0x30:
 #ifdef MEASURE_EVAL_COUNT
     game_end_count++;
 #endif
-    return (eval_t) { .type=BLACK_WINS, .strength=history->size };
+    return EVAL_BLACK_MATES + history->size;
   }
 
 #ifdef MM_OPT_MEMOIZATION
@@ -198,7 +145,7 @@ _evaluate(board_state_t* state,
                                         alpha,
                                         beta);
 
-    if (possible_eval.type != NOT_CALCULATED) {
+    if (possible_eval != EVAL_INVALID) {
 #ifdef MEASURE_EVAL_COUNT
       tt_remember_count++;
 #endif
@@ -215,7 +162,7 @@ _evaluate(board_state_t* state,
     leaf_count++;
 #endif
 
-    return (eval_t) { .type=CONTINUE, .strength=_get_evaluation(state, cache) };
+    return _get_evaluation(state, cache);
   }
 
   move_t moves[256];
@@ -223,7 +170,7 @@ _evaluate(board_state_t* state,
 
   // Check for draw by no moves.
   if (!moves_length) {
-    return (eval_t) { .type=CONTINUE, .strength=0 };
+    return 0;
   }
 
   // If this move is the first move and if there are only one possible moves, return the only move.
@@ -234,10 +181,10 @@ _evaluate(board_state_t* state,
 #endif
     best_moves[0] = moves[0];
     *best_moves_length = 1;
-    return (eval_t) { .type=NOT_CALCULATED };
+    return EVAL_INVALID;
   }
 
-  eval_t best_evaluation;
+  eval_t best_evaluation = EVAL_INVALID;
   *best_moves_length = 0;
 
   // Loop through all of the available moves except the first, and recursively get the next moves.
@@ -291,7 +238,7 @@ _evaluate(board_state_t* state,
 
     // Update the limit variables alpha and beta.
     if (state->turn) {
-      if (compare_eval(evaluation, beta) > 0) {
+      if (evaluation > beta) {
 #ifdef MEASURE_EVAL_COUNT
         ab_branch_cut_count++;
 #endif
@@ -301,11 +248,11 @@ _evaluate(board_state_t* state,
         return best_evaluation;
       }
 
-      if (compare_eval(evaluation, alpha) > 0)
+      if (evaluation > alpha)
         alpha = evaluation;
 
     } else {
-      if (compare_eval(evaluation, alpha) < 0) {
+      if (evaluation < alpha) {
 #ifdef MEASURE_EVAL_COUNT
         ab_branch_cut_count++;
 #endif
@@ -315,7 +262,7 @@ _evaluate(board_state_t* state,
         return best_evaluation;
       }
 
-      if (compare_eval(evaluation, beta) < 0)
+      if (evaluation < beta)
         beta = evaluation;
     }
   }
@@ -363,8 +310,8 @@ evaluate(board_state_t *state,
                                 max_depth,
                                 best_moves,
                                 best_moves_length,
-                                (eval_t) { .type=BLACK_WINS, .strength=0 },  // best possible evaluation for black
-                                (eval_t) { .type=WHITE_WINS, .strength=0 },  // best possible evaluation for white
+                                EVAL_BLACK_MATES,
+                                EVAL_WHITE_MATES,
                                 true);
 
   free_cache(&cache);
@@ -402,7 +349,7 @@ void setup_cache(ai_cache_t* cache,
   // Depth < 0 on a memorized item indicates not set.
   for (size_t i=0; i<AI_HASHMAP_SIZE; i++) {
     (*cache->memorized)[i] = (memorized_t) {
-      .eval = (eval_t) { .type=NOT_CALCULATED }
+      .eval = EVAL_INVALID
     };
   }
 #endif
@@ -425,8 +372,8 @@ memorize(ai_cache_t* cache,
          node_type_t node_type) {
 
   // If the eval is an absolute evaluation, convert the depth relative.
-  if (eval.type == WHITE_WINS || eval.type == BLACK_WINS) {
-    eval.strength -= history->size;
+  if (is_mate(eval)) {
+    eval += eval > 0 ? history->size : -history->size;
     depth = LONG_MAX;
   }
 
@@ -463,22 +410,22 @@ try_remember(ai_cache_t* cache,
 
   memorized_t memorized = (*cache->memorized)[hash % AI_HASHMAP_SIZE];
 
-  if (memorized.eval.type == NOT_CALCULATED || memorized.depth < depth || memorized.hash != hash) {
-    return (eval_t) { .type=NOT_CALCULATED };
+  if (memorized.eval == EVAL_INVALID || memorized.depth < depth || memorized.hash != hash) {
+    return EVAL_INVALID;
   }
 
   // If the eval is an absolute evaluation, convert the depth absolute as well.
-  if (memorized.eval.type == WHITE_WINS || memorized.eval.type == BLACK_WINS) {
-    memorized.eval.strength += history->size;
+  if (is_mate(memorized.eval)) {
+    memorized.eval -= memorized.eval > 0 ? history->size : -history->size;
   }
 
   switch (memorized.node_type) {
   case EXACT:
     break;
   case LOWER:
-    if (compare_eval(memorized.eval, alpha) > 0) return (eval_t) { .type=NOT_CALCULATED };
+    if (memorized.eval > alpha) return EVAL_INVALID;
   case UPPER:
-    if (compare_eval(memorized.eval, beta) < 0) return (eval_t) { .type=NOT_CALCULATED };
+    if (memorized.eval < beta) return EVAL_INVALID;
   }
 
   return memorized.eval;

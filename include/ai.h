@@ -9,19 +9,21 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdlib.h>
 
 #define AI_HASHMAP_SIZE 0x20000
 
-typedef struct {
-  // Type of evaluation, explains what is the result of the line.
-  enum {
-    CONTINUE, WHITE_WINS, BLACK_WINS, NOT_CALCULATED
-  } type;
+typedef int eval_t;
 
-  // For "CONTINUE" type evaluation, explains how much favorable this position is for white.
-  // For "DRAW", "WHITE_WINS", "BLACK_WINS", explains on which move the game will end.
-  int strength;
-} eval_t;
+#define EVAL_INVALID     INT_MIN
+#define EVAL_WHITE_MATES INT_MAX
+#define EVAL_BLACK_MATES INT_MIN + 1
+
+static inline bool is_mate(eval_t eval) { return abs(eval) > 1000000; }
+static inline int mate_depth(eval_t eval) { return EVAL_WHITE_MATES - abs(eval); }
+static inline int compare_eval_by(eval_t eval1, eval_t eval2, bool color) {
+  return color ? eval1 - eval2 : eval2 - eval1;
+}
 
 typedef enum { EXACT, LOWER, UPPER } node_type_t;
 
@@ -42,9 +44,6 @@ typedef struct {
   memorized_t (*memorized)[AI_HASHMAP_SIZE];
 #endif
 } ai_cache_t;
-
-int compare_eval(eval_t, eval_t);
-int compare_eval_by(eval_t, eval_t, bool);
 
 #ifdef MEASURE_EVAL_COUNT
 unsigned int get_evaluate_count();
