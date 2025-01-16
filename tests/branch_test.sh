@@ -23,7 +23,7 @@ branch_check() {
             echo
             >&2 echo -e "\e[1;31m"
             >&2 echo -e "jazz exit with exit code $exit"
-            >&2 echo -e "$branches"
+            >&2 echo -e "$got"
             >&2 echo -e "\e[0m"
             return
         fi

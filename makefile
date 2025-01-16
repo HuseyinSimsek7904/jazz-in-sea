@@ -7,7 +7,7 @@ TESTS-DIR	?= ./tests
 #			after call to '_evaluate'.
 
 DEBUG-MACROS	?=	\
--UTEST_EVAL_STATE	\
+-DTEST_EVAL_STATE	\
 
 # MEASURE_EVAL_COUNT	Count the number of calls to the _evaluate function.
 # MEASURE_EVAL_TIME	Measure how long the _evaluate function takes.
@@ -21,7 +21,7 @@ DEBUG-MACROS	?=	\
 CMACROS		?=	\
 -DMEASURE_EVAL_COUNT	\
 -DMEASURE_EVAL_TIME	\
--UMM_OPT_MEMOIZATION	\
+-DMM_OPT_MEMOIZATION	\
 -UMM_OPT_UPDATE_MEMO	\
 -UMM_OPT_EXC_DEEPENING	\
 
