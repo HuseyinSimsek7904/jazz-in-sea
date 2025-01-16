@@ -26,6 +26,7 @@ CMACROS		?=	\
 -UMM_OPT_EXC_DEEPENING	\
 
 LDLIBS		:=	\
+src/options.o		\
 src/rules.o		\
 src/fen.o		\
 src/ai.o		\

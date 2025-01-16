@@ -56,3 +56,4 @@
 - [ ] #55  (feat) implement time management for the ai
 - [ ] #56  (feat) implement a notation for game history
 - [ ] #57  (feat) implement move ordering
+- [ ] #58  (chore) disable getopt error messages and write our own

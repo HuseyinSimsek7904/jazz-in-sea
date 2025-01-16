@@ -3,9 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "io.h"
 #include "ai.h"
 #include "board.h"
-#include "io.h"
 #include "move.h"
 #include "piece.h"
 #include "position.h"
@@ -103,8 +103,8 @@ char row_name(int row) { return '1' + row; }
 
 // Print a position.
 // The notation is: <column-name><row-number>
-void print_position(pos_t pos) {
-  printf("%c%c", col_name(to_col(pos)), row_name(to_row(pos)));
+void fprint_position(FILE* file, pos_t pos) {
+  fprintf(file, "%c%c", col_name(to_col(pos)), row_name(to_row(pos)));
 }
 
 // Print a move.
@@ -112,26 +112,26 @@ void print_position(pos_t pos) {
 // The notation for capture moves is: <from_position> x <to_row_or_col_name>
 // If the piece moved horizontally, <to_row_or_col_name> is the to column name.
 // If the piece moved vertically, <to_row_or_col_name> is the to row name.
-void print_move(move_t move) {
+void fprint_move(FILE* file, move_t move) {
   // Check if the move is valid.
   if (!is_valid_move(move)) {
-    printf("<invalid move>");
+    fprintf(file, "<invalid move>");
     return;
   }
 
-  print_position(move.from);
-  printf("%c", is_valid_pos(move.capture) ? 'x' : '>');
+  fprint_position(file, move.from);
+  fprintf(file, "%c", is_valid_pos(move.capture) ? 'x' : '>');
 
   if (to_col(move.from) == to_col(move.to)) {
     // Column numbers are equal, so the piece moved vertically.
-    printf("%c", row_name(to_row(move.to)));
+    fprintf(file, "%c", row_name(to_row(move.to)));
 
   } else {
     // This should be true according to the normal Cez rules.
     // Because pieces move only horizontally or vertically.
     assert(to_row(move.from) == to_row(move.to));
 
-    printf("%c", col_name(to_col(move.to)));
+    fprintf(file, "%c", col_name(to_col(move.to)));
   }
 }
 
@@ -151,12 +151,12 @@ const char CLI_ISLANDS_EMPTY = '.';
 const char CLI_ISLANDS_NO = '+';
 const char CLI_ISLANDS_YES = '#';
 
-void print_board(board_t board, bool player) {
-  printf("%s", player ? CLI_TOP_ROW_INV : CLI_TOP_ROW);
+void fprint_board(FILE* file, board_t board, bool player) {
+  fprintf(file, "%s", player ? CLI_TOP_ROW_INV : CLI_TOP_ROW);
 
   for (int prow = 0; prow < 8; prow++) {
     int row = perspective_row(prow, player);
-    printf("%c", row_name(row));
+    fprintf(file, "%c", row_name(row));
 
     for (int pcol = 0; pcol < 8; pcol++) {
       int col = perspective_col(pcol, player);
@@ -191,13 +191,13 @@ void print_board(board_t board, bool player) {
         break;
       }
 
-      printf("%c", character);
+      fprintf(file, "%c", character);
     }
-    printf("\n");
+    fprintf(file, "\n");
   }
 }
 
-void print_islands(board_state_t* state, bool player) {
+void fprint_islands(FILE* file, board_state_t* state, bool player) {
   for (int prow=0; prow<8; prow++) {
     int row = perspective_row(prow, player);
 
@@ -210,40 +210,40 @@ void print_islands(board_state_t* state, bool player) {
       } else {
         c = state->islands[pos] ? CLI_ISLANDS_YES : CLI_ISLANDS_NO;
       }
-      printf("%c", c);
+      fprintf(file, "%c", c);
     }
-    printf("\n");
+    fprintf(file, "\n");
   }
 }
 
-void print_eval(eval_t eval, board_t board, history_t* history) {
+void fprint_eval(FILE* file, eval_t eval, history_t* history) {
   switch (eval.type) {
   case WHITE_WINS:
-    printf("white mates in %lu\n", eval.strength - history->size);
+    fprintf(file, "white mates in %lu\n", eval.strength - history->size);
     break;
   case BLACK_WINS:
-    printf("black mates in %lu\n", eval.strength - history->size);
+    fprintf(file, "black mates in %lu\n", eval.strength - history->size);
     break;
   case CONTINUE:
-    printf("continue with advantage %i\n", eval.strength);
+    fprintf(file, "continue with advantage %i\n", eval.strength);
     break;
   case NOT_CALCULATED:
-    printf("not calculated\n");
+    fprintf(file, "not calculated\n");
     break;
   }
 }
 
-void print_moves(move_t* moves, size_t length) {
-  printf("{ ");
+void fprint_moves(FILE* file, move_t* moves, size_t length) {
+  fprintf(file, "{ ");
 
   if (length) {
-    print_move(moves[0]);
+    fprint_move(file, moves[0]);
   }
 
   for (int i=1; i<length; i++) {
-    printf(" ");
-    print_move(moves[i]);
+    fprintf(file, " ");
+    fprint_move(file, moves[i]);
   }
 
-  printf(" }");
+  fprintf(file, " }");
 }
