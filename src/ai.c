@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "ai.h"
 #include "board.h"
@@ -228,15 +229,14 @@ _evaluate(board_state_t* state,
     // If this move is not the first move, compare this move with the best move.
     if (*best_moves_length) {
       // Compare this move and the old best move.
-      int cmp = compare_eval_by(evaluation, best_evaluation, state->turn);
-
-      if (cmp < 0) {
-        // If this move is worse than the found moves, continue.
-        continue;
-
-      } else if (cmp == 0) {
+      if (evaluation == best_evaluation) {
         // If this move is equally as good as the best move, add this move to the list.
         if (starting_move) best_moves[(*best_moves_length)++] = move;
+        continue;
+      }
+
+      if ((evaluation > best_evaluation) ^ state->turn) {
+        // If this move is worse than the found moves, continue.
         continue;
       }
     }
@@ -312,6 +312,15 @@ evaluate(board_state_t *state,
               TOPLEFT_PAWN_ISLAND_ADV_TABLE,
               TOPLEFT_KNIGHT_ADV_TABLE,
               TOPLEFT_KNIGHT_ISLAND_ADV_TABLE);
+
+
+#ifdef MEASURE_EVAL_TIME
+  clock_t start = clock();
+#endif
+
+  io_debug();
+  pp_f("debug: calling _evaluate with depth %u for %s\n", max_depth, state->turn ? "white" : "black");
+  pp_board(state->board, false);
 
   eval_t evaluation = _evaluate(state,
                                 history,

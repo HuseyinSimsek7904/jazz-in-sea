@@ -21,9 +21,6 @@ typedef int eval_t;
 
 static inline bool is_mate(eval_t eval) { return abs(eval) > 1000000; }
 static inline int mate_depth(eval_t eval) { return EVAL_WHITE_MATES - abs(eval); }
-static inline int compare_eval_by(eval_t eval1, eval_t eval2, bool color) {
-  return color ? eval1 - eval2 : eval2 - eval1;
-}
 
 typedef enum { EXACT, LOWER, UPPER } node_type_t;
 
