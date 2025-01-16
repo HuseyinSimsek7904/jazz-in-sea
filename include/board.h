@@ -32,9 +32,4 @@ static inline void set_piece(board_t board, pos_t pos, piece_t piece) {
   board[pos] = piece;
 }
 
-
-// -- C functions --
-
-bool compare_board(board_t*, board_t*);
-
 #endif
