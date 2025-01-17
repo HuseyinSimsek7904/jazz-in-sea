@@ -1,7 +1,7 @@
 #ifndef _IO_H
 #define _IO_H
 
-#include "options.h"
+#include "globals.h"
 
 #include "ai.h"
 #include "board.h"

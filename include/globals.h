@@ -1,6 +1,9 @@
 #ifndef _OPTIONS_H
 #define _OPTIONS_H
 
+#include "commands.h"
+#include "rules.h"
+
 #include <stdbool.h>
 #include <stdio.h>
 
@@ -22,5 +25,9 @@ typedef struct {
 } options_t;
 
 extern options_t global_options;
+extern command_entry_t command_entries[];
+
+extern board_state_t game_state;
+extern history_t game_history;
 
 #endif
