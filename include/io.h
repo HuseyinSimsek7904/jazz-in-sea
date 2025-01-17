@@ -13,6 +13,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+static inline bool is_whitespace(char c) { return c == ' ' || c == '\t' || c == '\n'; }
+
 char col_name(int);
 char row_name(int);
 
@@ -68,5 +70,7 @@ static inline void pp_position(pos_t pos) {
 static inline void pp_eval(eval_t eval, board_t board, history_t* history) {
   fprint_eval(global_options.current_file, eval, history);
 }
+
+int generate_argv(char* arg_buffer, char** argv, const size_t arg_buffer_size, const size_t argv_size);
 
 #endif

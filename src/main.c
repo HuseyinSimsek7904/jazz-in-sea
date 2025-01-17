@@ -594,108 +594,6 @@ command(help,
   return false;
 }
 
-
-// -- Parsing command arguments --
-bool is_whitespace(char c) { return c == ' ' || c == '\t' || c == '\n'; }
-
-#define ARG_BUFFER_SIZE 512
-#define ARGV_SIZE 32
-
-int generate_argv(char* arg_buffer, char** argv) {
-  // Get the command and parse it.
-  char buffer[256];
-
-  io_info();
-  pp_f("> ");
-
-  char* result = fgets(buffer, sizeof(buffer), stdin);
-
-  if (global_options.interactive) {
-    if (feof(stdin)) {
-      pp_f("\n");
-      exit(0);
-    }
-  } else {
-    if (result != NULL) {
-      pp_f("[filled from pipe] -- %s", result);
-    }
-
-    if (feof(stdin)) {
-      pp_f("[end of pipe]\n");
-      exit(0);
-    }
-  }
-
-  int argc = 0;
-  char* buffer_ptr = buffer;
-  char* arg_buffer_ptr = arg_buffer;
-  while (true) {
-    // Ignore the whitespaces.
-    char c;
-    do {
-      c = *buffer_ptr++;
-    } while (is_whitespace(c));
-
-    // If reached the end of the string, finish parsing.
-    if (c == '\0') break;
-
-    char quote = '\0';
-    if (c == '\'' || c == '"'){
-      quote = c;
-      c = *buffer_ptr++;
-    }
-
-    // Copy the string from the buffer to arg buffer.
-    if (argc > ARGV_SIZE) {
-      io_error();
-      pp_f("error: argv overflow\n");
-      return -1;
-    }
-    argv[argc++] = arg_buffer_ptr;
-
-    while (quote ? c != quote : !is_whitespace(c)){
-      if (c == '\0') {
-        if (quote) {
-          io_error();
-          pp_f("error: unterminated quote\n");
-          return -1;
-        }
-
-        break;
-      }
-
-      // Check for buffer overflow and move the character.
-      if (arg_buffer_ptr > arg_buffer + ARG_BUFFER_SIZE) {
-        io_error();
-        pp_f("error: arg buffer overflow\n");
-        return -1;
-      }
-      *arg_buffer_ptr++ = c;
-
-      c = *buffer_ptr++;
-    }
-
-    // Check for buffer overflow and move the character.
-    if (arg_buffer_ptr > arg_buffer + ARG_BUFFER_SIZE) {
-      io_error();
-      pp_f("error: arg buffer overflow\n");
-      return -1;
-    }
-    *arg_buffer_ptr++ = '\0';
-  }
-
-  // After all of the buffers are filled, add a null ptr to the arg_ptr_buffer.
-  if (argc > ARGV_SIZE) {
-    io_error();
-    pp_f("error: argv overflow\n");
-    return -1;
-  }
-
-  argv[argc] = 0;
-  return argc;
-}
-
-
 void initialize() {
   if (!load_fen_from_path("board_fen/starting", &game_state, &game_history)) {
     io_error();
@@ -793,9 +691,12 @@ int main(int argc, char **argv){
     fflush(stdout);
     fflush(stderr);
 
-    char* argv[32];
-    char arg_buffer[512];
-    int argc = generate_argv(arg_buffer, argv);
+#define ARGV_SIZE 32
+#define ARG_BUFFER_SIZE 4096
+
+    char* argv[ARGV_SIZE];
+    char arg_buffer[ARG_BUFFER_SIZE];
+    int argc = generate_argv(arg_buffer, argv, ARG_BUFFER_SIZE, ARGV_SIZE);
 
     if (argc <= 0) {
       continue;
