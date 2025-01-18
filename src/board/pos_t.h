@@ -1,8 +1,16 @@
-#ifndef _POSITION_H
-#define _POSITION_H
+#ifndef _BOARD_POSITION_T_H
+#define _BOARD_POSITION_T_H
 
 #include <stdbool.h>
 #include <sys/types.h>
+
+// The direction macros
+#define UP    -0x10
+#define DOWN  +0x10
+#define LEFT  -0x01
+#define RIGHT +0x01
+
+static const int deltas[] = { RIGHT, DOWN, LEFT, UP };
 
 #define INV_POSITION 0x88
 

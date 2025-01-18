@@ -1,5 +1,5 @@
-#ifndef _COMMAND_H
-#define _COMMAND_H
+#ifndef _COMMANDS_COMMANDS_H
+#define _COMMANDS_COMMANDS_H
 
 #include <stdbool.h>
 

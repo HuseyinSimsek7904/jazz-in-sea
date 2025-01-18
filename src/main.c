@@ -5,15 +5,15 @@
 #include <getopt.h>
 #include <unistd.h>
 
-#include "io.h"
-#include "ai.h"
-#include "board.h"
-#include "globals.h"
-#include "piece.h"
-#include "position.h"
-#include "move.h"
-#include "rules.h"
-#include "fen.h"
+#include "ai/search.h"
+
+#include "board/board_t.h"
+#include "board/piece_t.h"
+#include "board/pos_t.h"
+#include "move/move_t.h"
+#include "io/pp.h"
+#include "io/fen.h"
+#include "commands/globals.h"
 
 
 void initialize() {

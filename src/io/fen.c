@@ -1,8 +1,9 @@
-#include "fen.h"
-#include "board.h"
-#include "piece.h"
-#include "position.h"
-#include "rules.h"
+#include "board/board_t.h"
+#include "board/piece_t.h"
+#include "board/pos_t.h"
+#include "state/state_generation.h"
+#include "io/fen.h"
+
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>

@@ -3,13 +3,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "io.h"
-#include "ai.h"
-#include "board.h"
-#include "move.h"
-#include "piece.h"
-#include "position.h"
-#include "rules.h"
+#include "board/board_t.h"
+#include "board/piece_t.h"
+#include "board/pos_t.h"
+#include "move/move_t.h"
+#include "ai/search.h"
+#include "io/pp.h"
 
 // Try to convert a char to a piece.
 piece_t char_to_piece(char c) {

@@ -1,15 +1,12 @@
-#ifndef _MOVE_H
-#define _MOVE_H
+#ifndef _MOVE_MOVE_T_H
+#define _MOVE_MOVE_T_H
 
-#include "board.h"
-#include "piece.h"
-#include "position.h"
+#include "board/board_t.h"
+#include "board/piece_t.h"
+#include "board/pos_t.h"
 
-#define INV_MOVE (move_t) { .from=INV_POSITION }
-
-
-// -- The move_t type --
-
+// Direction units.
+// These macros are defined using the perspective of the white player.
 typedef struct {
   // The position from where the piece moved.
   pos_t from;
@@ -26,8 +23,7 @@ typedef struct {
   piece_t capture_piece;
 } move_t;
 
-
-// -- Header functions --
+#define INV_MOVE (move_t) { .from=INV_POSITION }
 
 // Check if two moves are the same.
 static inline bool compare_move(move_t move1, move_t move2) {

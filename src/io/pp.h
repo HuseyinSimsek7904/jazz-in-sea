@@ -1,14 +1,13 @@
-#ifndef _IO_H
-#define _IO_H
+#ifndef _IO_PP_H
+#define _IO_PP_H
 
-#include "globals.h"
+#include "commands/globals.h"
 
-#include "ai.h"
-#include "board.h"
-#include "move.h"
-#include "piece.h"
-#include "position.h"
-#include "rules.h"
+#include "ai/search.h"
+#include "board/board_t.h"
+#include "board/piece_t.h"
+#include "board/pos_t.h"
+#include "move/move_t.h"
 
 #include <stdarg.h>
 #include <stdio.h>

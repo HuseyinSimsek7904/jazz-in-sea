@@ -1,5 +1,4 @@
 SRC-DIR		?= ./src
-INC-DIR		?= ./include
 BUILD-DIR	?= ./build
 TESTS-DIR	?= ./tests
 
@@ -11,27 +10,30 @@ DEBUG-MACROS	?=	\
 
 # MEASURE_EVAL_COUNT	Count the number of calls to the _evaluate function.
 # MEASURE_EVAL_TIME	Measure how long the _evaluate function takes.
-# MM_OPT_MEMOIZATION	Use the memoizatino technique to speed the AI up.
-# MM_OPT_UPDATE_MEMO	While memorizing, check if an outdated memorized
-#			information exist. If so, update it. Kept only for
-#			tests and will be removed.
-#			up.
+# MM_OPT_TRANSPOSITION  Use transpositions tables.
 # MM_OPT_EXC_DEEPENING  Deepen searching the capture nodes.
 
 CMACROS		?=	\
 -DMEASURE_EVAL_COUNT	\
 -DMEASURE_EVAL_TIME	\
--DMM_OPT_MEMOIZATION	\
--UMM_OPT_UPDATE_MEMO	\
+-DMM_OPT_TRANSPOSITION	\
 -UMM_OPT_EXC_DEEPENING	\
 
-LDLIBS		:=	\
-src/commands.o		\
-src/globals.o		\
-src/rules.o		\
-src/fen.o		\
-src/ai.o		\
-src/io.o		\
+LDLIBS		:=		\
+src/ai/cache.o			\
+src/commands/commands.o		\
+src/commands/globals.o		\
+src/state/history.o		\
+src/state/state_generation.o	\
+src/state/status.o		\
+src/state/hash_operations.o	\
+src/io/pp.o			\
+src/io/fen.o			\
+src/ai/search.o			\
+src/ai/transposition_table.o	\
+src/ai/measure_count.o		\
+src/move/make_move.o		\
+src/move/generation.o		\
 
 OBJ		:=	\
 $(SRC-DIR)/main.o	\
@@ -39,7 +41,7 @@ $(LDLIBS)		\
 
 CC		:= @gcc
 CFLAGS		:= -Wall -Werror $(CMACROS)
-CPPFLAGS	:= -I $(INC-DIR)
+CPPFLAGS	:= -I src/
 
 .PHONY: gdb debug build \
 	compile setup-dir install \

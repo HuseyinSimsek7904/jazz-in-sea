@@ -1,8 +1,9 @@
-#ifndef _OPTIONS_H
-#define _OPTIONS_H
+#ifndef _COMMANDS_GLOBALS_H
+#define _COMMANDS_GLOBALS_H
 
-#include "commands.h"
-#include "rules.h"
+#include "commands/commands.h"
+#include "state/board_state_t.h"
+#include "state/history.h"
 
 #include <stdbool.h>
 #include <stdio.h>

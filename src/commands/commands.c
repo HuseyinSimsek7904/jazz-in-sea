@@ -1,5 +1,7 @@
-#include "io.h"
-#include "fen.h"
+#include "io/pp.h"
+#include "io/fen.h"
+#include "move/make_move.h"
+#include "move/generation.h"
 
 #include <getopt.h>
 #include <string.h>

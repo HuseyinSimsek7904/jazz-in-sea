@@ -1,5 +1,5 @@
-#ifndef _PIECE_H
-#define _PIECE_H
+#ifndef _BOARD_PIECE_T_H
+#define _BOARD_PIECE_T_H
 
 #include <stdbool.h>
 #include <sys/types.h>

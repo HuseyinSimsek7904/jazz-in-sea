@@ -1,8 +1,9 @@
-#ifndef _BOARD_H
-#define _BOARD_H
+#ifndef _BOARD_BOARD_T_H
+#define _BOARD_BOARD_T_H
 
-#include "piece.h"
-#include "position.h"
+#include "board/piece_t.h"
+#include "board/pos_t.h"
+
 #include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
