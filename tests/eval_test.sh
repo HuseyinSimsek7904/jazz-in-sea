@@ -7,7 +7,7 @@ eval_check() {
 
     echo -e "[    ] testing for '$1', fen: '$(cat $path)' with depth $depth -> '$eval'"
 
-    got=$(echo -e "loadfen -f '$path'\naidepth $depth\nevaluate\n" | ./build/main -s 2>&1)
+    got=$(echo -e "loadfen -f '$path'\naidepth $depth\nevaluate -e\n" | ./build/main -s 2>&1)
     exit=$?
 
     if [ "$exit" != 0 ]; then

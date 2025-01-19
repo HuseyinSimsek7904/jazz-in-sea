@@ -1,3 +1,4 @@
+#include "commands/globals.h"
 #include "io/pp.h"
 #include "io/fen.h"
 #include "move/make_move.h"
@@ -324,16 +325,18 @@ command_define(evaluate,
                "Evaluate the board and print evaluation information",
                "Usage: evaluate [OPTION]...\n"
                "\n"
-               "Evaluate the board and print evaluation score.\n"
+               "Evaluate the board and print the best moves and the evaluation score.\n"
                "\n"
-               "  -r            Print one of the generated moves\n"
-               "  -l            Print the list of generated moves\n") {
+               "  -r            Select and print one of the best moves\n"
+               "  -l            Print the list of generated moves only\n"
+               "  -e            Print the evaluation score only\n"
+               ) {
 
-  enum { LIST, RANDOM_MOVE, EVAL_TEXT } evaluation_type = EVAL_TEXT;
+  enum { LIST, RANDOM_MOVE, EVAL_TEXT, FULL } evaluation_type = FULL;
 
   optind = 0;
   while (true) {
-    int c = getopt(argc, argv, "rl");
+    int c = getopt(argc, argv, "erl");
     switch (c) {
     case '?':
       return false;
@@ -343,6 +346,9 @@ command_define(evaluate,
       break;
     case 'l':
       evaluation_type = LIST;
+      break;
+    case 'e':
+      evaluation_type = EVAL_TEXT;
       break;
     case -1:
       goto end_of_parsing;
@@ -381,6 +387,13 @@ command_define(evaluate,
     break;
   case EVAL_TEXT:
     io_basic();
+    pp_eval(eval, game_state.board, &game_history);
+    pp_f("\n");
+    break;
+  case FULL:
+    io_basic();
+    pp_moves(best_moves, best_moves_length);
+    pp_f(" -> ");
     pp_eval(eval, game_state.board, &game_history);
     pp_f("\n");
     break;
