@@ -18,6 +18,8 @@ typedef struct {
 #endif
 
 typedef struct {
+  bool cancel_search;
+
   int pawn_adv_table[256];
   int pawn_island_adv_table[256];
   int knight_adv_table[256];

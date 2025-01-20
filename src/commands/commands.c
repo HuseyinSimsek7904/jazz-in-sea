@@ -3,9 +3,12 @@
 #include "io/fen.h"
 #include "move/make_move.h"
 #include "move/generation.h"
+#include "ai/evaluation.h"
 
+#include <bits/types/struct_timeval.h>
 #include <getopt.h>
 #include <string.h>
+#include <time.h>
 
 void make_automove() {
   // Check if the current player should be automoved.
@@ -30,7 +33,7 @@ void make_automove() {
 
   move_t best_moves[256];
   size_t best_moves_length;
-  evaluate(&game_state, &game_history, global_options.ai_depth, best_moves, &best_moves_length);
+  evaluate(&game_state, &game_history, global_options.ai_depth, global_options.ai_time, best_moves, &best_moves_length);
   do_move(&game_state, &game_history, best_moves[rand() % best_moves_length]);
 
   io_info();
@@ -311,7 +314,7 @@ command_define(playai,
 
   move_t best_moves[256];
   size_t best_moves_length;
-  evaluate(&game_state, &game_history, global_options.ai_depth, best_moves, &best_moves_length);
+  evaluate(&game_state, &game_history, global_options.ai_depth, global_options.ai_time, best_moves, &best_moves_length);
   do_move(&game_state, &game_history, best_moves[rand() % best_moves_length]);
 
   io_info();
@@ -369,7 +372,8 @@ command_define(evaluate,
 
   move_t best_moves[256];
   size_t best_moves_length;
-  eval_t eval = evaluate(&game_state, &game_history, global_options.ai_depth, best_moves, &best_moves_length);
+  eval_t eval = evaluate(&game_state, &game_history, global_options.ai_depth,
+                         global_options.ai_time, best_moves, &best_moves_length);
 
   io_info();
   pp_f("evaluating done\n");

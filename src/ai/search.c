@@ -1,51 +1,9 @@
-#include "board/board_t.h"
-#include "board/pos_t.h"
-#include "board/piece_t.h"
-#include "move/move_t.h"
+#include "ai/search.h"
+#include "ai/eval_t.h"
+#include "io/pp.h"
 #include "move/generation.h"
 #include "move/make_move.h"
-#include "ai/measure_count.h"
-#include "ai/search.h"
-#include "ai/transposition_table.h"
-#include "io/pp.h"
-
-#include <assert.h>
-#include <limits.h>
-#include <stdbool.h>
-#include <stddef.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-
-// As x increases, distance from center in x decreases.
-// Same for y.
-const int TOPLEFT_PAWN_ADV_TABLE[4][4] = {
-  {-520, -470, -420, -320},
-  {-470, -420, -370, -270},
-  {-420, -370, -320, -220},
-  {-320, -270, -220,  -20},
-};
-
-const int TOPLEFT_PAWN_ISLAND_ADV_TABLE[4][4] = {
-  {-150, -100,  -50,    0},
-  {-100,  -50,    0,   50},
-  { -50,    0,   50,  100},
-  {   0,   50,  100,  120},
-};
-
-const int TOPLEFT_KNIGHT_ADV_TABLE[4][4] = {
-  { 400,  450,  500,  600},
-  { 450,  500,  550,  660},
-  { 500,  550,  670,  650},
-  { 600,  670,  650,  670}
-};
-
-const int TOPLEFT_KNIGHT_ISLAND_ADV_TABLE[4][4] = {
-  { 400,  450,  500,  600},
-  { 450,  500,  550,  660},
-  { 500,  550,  720,  650},
-  { 600,  670,  650,  700}
-};
 
 static inline int _get_evaluation(board_state_t* state, ai_cache_t* cache) {
   int eval = 0;
@@ -88,6 +46,15 @@ _evaluate(board_state_t* state,
           eval_t alpha,
           eval_t beta,
           bool starting_move) {
+
+  if (cache->cancel_search) {
+    if (starting_move) {
+      pp_f("[canceled search]\n");
+    }
+
+    *best_moves_length = 0;
+    return EVAL_INVALID;
+  }
 
   // Can be used to debug whilst trying to optimise the evaluate function.
 #ifdef MEASURE_EVAL_COUNT
@@ -185,10 +152,13 @@ _evaluate(board_state_t* state,
 #endif
 
     do_move(state, history, move);
-
     eval_t evaluation = _evaluate(state, history, cache, new_depth, NULL, &new_moves_length, alpha, beta, false);
-
     undo_last_move(state, history);
+
+    if (evaluation == EVAL_INVALID) {
+      *best_moves_length = 0;
+      return EVAL_INVALID;
+    }
 
 #ifdef TEST_EVAL_STATE
     assert(_test_old_state.hash == state->hash && compare(board, (board_t *)&_test_old_board));
@@ -265,100 +235,4 @@ _evaluate(board_state_t* state,
 #endif
 
   return best_evaluation;
-}
-
-eval_t
-evaluate(board_state_t *state,
-         history_t *history,
-         size_t max_depth,
-         move_t *best_moves,
-         size_t *best_moves_length) {
-
-  // Reset the measuring variables.
-#ifdef MEASURE_EVAL_COUNT
-  evaluate_count = 0;
-  ab_branch_cut_count = 0;
-  game_end_count = 0;
-  leaf_count = 0;
-
-#ifdef MM_OPT_TRANSPOSITION
-  tt_remember_count = 0;
-  tt_saved_count = 0;
-  tt_overwritten_count = 0;
-  tt_rewritten_count = 0;
-#endif
-
-#endif
-
-  ai_cache_t cache;
-  setup_cache(&cache,
-              TOPLEFT_PAWN_ADV_TABLE,
-              TOPLEFT_PAWN_ISLAND_ADV_TABLE,
-              TOPLEFT_KNIGHT_ADV_TABLE,
-              TOPLEFT_KNIGHT_ISLAND_ADV_TABLE);
-
-
-#ifdef MEASURE_EVAL_TIME
-  clock_t start = clock();
-#endif
-
-  io_debug();
-  pp_f("debug: calling _evaluate with depth %u for %s\n", max_depth, state->turn ? "white" : "black");
-  pp_board(state->board, false);
-
-  eval_t evaluation = _evaluate(state,
-                                history,
-                                &cache,
-                                max_depth,
-                                best_moves,
-                                best_moves_length,
-                                EVAL_BLACK_MATES,
-                                EVAL_WHITE_MATES,
-                                true);
-
-  io_debug();
-  pp_moves(best_moves, *best_moves_length);
-  pp_f(" -> ");
-  pp_eval(evaluation, state->board, history);
-  pp_f("\n");
-
-#ifdef MEASURE_EVAL_TIME
-  pp_f("measure: took %dms\n", (clock() - start) / (CLOCKS_PER_SEC / 1000));
-#endif
-
-#ifdef MEASURE_EVAL_COUNT
-  pp_f("measure: called _evaluate %d times.\n",
-       evaluate_count);
-  pp_f("measure: cut %d branches.\n",
-       ab_branch_cut_count);
-  pp_f("measure: found %d (%d %%) different game ends.\n",
-       game_end_count,
-       game_end_count * 100 / evaluate_count);
-  pp_f("measure: found total %d (%d %%) leaves.\n",
-       leaf_count,
-       leaf_count * 100 / evaluate_count);
-
-#ifdef MM_OPT_TRANSPOSITION
-  pp_f("measure: in total, used %d (%d %%) transposition tables entries.\n",
-       tt_saved_count,
-       tt_saved_count * 100 / AI_HASHMAP_SIZE);
-  if (tt_saved_count != 0) {
-    pp_f("measure: remembered %d (%d %% per call, %d %% per entry) times.\n",
-         tt_remember_count,
-         tt_remember_count * 100 / evaluate_count,
-         tt_remember_count * 100 / tt_saved_count);
-    pp_f("measure: overwritten the same board %u (%u %%) times.\n",
-         tt_overwritten_count,
-         tt_overwritten_count * 100 / tt_saved_count);
-    pp_f("measure: rewritten a different board %u (%u %%) times.\n",
-         tt_rewritten_count,
-         tt_rewritten_count * 100 / tt_saved_count);
-  }
-#endif
-
-#endif
-
-  free_cache(&cache);
-
-  return evaluation;
 }

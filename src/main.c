@@ -45,7 +45,10 @@ void initialize() {
     global_options.exit_if_error = true;
   }
 
-  global_options.ai_depth = 8;
+  global_options.ai_depth = 256;
+  global_options.ai_time.tv_nsec = 0;
+  global_options.ai_time.tv_sec = 2;
+
   global_options.white_automove = false;
   global_options.black_automove = false;
 }

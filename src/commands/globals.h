@@ -7,8 +7,10 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include <time.h>
 
 typedef struct {
+  struct timespec ai_time;
   size_t ai_depth;
 
   bool white_automove;

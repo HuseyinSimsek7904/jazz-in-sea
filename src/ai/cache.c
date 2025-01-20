@@ -7,6 +7,8 @@ void setup_cache(ai_cache_t* cache,
                  const int topleft_knight[4][4],
                  const int topleft_knight_island[4][4]) {
 
+  cache->cancel_search = false;
+
   // Load the advantage tables.
   for (int row=0; row<8; row++) {
     for (int col=0; col<8; col++) {

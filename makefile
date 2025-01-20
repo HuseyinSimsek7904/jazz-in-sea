@@ -29,9 +29,11 @@ src/state/status.o		\
 src/state/hash_operations.o	\
 src/io/pp.o			\
 src/io/fen.o			\
-src/ai/search.o			\
 src/ai/transposition_table.o	\
 src/ai/measure_count.o		\
+src/ai/evaluation.o		\
+src/ai/search.o			\
+src/ai/iterative_deepening.o	\
 src/move/make_move.o		\
 src/move/generation.o		\
 

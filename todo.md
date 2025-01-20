@@ -53,7 +53,7 @@
 - [ ] #52  (chore) evaluate should not generate the moves and instead should only return the evaluation information. The ai cache can then be checked to determine the best moves
 - [ ] #53  (feat) implement delta evaluation with proper test functions
 - [ ] #54  (feat) implement time management for the api
-- [ ] #55  (feat) implement time management for the ai
+- [x] #55  (feat) implement time management for the ai
 - [ ] #56  (feat) implement a notation for game history
 - [ ] #57  (feat) implement move ordering
 - [ ] #58  (chore) disable getopt error messages and write our own

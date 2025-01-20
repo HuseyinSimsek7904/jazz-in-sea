@@ -3,7 +3,7 @@
 
 #include "commands/globals.h"
 
-#include "ai/search.h"
+#include "ai/eval_t.h"
 #include "board/board_t.h"
 #include "board/piece_t.h"
 #include "board/pos_t.h"
