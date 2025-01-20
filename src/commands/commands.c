@@ -232,7 +232,7 @@ command_define(status,
                "\n"
                "Print the current board status.\n") {
 
-  io_info();
+  io_basic();
   pp_f("%s\n", board_status_text(game_state.status));
   return true;
 }
@@ -539,7 +539,7 @@ command_define(help,
                "\n"
                "Print this message or get information about COMMAND.\n") {
 
-  io_info();
+  io_basic();
   if (argc == 1) {
     pp_f("For more information on a command, use 'help COMMAND'\n\n");
     for (size_t i=0; command_entries[i].function != NULL; i++) {
