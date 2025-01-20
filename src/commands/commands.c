@@ -460,7 +460,7 @@ command_define(removeat,
 }
 
 command_define(aidepth,
-               "Set the search depth of the AI",
+               "Set the maximum allowed search depth of the AI",
                "Usage: aidepth [DEPTH]\n"
                "\n"
                "Set the search depth of the AI to DEPTH if DEPTH is given. Otherwise print.\n") {
@@ -473,6 +473,32 @@ command_define(aidepth,
   case 2:
     global_options.ai_depth = atoi(argv[1]);
     return true;
+  default:
+    io_error();
+    pp_f("command 'aidepth' expects 0 or 1 argument.\n");
+    return false;
+  }
+}
+
+command_define(aitime,
+               "Set the maximum allowed search time of the AI",
+               "Usage: aidepth [TIME]\n"
+               "\n"
+               "Set the search depth of the AI to TIME if TIME is given. Otherwise print.\n"
+               "TIME is in milliseconds.\n") {
+
+  switch (argc) {
+  case 1:
+    io_basic();
+    pp_f("%zu\n", global_options.ai_time.tv_sec * 1000 + global_options.ai_time.tv_nsec / 1000000);
+    return true;
+  case 2:
+    {
+      long milliseconds = atoi(argv[1]);
+      global_options.ai_time.tv_sec = milliseconds / 1000;
+      global_options.ai_time.tv_nsec = (milliseconds % 1000) * 1000000;
+      return true;
+    }
   default:
     io_error();
     pp_f("command 'aidepth' expects 0 or 1 argument.\n");
@@ -589,6 +615,7 @@ command_entry_t command_entries[] = {
   command_entry(placeat)
   command_entry(removeat)
   command_entry(aidepth)
+  command_entry(aitime)
   command_entry(playai)
   command_entry(evaluate)
   command_entry(test)

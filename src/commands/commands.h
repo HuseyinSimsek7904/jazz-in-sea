@@ -26,6 +26,7 @@ command_declare(evaluate);
 command_declare(placeat);
 command_declare(removeat);
 command_declare(aidepth);
+command_declare(aitime);
 command_declare(test);
 command_declare(help);
 
