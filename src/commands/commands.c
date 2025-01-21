@@ -575,7 +575,7 @@ command_define(help,
       for (int i=0; i<message_x - strlen(command.name); i++) {
         pp_f(" ");
       }
-      pp_f("%s\n", command.simple_description);
+      pp_f("%s\n", *command.simple_description);
     }
     pp_f("\n");
     return true;
@@ -584,7 +584,7 @@ command_define(help,
   // Check for the command name in the command entries.
   for (size_t command_id=0; command_entries[command_id].name != NULL; command_id++) {
     if (!strcmp(argv[1], command_entries[command_id].name)) {
-      pp_f("\n%s\n", command_entries[command_id].full_description);
+      pp_f("\n%s\n", *command_entries[command_id].full_description);
       return true;
     }
   }
