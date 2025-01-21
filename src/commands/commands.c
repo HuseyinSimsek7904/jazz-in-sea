@@ -1,14 +1,24 @@
+#include "ai/eval_t.h"
+#include "board/status_t.h"
 #include "commands/globals.h"
 #include "io/pp.h"
 #include "io/fen.h"
 #include "move/make_move.h"
 #include "move/generation.h"
 #include "ai/evaluation.h"
+#include "move/move_t.h"
 
-#include <bits/types/struct_timeval.h>
+#include <bits/types/siginfo_t.h>
 #include <getopt.h>
+#include <signal.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <time.h>
+#include <unistd.h>
 
 void make_automove() {
   // Check if the current player should be automoved.
@@ -526,34 +536,217 @@ static inline size_t count_branches(size_t depth) {
   return branches;
 }
 
+bool wait_for_child_resp(pid_t pid, char buffer[256], FILE* child_stdout) {
+  fgets(buffer, 256, child_stdout);
+
+  // This command does not accept very long outputs return error.
+  if (strlen(buffer) == 255) {
+    return true;
+  }
+
+  int status;
+  waitpid(pid, &status, WNOHANG);
+
+  return WIFEXITED(status);
+}
+
 command_define(test,
                "Run a test command",
                "Usage: test [OPTION]...\n"
                "\n"
                "Run a test command.\n"
                "\n"
-               "  -l [DEPTH]    Count the number of reachable leaves in DEPTH ply.\n") {
-
-  size_t depth = 0;
-  enum { LEAF_COUNT } test = LEAF_COUNT;
+               "  -l DEPTH      Count the number of reachable leaves in DEPTH ply.\n"
+               "  -f EXEC       Play a game against another AI process with the same time and depth limits.\n ") {
 
   optind = 0;
   while (true) {
-    int c = getopt(argc, argv, "l:");
+    int c = getopt(argc, argv, "l:f:");
     switch (c) {
     case '?':
       return false;
-    case 'l':
-      depth = atoi(optarg);
-      test = LEAF_COUNT;
-      break;
-    case -1:
-      switch (test) {
-      case LEAF_COUNT:
-        io_basic();
-        pp_f("%zu\n", count_branches(depth));
-        return true;
+
+    case 'f':
+      {
+        int child_stdin_fd[2];
+        int child_stdout_fd[2];
+        int child_stderr_fd[2];
+
+        // Create pipe for stdin, stdout and stderr.
+        if (pipe(child_stdin_fd) < 0) {
+          io_error();
+          pp_f("error: could not create pipe\n");
+          return false;
+        }
+
+        if (pipe(child_stdout_fd) < 0) {
+          io_error();
+          pp_f("error: could not create pipe\n");
+          return false;
+        }
+
+        if (pipe(child_stderr_fd) < 0) {
+          io_info();
+          pp_f("error: could not create pipe\n");
+          return false;
+        }
+
+        pid_t pid = fork();
+        switch (pid) {
+        case -1:
+          io_error();
+          pp_f("error: could not fork child\n");
+          return false;
+
+        case 0:
+          {
+            // Child reads from the command pipe and writes to the return pipe.
+            close(child_stdin_fd[1]);
+            close(child_stdout_fd[0]);
+            close(child_stderr_fd[0]);
+
+            // Duplicate the pipes into the standard streams.
+            dup2(child_stdin_fd[0], fileno(stdin));
+            dup2(child_stdout_fd[1], fileno(stdout));
+            dup2(child_stderr_fd[1], fileno(stderr));
+
+            // Create the command strings using sprintf.
+            char fen_buffer[256];
+            get_fen_string(fen_buffer, &game_state);
+            char loadfen_command[512];
+            sprintf(loadfen_command, "loadfen '%s'", fen_buffer);
+
+            char aitime_command[512];
+            sprintf(aitime_command, "aitime %ld", global_options.ai_time.tv_sec * 1000 + global_options.ai_time.tv_nsec / 1000000);
+
+            char aidepth_command[512];
+            sprintf(aidepth_command, "aidepth %zu", global_options.ai_depth);
+
+            // Create the process.
+            char* argv[] = { optarg, loadfen_command, aitime_command, aidepth_command, NULL };
+
+            execv(optarg, argv);
+
+            io_error();
+            pp_f("error: execv returned\n");
+
+            close(child_stdin_fd[0]);
+            close(child_stdout_fd[1]);
+            close(child_stderr_fd[1]);
+            exit(1);
+          }
+
+        default:
+          // Parent writes to the pipe and reads from the return pipe.
+          close(child_stdin_fd[0]);
+          close(child_stdout_fd[1]);
+          close(child_stderr_fd[1]);
+
+          FILE* child_stdin = fdopen(child_stdin_fd[1], "a");
+          FILE* child_stdout = fdopen(child_stdout_fd[0], "r");
+          FILE* child_stderr = fdopen(child_stderr_fd[0], "r");
+
+          char buffer[256];
+
+          while (true) {
+            // Before making any move, ask the child what the status is.
+            // If it is different than ours, there is a problem.
+            io_info();
+            pp_board(game_state.board, false);
+            pp_f("%s to move\n", game_state.turn ? "white" : "black");
+
+            fprintf(child_stdin, "status\n");
+            fflush(child_stdin);
+
+            if (wait_for_child_resp(pid, buffer, child_stdout)) break;
+
+            // Hacky way to remove the newline character at the end of the buffer.
+            buffer[strlen(buffer) - 1] = '\0';
+
+            // If the status was different than expected report error.
+            if (strcmp(board_status_text(game_state.status), buffer)) {
+              io_error();
+              pp_f("error: status from child does not match\n");
+              break;
+            }
+
+            if (game_state.status != NORMAL) {
+              io_info();
+              pp_f("game ended\n");
+              pp_f("%s\n", board_status_text(game_state.status));
+              break;
+            }
+
+            move_t move;
+            if (game_state.turn) {
+              // If it is our turn to play, generate a random best move.
+              move_t best_moves[256];
+              size_t best_moves_length;
+              evaluate(&game_state, &game_history, global_options.ai_depth, global_options.ai_time, best_moves, &best_moves_length);
+              move = best_moves[rand() % best_moves_length];
+
+            } else {
+              // If it is the child's turn to play, ask for a move.
+              fprintf(child_stdin, "evaluate -r\n");
+              fflush(child_stdin);
+              if (wait_for_child_resp(pid, buffer, child_stdout)) break;
+
+              // Remove the newline character after the move.
+              buffer[strlen(buffer) - 1] = '\0';
+
+              // If the move was invalid report error.
+              if (!string_to_move(buffer, game_state.board, &move)) {
+                io_error();
+                pp_f("error: invalid move from child, '%s'\n", buffer);
+                break;
+              }
+            }
+
+            io_info();
+            pp_f("playing move: ");
+            pp_move(move);
+            pp_f("\n");
+
+            // Make move and ask the child to make the move on their board as well.
+            do_move(&game_state, &game_history, move);
+            fprintf(child_stdin, "makemove ");
+            fprint_move(child_stdin, move);
+            fprintf(child_stdin, "\n");
+            fflush(child_stdin);
+          }
+
+          int status;
+          waitpid(pid, &status, WNOHANG);
+          if (WIFEXITED(status)) {
+            pp_f("process exited with exit code %u\n", WEXITSTATUS(status));
+          } else {
+            kill(pid, SIGKILL);
+            pp_f("killed process\n");
+          }
+
+          char buffer_stderr[256];
+          io_debug();
+          pp_f("error output from process:\n");
+          while (true) {
+            if (!fgets(buffer_stderr, 256, child_stderr)) break;
+            pp_f("%s", buffer_stderr);
+          }
+          pp_f("\n");
+
+          fclose(child_stdin);
+          fclose(child_stdout);
+          fclose(child_stderr);
+          return true;
+        }
       }
+
+    case 'l':
+      io_basic();
+      pp_f("%zu\n", count_branches(atoi(optarg)));
+      return true;
+
+    case -1:
+      return true;
     }
   }
 }
