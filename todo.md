@@ -15,7 +15,7 @@
 - [x] #14  (feat) add fen saver
 - [x] #15  (feat) implement `DRAW_BY_REPETITION` and `DRAW_BY_NO_MOVES`
 - [ ] #16  (feat) implement quick mate search when either players are down to only 1 pieces
-- [ ] #17  (feat) implement game history
+- [x] #17  (feat) implement game history
 - [x] #18  (feat) eval should return an array of best moves
 - [x] #19  (feat) imlement cli like commands (requires #1, #2)
 - [x] #20  (feat) implement pvp, pvb and bvb (requires #1, #2, #19)
@@ -23,8 +23,8 @@
 - [x] #22  (chore) some frequently used functions should be placed in headers as inline functions
 - [ ] #23  (feat) create the endgame tablebase
 - [x] #24  (feat) implement memoisation for the ai
-- [ ] #25  (feat) implement long term memoisation for absolute evaluations like `WHITE_WINS` and `BLACK_WINS`
-- [ ] #26  (chore) convert the recursive ai to iterative ai, which will make it possible to find the mate in 6 without having to check 10 nodes deep branches
+- [x] #25  (feat) implement long term memoisation for absolute evaluations like `WHITE_WINS` and `BLACK_WINS`
+- [-] #26  (chore) convert the recursive ai to iterative ai, which will make it possible to find the mate in 6 without having to check 10 nodes deep branches
 - [x] #27  (chore) replace `_pawn_pos_adv` and `_knight_pos_adv` with prebuilt arrays of advantage values
 - [x] #28  (feat) eval should not recalculate the board evaluation and instead should always look for the evaluation difference
 - [x] #29  (chore) create `piece_t`
