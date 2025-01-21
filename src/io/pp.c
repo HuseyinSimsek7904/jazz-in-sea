@@ -262,34 +262,11 @@ void fprint_moves(FILE* file, move_t* moves, size_t length) {
   fprintf(file, " }");
 }
 
-int generate_argv(char* arg_buffer, char** argv, const size_t arg_buffer_size, const size_t argv_size) {
-  // Get the command and parse it.
-  char buffer[256];
-
-  io_info();
-  pp_f("> ");
-
-  char* result = fgets(buffer, sizeof(buffer), stdin);
-
-  if (global_options.interactive) {
-    if (feof(stdin)) {
-      pp_f("\n");
-      exit(0);
-    }
-  } else {
-    if (result != NULL) {
-      pp_f("[filled from pipe] -- %s", result);
-    }
-
-    if (feof(stdin)) {
-      pp_f("[end of pipe]\n");
-      exit(0);
-    }
-  }
-
+int generate_argv(char* buffer, char* arg_buffer, char** argv, const size_t arg_buffer_size, const size_t argv_size) {
   int argc = 0;
   char* buffer_ptr = buffer;
   char* arg_buffer_ptr = arg_buffer;
+
   while (true) {
     // Ignore the whitespaces.
     char c;
@@ -314,17 +291,7 @@ int generate_argv(char* arg_buffer, char** argv, const size_t arg_buffer_size, c
     }
     argv[argc++] = arg_buffer_ptr;
 
-    while (quote ? c != quote : !is_whitespace(c)){
-      if (c == '\0') {
-        if (quote) {
-          io_error();
-          pp_f("error: unterminated quote\n");
-          return -1;
-        }
-
-        break;
-      }
-
+    while (quote ? c != quote : !is_whitespace(c)) {
       // Check for buffer overflow and move the character.
       if (arg_buffer_ptr > arg_buffer + arg_buffer_size) {
         io_error();
@@ -332,6 +299,24 @@ int generate_argv(char* arg_buffer, char** argv, const size_t arg_buffer_size, c
         return -1;
       }
       *arg_buffer_ptr++ = c;
+
+      if (c == '\0') {
+        if (quote) {
+          io_error();
+          pp_f("error: unterminated quote\n");
+          return -1;
+        }
+
+        // After all of the buffers are filled, add a null ptr to the arg_ptr_buffer.
+        if (argc > argv_size) {
+          io_error();
+          pp_f("error: argv overflow\n");
+          return -1;
+        }
+
+        argv[argc] = 0;
+        return argc;
+      }
 
       c = *buffer_ptr++;
     }

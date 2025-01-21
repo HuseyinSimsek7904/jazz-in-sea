@@ -10,6 +10,8 @@
 #include <time.h>
 
 typedef struct {
+  char* executable;
+
   struct timespec ai_time;
   size_t ai_depth;
 
@@ -18,6 +20,7 @@ typedef struct {
 
   bool exit_if_error;
   bool interactive;
+  bool accept_stdin;
 
   FILE* file_basic;
   FILE* file_error;

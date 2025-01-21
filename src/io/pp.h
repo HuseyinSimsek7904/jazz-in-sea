@@ -70,6 +70,6 @@ static inline void pp_eval(eval_t eval, board_t board, history_t* history) {
   fprint_eval(global_options.current_file, eval, history);
 }
 
-int generate_argv(char* arg_buffer, char** argv, const size_t arg_buffer_size, const size_t argv_size);
+int generate_argv(char* buffer, char* arg_buffer, char** argv, const size_t arg_buffer_size, const size_t argv_size);
 
 #endif
