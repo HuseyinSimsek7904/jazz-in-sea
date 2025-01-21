@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -30,8 +31,8 @@ void print_help_message(const char* executable) {
        "    -r          Derandomize the output\n"
        "    -s          Do not print 'info' messages\n"
        "    -n          Do not accept commands via stdin, only command line\n"
-       "    -i PATH     Dump 'info' messages to PATH\n"
-       "    -d PATH     Dump 'debug' messages to PATH\n",
+       "    -i PATH     Dump 'info' messages to PATH, if PATH is '%' then to stderr\n"
+       "    -d PATH     Dump 'debug' messages to PATH, if PATH is '%' then to stderr\n",
        executable);
 }
 
@@ -66,18 +67,26 @@ void parse_command_line_args(int argc, char **argv) {
       break;
 
     case 'i':
-      global_options.file_info = fopen(optarg, "a");
-      if (global_options.file_info < 0) {
-        pp_f("error: could not open file '%s'", optarg);
-        exit(1);
+      if (!strcmp(optarg, "%")) {
+        global_options.file_info = stderr;
+      } else {
+        global_options.file_info = fopen(optarg, "a");
+        if (global_options.file_info < 0) {
+          pp_f("error: could not open file '%s'", optarg);
+          exit(1);
+        }
       }
       break;
 
     case 'd':
-      global_options.file_debug = fopen(optarg, "a");
-      if (global_options.file_debug < 0) {
-        pp_f("error: could not open file '%s'", optarg);
-        exit(1);
+      if (!strcmp(optarg, "%")) {
+        global_options.file_debug = stderr;
+      } else {
+        global_options.file_debug = fopen(optarg, "a");
+        if (global_options.file_debug < 0) {
+          pp_f("error: could not open file '%s'", optarg);
+          exit(1);
+        }
       }
       break;
     }
@@ -130,7 +139,7 @@ void initialize(int argc, char** argv) {
   global_options.file_basic = stdout;
   global_options.file_error = stderr;
   global_options.file_info = stderr;
-  global_options.file_debug = stderr;
+  global_options.file_debug = fopen("/dev/null", "w");
 
   parse_command_line_args(argc, argv);
 
