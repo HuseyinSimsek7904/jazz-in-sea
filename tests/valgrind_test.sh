@@ -3,7 +3,7 @@
 echo "testing with valgrind..."
 
 >&2 echo -en "\e[1;31m"
-echo -e "aidepth 6\nevaluate\n" | valgrind --quiet --error-exitcode=1 ./build/main -s > /dev/null
+valgrind --quiet --error-exitcode=1 ./build/main -s > /dev/null
 exit=$?
 >&2 echo -en "\e[0m"
 

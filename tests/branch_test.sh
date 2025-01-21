@@ -16,7 +16,10 @@ branch_check() {
 
     for i in $(seq 0 $[ $total - 1 ]); do
         expect="${branches[i]}"
-        got=$(echo -e "loadfen -f '$path'\ntest -l $i\n" | ./build/main -s 2>&1)
+        got=$(./build/main -sn \
+                           "loadfen -f '$path'" \
+                           "test -l $i" \
+                           2>&1)
         exit=$?
 
         if [ "$exit" != 0 ]; then
