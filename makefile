@@ -1,6 +1,6 @@
 SRC-DIR		?= ./src
 BUILD-DIR	?= ./build
-TESTS-DIR	?= ./tests
+TESTS-DIR	?= ./scripts/tests
 
 # TEST_EVAL_STATE	Test if the state object is the same before and
 #			after call to '_evaluate'.
