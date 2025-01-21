@@ -48,6 +48,12 @@ void* _id_routine(void* r_args) {
     pp_f(" -> ");
     pp_eval(new_evaluation, state->board, history);
     pp_f("\n");
+
+    if (is_mate(*evaluation)) {
+      io_debug();
+      pp_f("debug: reached mate, stopping iterative deepening");
+      break;
+    }
   }
 
   return NULL;
