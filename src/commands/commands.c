@@ -97,8 +97,7 @@ command_define(loadfen,
 
 command_define(savefen,
                "Print the board position FEN",
-               "\n"
-               "Usage: savefen"
+               "Usage: savefen [OPTION]...\n"
                "\n"
                "Print the current board configuration.\n"
                "\n"
