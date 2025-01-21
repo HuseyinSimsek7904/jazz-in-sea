@@ -18,9 +18,9 @@ CMACROS		?=	\
 -DMEASURE_EVAL_TIME	\
 -DMM_OPT_TRANSPOSITION	\
 -UMM_OPT_EXC_DEEPENING	\
+-DMM_OPT_ORDERING	\
 
 LDLIBS		:=		\
-src/ai/cache.o			\
 src/commands/commands.o		\
 src/commands/globals.o		\
 src/state/history.o		\
@@ -29,6 +29,9 @@ src/state/status.o		\
 src/state/hash_operations.o	\
 src/io/pp.o			\
 src/io/fen.o			\
+src/ai/cache.o			\
+src/ai/move_ordering.o		\
+src/ai/position_evaluation.o	\
 src/ai/transposition_table.o	\
 src/ai/measure_count.o		\
 src/ai/evaluation.o		\

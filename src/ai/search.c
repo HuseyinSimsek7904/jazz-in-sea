@@ -1,39 +1,12 @@
 #include "ai/search.h"
 #include "ai/eval_t.h"
+#include "ai/move_ordering.h"
+#include "ai/position_evaluation.h"
 #include "io/pp.h"
 #include "move/generation.h"
 #include "move/make_move.h"
+
 #include <stdio.h>
-
-static inline int _get_evaluation(board_state_t* state, ai_cache_t* cache) {
-  int eval = 0;
-  for (int row=0; row<8; row++) {
-    for (int col=0; col<8; col++) {
-      pos_t pos = to_position(row, col);
-      piece_t piece = get_piece(state->board, pos);
-      char piece_color = get_piece_color(piece);
-      int piece_eval;
-
-      if (piece_color == MOD_EMPTY) continue;
-
-      switch (get_piece_type(piece)) {
-      case MOD_PAWN:
-        piece_eval = state->islands[pos] ? cache->pawn_island_adv_table[pos] : cache->pawn_adv_table[pos];
-        break;
-      case MOD_KNIGHT:
-        piece_eval = state->islands[pos] ? cache->knight_island_adv_table[pos] : cache->knight_adv_table[pos];
-        break;
-      default:
-        assert(false);
-        return 0;
-      }
-
-      if (piece_color == MOD_BLACK) piece_eval = -piece_eval;
-      eval += piece_eval;
-    }
-  }
-  return eval;
-}
 
 // Find the best continuing moves available and their evaluation value.
 eval_t
@@ -110,7 +83,7 @@ _evaluate(board_state_t* state,
     leaf_count++;
 #endif
 
-    return _get_evaluation(state, cache);
+    return get_board_evaluation(state, cache);
   }
 
   move_t moves[256];
@@ -131,6 +104,11 @@ _evaluate(board_state_t* state,
     *best_moves_length = 1;
     return EVAL_INVALID;
   }
+
+  // Order moves for better pruning.
+#ifdef MM_OPT_ORDERING
+  order_moves(state, cache, moves, moves_length, state->turn);
+#endif
 
   eval_t best_evaluation = EVAL_INVALID;
   *best_moves_length = 0;
