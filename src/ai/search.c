@@ -57,7 +57,6 @@ _evaluate(board_state_t* state,
     return EVAL_BLACK_MATES + history->size;
   }
 
-#ifdef MM_OPT_TRANSPOSITION
   // Check if this board was previously calcuated.
   {
     eval_t possible_eval = try_find_tt(cache,
@@ -74,7 +73,6 @@ _evaluate(board_state_t* state,
       return possible_eval;
     }
   }
-#endif
 
   // Check if we reached the end of the best_line buffer.
   // If so, just return the evaluation.
@@ -107,9 +105,7 @@ _evaluate(board_state_t* state,
   }
 
   // Order moves for better pruning.
-#ifdef MM_OPT_ORDERING
   order_moves(state, cache, moves, moves_length, state->turn);
-#endif
 
   eval_t best_evaluation = EVAL_INVALID;
   *best_moves_length = 0;
@@ -216,9 +212,7 @@ _evaluate(board_state_t* state,
         ab_branch_cut_count++;
 #endif
 
-#ifdef MM_OPT_TRANSPOSITION
         // try_add_tt(cache, state->hash, history->size, max_depth, best_evaluation, LOWER);
-#endif
         return best_evaluation;
       }
 
@@ -231,9 +225,7 @@ _evaluate(board_state_t* state,
         ab_branch_cut_count++;
 #endif
 
-#ifdef MM_OPT_TRANSPOSITION
         // try_add_tt(cache, state->hash, history->size, max_depth, best_evaluation, UPPER);
-#endif
         return best_evaluation;
       }
 
@@ -242,9 +234,7 @@ _evaluate(board_state_t* state,
     }
   }
 
-#ifdef MM_OPT_TRANSPOSITION
   try_add_tt(cache, state->hash, history->size, max_depth, best_evaluation, EXACT);
-#endif
 
   return best_evaluation;
 }

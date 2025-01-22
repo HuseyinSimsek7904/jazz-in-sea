@@ -25,7 +25,6 @@ int cmp_short_eval_move(const void* a, const void* b) {
   return (a_s.est_eval > b_s.est_eval) - (a_s.est_eval < b_s.est_eval);
 }
 
-#ifdef MM_OPT_ORDERING
 void order_moves(board_state_t* state, ai_cache_t* cache, move_t *moves, size_t length, bool descending) {
   est_eval_move_t eval_moves[256];
 
@@ -62,4 +61,3 @@ void order_moves(board_state_t* state, ai_cache_t* cache, move_t *moves, size_t 
     moves[i] = eval_moves[i].move;
   }
 }
-#endif

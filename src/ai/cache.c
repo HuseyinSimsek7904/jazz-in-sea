@@ -35,7 +35,6 @@ void setup_cache(ai_cache_t* cache,
   cache->late_move_min_depth = 3;
   cache->exchange_deepening = 2;
 
-#ifdef MM_OPT_TRANSPOSITION
   cache->transposition_table = malloc(sizeof(tt_entry_t) * AI_HASHMAP_SIZE);
 
   // Depth < 0 on a memorized item indicates not set.
@@ -44,11 +43,8 @@ void setup_cache(ai_cache_t* cache,
       .eval = EVAL_INVALID
     };
   }
-#endif
 }
 
 void free_cache(ai_cache_t* cache) {
-#ifdef MM_OPT_TRANSPOSITION
   free(cache->transposition_table);
-#endif
 }

@@ -6,18 +6,14 @@ TESTS-DIR	?= ./scripts/tests
 #			after call to '_evaluate'.
 
 DEBUG-MACROS	?=	\
--DTEST_EVAL_STATE	\
+-UTEST_EVAL_STATE	\
 
 # MEASURE_EVAL_COUNT	Count the number of calls to the _evaluate function.
 # MEASURE_EVAL_TIME	Measure how long the _evaluate function takes.
-# MM_OPT_TRANSPOSITION  Use transpositions tables.
-# MM_OPT_EXC_DEEPENING  Deepen searching the capture nodes.
 
 CMACROS		?=	\
 -DMEASURE_EVAL_COUNT	\
 -DMEASURE_EVAL_TIME	\
--DMM_OPT_TRANSPOSITION	\
--DMM_OPT_ORDERING	\
 
 LDLIBS		:=		\
 src/commands/commands.o		\

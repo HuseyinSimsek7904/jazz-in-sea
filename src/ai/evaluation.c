@@ -71,13 +71,10 @@ evaluate(board_state_t *state,
   game_end_count = 0;
   leaf_count = 0;
 
-#ifdef MM_OPT_TRANSPOSITION
   tt_remember_count = 0;
   tt_saved_count = 0;
   tt_overwritten_count = 0;
   tt_rewritten_count = 0;
-#endif
-
 #endif
 
   ai_cache_t cache;
@@ -137,7 +134,6 @@ evaluate(board_state_t *state,
        leaf_count,
        leaf_count * 100 / evaluate_count);
 
-#ifdef MM_OPT_TRANSPOSITION
   pp_f("measure: in total, used %d (%d %%) transposition tables entries.\n",
        tt_saved_count,
        tt_saved_count * 100 / AI_HASHMAP_SIZE);
@@ -153,8 +149,6 @@ evaluate(board_state_t *state,
          tt_rewritten_count,
          tt_rewritten_count * 100 / tt_saved_count);
   }
-#endif
-
 #endif
 
   free_cache(&cache);

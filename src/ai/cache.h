@@ -6,7 +6,6 @@
 
 #define AI_HASHMAP_SIZE 0x20000
 
-#ifdef MM_OPT_TRANSPOSITION
 typedef enum { EXACT, LOWER, UPPER } node_type_t;
 
 typedef struct {
@@ -15,7 +14,6 @@ typedef struct {
   eval_t eval;
   node_type_t node_type;
 } tt_entry_t;
-#endif
 
 typedef struct {
   bool cancel_search;
@@ -32,9 +30,7 @@ typedef struct {
   int late_move_min_depth;
   int exchange_deepening;
 
-#ifdef MM_OPT_TRANSPOSITION
   tt_entry_t (*transposition_table)[AI_HASHMAP_SIZE];
-#endif
 } ai_cache_t;
 
 void setup_cache(ai_cache_t *,

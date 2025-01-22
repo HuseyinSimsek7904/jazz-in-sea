@@ -4,8 +4,6 @@
 #include "ai/measure_count.h"
 #include "io/pp.h"
 
-#ifdef MM_OPT_TRANSPOSITION
-
 // Return the transposition entry for a board hash.
 tt_entry_t* get_entry_tt(ai_cache_t* cache,
                          hash_t hash) {
@@ -82,5 +80,3 @@ try_find_tt(ai_cache_t* cache,
 
   return entry.eval;
 }
-
-#endif
