@@ -27,6 +27,10 @@ void setup_cache(ai_cache_t* cache,
     }
   }
 
+  // For now, load constant values.
+  cache->est_evaluation_pos = 1;
+  cache->est_evaluation_old = 10;
+
 #ifdef MM_OPT_TRANSPOSITION
   cache->transposition_table = malloc(sizeof(tt_entry_t) * AI_HASHMAP_SIZE);
 

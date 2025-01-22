@@ -33,11 +33,23 @@ void order_moves(board_state_t* state, ai_cache_t* cache, move_t *moves, size_t 
   for (size_t i=0; i<length; i++) {
     move_t move = moves[i];
 
-    eval_t short_evaluation = get_short_move_evaluation(state, cache, move);
+    piece_t piece = get_piece(state->board, move.from);
+    tt_entry_t* entry = get_entry_tt(cache, state->hash ^ get_hash_for_move(state, piece, move));
+
+    eval_t estimate_evaluation;
+    if (is_mate(entry->eval)) {
+      estimate_evaluation = entry->eval;
+    } else {
+      // Calculate estimate evaluation using a linear combination of short evaluation and old evaluation.
+      eval_t short_evaluation = get_short_move_evaluation(state, cache, move);
+      estimate_evaluation =
+        entry->eval * entry->depth * cache->est_evaluation_old +
+        short_evaluation * cache->est_evaluation_pos;
+    }
 
     // Negate the evaluation score to create the effect of reversing the output.
     eval_moves[i] = (est_eval_move_t){
-      .est_eval = descending ? -short_evaluation : short_evaluation,
+      .est_eval = descending ? -estimate_evaluation : estimate_evaluation,
       .move = move,
     };
   }

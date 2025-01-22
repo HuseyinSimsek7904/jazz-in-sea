@@ -25,6 +25,9 @@ typedef struct {
   int knight_adv_table[256];
   int knight_island_adv_table[256];
 
+  int est_evaluation_pos;
+  int est_evaluation_old;
+
 #ifdef MM_OPT_TRANSPOSITION
   tt_entry_t (*transposition_table)[AI_HASHMAP_SIZE];
 #endif
