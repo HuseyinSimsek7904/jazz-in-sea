@@ -194,6 +194,13 @@ command_define(makemove,
                "Usage: makemove MOVE\n"
                "\n"
                "Try to make MOVE if it is a valid move.\n") {
+
+  if (argc < 2) {
+    io_error();
+    pp_f("error: makemove requires MOVE argument\n");
+    return false;
+  }
+
   move_t move;
   if (!string_to_move(argv[1], game_state.board, &move)) {
     io_error();
