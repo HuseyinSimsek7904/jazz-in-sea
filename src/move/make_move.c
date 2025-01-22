@@ -56,7 +56,7 @@ bool remove_piece(board_state_t* state, history_t* history, pos_t pos) {
   bool update_islands_table = false;
   piece_t piece = _remove_piece(state, pos, &update_islands_table);
 
-  update_hash_for_piece(state, piece, pos);
+  state->hash ^= get_hash_for_piece(state, piece, pos);
   char color = get_piece_color(piece);
 
   if (color == MOD_WHITE)
@@ -78,7 +78,7 @@ bool remove_piece(board_state_t* state, history_t* history, pos_t pos) {
 // Place a piece on the board.
 // Clears the history.
 bool place_piece(board_state_t* state, history_t* history, pos_t pos, piece_t piece) {
-  update_hash_for_piece(state, piece, pos);
+  state->hash ^= get_hash_for_piece(state, piece, pos);
   char color = get_piece_color(piece);
 
   if (color == MOD_WHITE)
@@ -124,9 +124,8 @@ void do_move(board_state_t* state, history_t* history, move_t move) {
   assert(get_piece_color(piece) == (state->turn ? MOD_WHITE : MOD_BLACK));
   _place_piece(state, move.to, piece, &update_islands_table);
 
-  update_hash_for_piece(state, piece, move.from);
-  update_hash_for_piece(state, piece, move.to);
-  state->hash ^= state->turn_hash;
+  // Update the hash value for the move.
+  state->hash ^= get_hash_for_move(state, piece, move);
 
   // If the move is a capture move, remove the piece.
   // There must be a piece where we are going to capture of type capture_piece.
@@ -139,7 +138,6 @@ void do_move(board_state_t* state, history_t* history, move_t move) {
     _remove_piece(state, move.capture, &update_islands_table);
     assert(move.capture_piece == remove_piece);
 
-    update_hash_for_piece(state, move.capture_piece, move.capture);
     char capture_color = get_piece_color(move.capture_piece);
 
     // Decrement the piece count.
@@ -177,16 +175,14 @@ void undo_last_move(board_state_t* state, history_t* history) {
   assert(get_piece_color(piece) == (state->turn ? MOD_BLACK : MOD_WHITE));
   _place_piece(state, move.from, piece, &update_islands_table);
 
-  update_hash_for_piece(state, piece, move.from);
-  update_hash_for_piece(state, piece, move.to);
-  state->hash ^= state->turn_hash;
+  // Update the hash value for the move.
+  state->hash ^= get_hash_for_move(state, piece, move);
 
   // If the move is a capture move, add the piece.
   // There must be no piece where we are going to add the piece.
   if (is_capture(move)) {
     _place_piece(state, move.capture, move.capture_piece, &update_islands_table);
 
-    update_hash_for_piece(state, move.capture_piece, move.capture);
     char capture_color = get_piece_color(move.capture_piece);
 
     // Increment the piece count.
