@@ -547,7 +547,7 @@ bool wait_for_child_resp(pid_t pid, char buffer[256], FILE* child_stdout) {
   int status;
   waitpid(pid, &status, WNOHANG);
 
-  return WIFEXITED(status);
+  return status && WIFEXITED(status);
 }
 
 command_define(test,
