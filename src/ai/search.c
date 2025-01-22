@@ -61,7 +61,7 @@ _evaluate(board_state_t* state,
   {
     eval_t possible_eval = try_find_tt(cache,
                                        state->hash,
-                                       history,
+                                       history->size,
                                        max_depth,
                                        alpha,
                                        beta);
@@ -183,7 +183,7 @@ _evaluate(board_state_t* state,
 #endif
 
 #ifdef MM_OPT_TRANSPOSITION
-        // try_add_tt(cache, state->hash, history, max_depth, best_evaluation, LOWER);
+        // try_add_tt(cache, state->hash, history->size, max_depth, best_evaluation, LOWER);
 #endif
         return best_evaluation;
       }
@@ -198,7 +198,7 @@ _evaluate(board_state_t* state,
 #endif
 
 #ifdef MM_OPT_TRANSPOSITION
-        // try_add_tt(cache, state->hash, history, max_depth, best_evaluation, UPPER);
+        // try_add_tt(cache, state->hash, history->size, max_depth, best_evaluation, UPPER);
 #endif
         return best_evaluation;
       }
@@ -209,7 +209,7 @@ _evaluate(board_state_t* state,
   }
 
 #ifdef MM_OPT_TRANSPOSITION
-  try_add_tt(cache, state->hash, history, max_depth, best_evaluation, EXACT);
+  try_add_tt(cache, state->hash, history->size, max_depth, best_evaluation, EXACT);
 #endif
 
   return best_evaluation;

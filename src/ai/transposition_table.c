@@ -1,39 +1,48 @@
 #include "ai/transposition_table.h"
+#include "ai/cache.h"
+#include "ai/eval_t.h"
 #include "ai/measure_count.h"
 #include "io/pp.h"
 
 #ifdef MM_OPT_TRANSPOSITION
 
+// Return the transposition entry for a board hash.
+tt_entry_t* get_entry_tt(ai_cache_t* cache,
+                         hash_t hash) {
+
+  return &(*cache->transposition_table)[hash % AI_HASHMAP_SIZE];
+}
+
 // Add the board to the transposition table.
 void
 try_add_tt(ai_cache_t* cache,
            hash_t hash,
-           history_t* history,
+           size_t history_size,
            size_t depth,
            eval_t eval,
            node_type_t node_type) {
 
   // If the eval is an absolute evaluation, convert the depth relative.
   if (is_mate(eval)) {
-    eval += eval > 0 ? history->size : -history->size;
+    eval += eval > 0 ? history_size : -history_size;
     depth = LONG_MAX;
   }
 
-  tt_entry_t* memorized = &(*cache->transposition_table)[hash % AI_HASHMAP_SIZE];
+  tt_entry_t* entry = get_entry_tt(cache, hash);
 
-  if (depth <= memorized->depth)
+  if (depth <= entry->depth)
     return;
 
 #ifdef MEASURE_EVAL_COUNT
-  if (!memorized->depth)
+  if (!entry->depth)
     tt_saved_count++;
-  else if (hash == memorized->hash)
+  else if (hash == entry->hash)
     tt_overwritten_count++;
   else
     tt_rewritten_count++;
 #endif
 
-  *memorized = (tt_entry_t) {
+  *entry = (tt_entry_t) {
     .hash = hash,
     .depth = depth,
     .eval = eval,
@@ -45,32 +54,33 @@ try_add_tt(ai_cache_t* cache,
 eval_t
 try_find_tt(ai_cache_t* cache,
            hash_t hash,
-           history_t* history,
+           size_t history_size,
            size_t depth,
            eval_t alpha,
            eval_t beta) {
 
-  tt_entry_t memorized = (*cache->transposition_table)[hash % AI_HASHMAP_SIZE];
+  // Get the transposition table entry for the board.
+  tt_entry_t entry = *get_entry_tt(cache, hash);
 
-  if (memorized.eval == EVAL_INVALID || memorized.depth < depth || memorized.hash != hash) {
+  if (entry.hash != hash || entry.eval == EVAL_INVALID || entry.depth < depth) {
     return EVAL_INVALID;
   }
 
   // If the eval is an absolute evaluation, convert the depth absolute as well.
-  if (is_mate(memorized.eval)) {
-    memorized.eval -= memorized.eval > 0 ? history->size : -history->size;
+  if (is_mate(entry.eval)) {
+    entry.eval -= entry.eval > 0 ? history_size : -history_size;
   }
 
-  switch (memorized.node_type) {
+  switch (entry.node_type) {
   case EXACT:
     break;
   case LOWER:
-    if (memorized.eval > alpha) return EVAL_INVALID;
+    if (entry.eval > alpha) return EVAL_INVALID;
   case UPPER:
-    if (memorized.eval < beta) return EVAL_INVALID;
+    if (entry.eval < beta) return EVAL_INVALID;
   }
 
-  return memorized.eval;
+  return entry.eval;
 }
 
 #endif
