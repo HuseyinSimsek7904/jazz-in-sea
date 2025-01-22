@@ -28,6 +28,10 @@ typedef struct {
   int est_evaluation_pos;
   int est_evaluation_old;
 
+  int late_move_reduction;
+  int late_move_min_depth;
+  int exchange_deepening;
+
 #ifdef MM_OPT_TRANSPOSITION
   tt_entry_t (*transposition_table)[AI_HASHMAP_SIZE];
 #endif

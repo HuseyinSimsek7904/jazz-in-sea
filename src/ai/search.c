@@ -6,6 +6,7 @@
 #include "move/generation.h"
 #include "move/make_move.h"
 
+#include <stdbool.h>
 #include <stdio.h>
 
 // Find the best continuing moves available and their evaluation value.
@@ -62,7 +63,7 @@ _evaluate(board_state_t* state,
     eval_t possible_eval = try_find_tt(cache,
                                        state->hash,
                                        history->size,
-                                       max_depth,
+                                       max_depth > 1 ? max_depth : 1,
                                        alpha,
                                        beta);
 
@@ -115,22 +116,54 @@ _evaluate(board_state_t* state,
 
   // Loop through all of the available moves except the first, and recursively get the next moves.
   for (int i=0; i<moves_length; i++) {
-    // If the move was a capture move, do not decrement the depth.
     move_t move = moves[i];
-#ifdef MM_OPT_EXC_DEEPENING
-    size_t new_depth = is_capture(move) ? max_depth : max_depth - 1;
-#else
     size_t new_depth = max_depth - 1;
-#endif
+    eval_t evaluation;
     size_t new_moves_length;
 
+    // Since capture moves are important and should be searched better,
+    // we extend the search depth for these moves.
+    if (is_capture(move))
+      new_depth += cache->exchange_deepening;
+
+    // Test if the board state changes after making and unmaking moves.
 #if defined(TEST_EVAL_STATE) && !defined(NDEBUG)
     board_t _test_old_board = *board;
     state_cache_t _test_old_state = *state;
 #endif
 
     do_move(state, history, move);
-    eval_t evaluation = _evaluate(state, history, cache, new_depth, NULL, &new_moves_length, alpha, beta, false);
+
+    // Since we already know that after move ordering, late moves are probably bad.
+    // Because of that, do a shallower search on them. If they are too good, do a full search.
+    bool full_search = true;
+    if (i >= cache->late_move_reduction && new_depth >= cache->late_move_min_depth) {
+      evaluation = _evaluate(state,
+                             history,
+                             cache,
+                             new_depth - 1,
+                             NULL,
+                             &new_moves_length,
+                             alpha,
+                             beta,
+                             false);
+
+      // If the shallow search returned a great move, do a full search.
+      full_search = (evaluation < best_evaluation) ^ state->turn;
+    }
+
+    if (full_search) {
+      evaluation = _evaluate(state,
+                             history,
+                             cache,
+                             new_depth,
+                             NULL,
+                             &new_moves_length,
+                             alpha,
+                             beta,
+                             false);
+    }
+
     undo_last_move(state, history);
 
     if (evaluation == EVAL_INVALID) {

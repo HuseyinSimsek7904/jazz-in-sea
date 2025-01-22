@@ -31,6 +31,10 @@ void setup_cache(ai_cache_t* cache,
   cache->est_evaluation_pos = 1;
   cache->est_evaluation_old = 10;
 
+  cache->late_move_reduction = 8;
+  cache->late_move_min_depth = 3;
+  cache->exchange_deepening = 2;
+
 #ifdef MM_OPT_TRANSPOSITION
   cache->transposition_table = malloc(sizeof(tt_entry_t) * AI_HASHMAP_SIZE);
 
