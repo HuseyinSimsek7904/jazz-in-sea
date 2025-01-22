@@ -166,6 +166,16 @@ _evaluate(board_state_t* state,
 
     undo_last_move(state, history);
 
+    // Print evaluation.
+    if (starting_move) {
+      io_debug();
+      pp_f("debug: for move ");
+      pp_move(move);
+      pp_f(" -- ");
+      pp_eval(evaluation, state->board, history);
+      pp_f("\n");
+    }
+
     if (evaluation == EVAL_INVALID) {
       *best_moves_length = 0;
       return EVAL_INVALID;
@@ -179,15 +189,6 @@ _evaluate(board_state_t* state,
     assert(_test_old_state.black_island_count == state->black_island_count);
     assert(_test_old_state.status == state->status);
 #endif
-
-    if (starting_move) {
-      io_debug();
-      pp_f("debug: ");
-      pp_move(move);
-      pp_f(" -> ");
-      pp_eval(evaluation, state->board, history);
-      pp_f("\n");
-    }
 
     // If this move is not the first move, compare this move with the best move.
     if (*best_moves_length) {

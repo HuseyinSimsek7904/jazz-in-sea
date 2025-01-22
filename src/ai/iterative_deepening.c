@@ -15,11 +15,12 @@ void* _id_routine(void* r_args) {
   size_t max_depth = args->max_depth;
   eval_t* evaluation = args->evaluation;
 
-  for (size_t depth=1; depth<=max_depth; depth++) {
-    io_debug();
-    pp_f("debug: calling _evaluate with depth %u for %s\n", depth, state->turn ? "white" : "black");
-    pp_board(state->board, false);
+  // Dump the board information for debugging.
+  io_debug();
+  pp_f("debug: calling _evaluate for color %s\n", state->turn ? "white" : "black");
+  pp_board(state->board, false);
 
+  for (size_t depth=1; depth<=max_depth; depth++) {
     move_t new_best_moves[256];
     size_t new_best_moves_length = 0;
 
@@ -44,8 +45,9 @@ void* _id_routine(void* r_args) {
     if (new_evaluation == EVAL_INVALID) break;
 
     io_debug();
+    pp_f("debug: best moves for depth %u ", depth);
     pp_moves(best_moves, *best_moves_length);
-    pp_f(" -> ");
+    pp_f(" -- ");
     pp_eval(new_evaluation, state->board, history);
     pp_f("\n");
 
