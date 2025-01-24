@@ -30,6 +30,7 @@ void setup_cache(ai_cache_t* cache,
   // For now, load constant values.
   cache->est_evaluation_pos = 1;
   cache->est_evaluation_old = 10;
+  cache->est_evaluation_killer = 50;
 
   cache->late_move_reduction = 8;
   cache->late_move_min_depth = 3;

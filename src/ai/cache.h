@@ -25,6 +25,7 @@ typedef struct {
 
   int est_evaluation_pos;
   int est_evaluation_old;
+  int est_evaluation_killer;
 
   int late_move_reduction;
   int late_move_min_depth;

@@ -25,7 +25,16 @@ int cmp_short_eval_move(const void* a, const void* b) {
   return (a_s.est_eval > b_s.est_eval) - (a_s.est_eval < b_s.est_eval);
 }
 
-void order_moves(board_state_t* state, ai_cache_t* cache, move_t *moves, size_t length, bool descending) {
+bool check_for_killer_move(move_t move, move_t* killer_moves) {
+  for (int i=0; is_valid_move(killer_moves[i]); i++) {
+    if (compare_move(killer_moves[i], move)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void order_moves(board_state_t* state, ai_cache_t* cache, move_t *moves, size_t length, bool descending, move_t* killer_moves) {
   est_eval_move_t eval_moves[256];
 
   // Copy moves to new buffer to be sorted.
@@ -41,9 +50,16 @@ void order_moves(board_state_t* state, ai_cache_t* cache, move_t *moves, size_t 
     } else {
       // Calculate estimate evaluation using a linear combination of short evaluation and old evaluation.
       eval_t short_evaluation = get_short_move_evaluation(state, cache, move);
+
       estimate_evaluation =
         entry->eval * entry->depth * cache->est_evaluation_old +
         short_evaluation * cache->est_evaluation_pos;
+
+      // Check if this move was a killer move in a sibling.
+      if (check_for_killer_move(move, killer_moves)) {
+        estimate_evaluation += state->turn ? cache->est_evaluation_killer : -cache->est_evaluation_killer;
+      }
+
     }
 
     // Negate the evaluation score to create the effect of reversing the output.

@@ -3,6 +3,7 @@
 #include "ai/search.h"
 #include "ai/iterative_deepening.h"
 #include "io/pp.h"
+#include "move/move_t.h"
 
 void* _id_routine(void* r_args) {
   _id_routine_args_t* args = (_id_routine_args_t*) r_args;
@@ -21,6 +22,7 @@ void* _id_routine(void* r_args) {
   pp_board(state->board, false);
 
   for (size_t depth=1; depth<=max_depth; depth++) {
+    move_t killer_moves[256] = { INV_MOVE };
     move_t new_best_moves[256];
     size_t new_best_moves_length = 0;
 
@@ -32,7 +34,8 @@ void* _id_routine(void* r_args) {
                                       &new_best_moves_length,
                                       EVAL_BLACK_MATES,
                                       EVAL_WHITE_MATES,
-                                      true);
+                                      true,
+                                      killer_moves);
 
     if (new_best_moves_length > 0) {
       *evaluation = new_evaluation;

@@ -5,6 +5,7 @@
 #include "io/pp.h"
 #include "move/generation.h"
 #include "move/make_move.h"
+#include "move/move_t.h"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -19,7 +20,8 @@ _evaluate(board_state_t* state,
           size_t* best_moves_length,
           eval_t alpha,
           eval_t beta,
-          bool starting_move) {
+          bool starting_move,
+          move_t* killer_moves) {
 
   if (cache->cancel_search) {
     if (starting_move) {
@@ -105,10 +107,12 @@ _evaluate(board_state_t* state,
   }
 
   // Order moves for better pruning.
-  order_moves(state, cache, moves, moves_length, state->turn);
+  order_moves(state, cache, moves, moves_length, state->turn, killer_moves);
 
   eval_t best_evaluation = EVAL_INVALID;
   *best_moves_length = 0;
+
+  move_t new_killer_moves[256] = { INV_MOVE };
 
   // Loop through all of the available moves except the first, and recursively get the next moves.
   for (int i=0; i<moves_length; i++) {
@@ -142,7 +146,8 @@ _evaluate(board_state_t* state,
                              &new_moves_length,
                              alpha,
                              beta,
-                             false);
+                             false,
+                             new_killer_moves);
 
       // If the shallow search returned a great move, do a full search.
       full_search = (evaluation < best_evaluation) ^ state->turn;
@@ -157,7 +162,8 @@ _evaluate(board_state_t* state,
                              &new_moves_length,
                              alpha,
                              beta,
-                             false);
+                             false,
+                             new_killer_moves);
     }
 
     undo_last_move(state, history);
@@ -212,6 +218,12 @@ _evaluate(board_state_t* state,
         ab_branch_cut_count++;
 #endif
 
+        // Add this move to killer moves.
+        int i=0;
+        while (is_valid_move(killer_moves[i])) i++;
+        killer_moves[i] = move;
+        killer_moves[i + 1] = INV_MOVE;
+
         // try_add_tt(cache, state->hash, history->size, max_depth, best_evaluation, LOWER);
         return best_evaluation;
       }
@@ -224,6 +236,12 @@ _evaluate(board_state_t* state,
 #ifdef MEASURE_EVAL_COUNT
         ab_branch_cut_count++;
 #endif
+
+        // Add this move to killer moves.
+        int i=0;
+        while (is_valid_move(killer_moves[i])) i++;
+        killer_moves[i] = move;
+        killer_moves[i + 1] = INV_MOVE;
 
         // try_add_tt(cache, state->hash, history->size, max_depth, best_evaluation, UPPER);
         return best_evaluation;
