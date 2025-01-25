@@ -56,7 +56,7 @@ void* _id_routine(void* r_args) {
 
     if (is_mate(*evaluation)) {
       io_debug();
-      pp_f("debug: reached mate, stopping iterative deepening");
+      pp_f("debug: reached mate, stopping iterative deepening\n");
       break;
     }
   }
