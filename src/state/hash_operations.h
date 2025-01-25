@@ -16,7 +16,7 @@ static inline hash_t get_hash_for_move(board_state_t* state, piece_t piece, move
   return
     get_hash_for_piece(state, piece, move.from) ^
     get_hash_for_piece(state, piece, move.to) ^
-    (is_capture(move) & get_hash_for_piece(state, move.capture_piece, move.capture));
+    (is_capture(move) ? get_hash_for_piece(state, move.capture_piece, move.capture) : 0);
 }
 
 void generate_full_hash(board_state_t *state);
