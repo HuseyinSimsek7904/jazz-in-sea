@@ -13,16 +13,11 @@
 #include <assert.h>
 #include <stdbool.h>
 
-typedef struct {
-  move_t move;
-  eval_t est_eval;
-} est_eval_move_t;
-
 int cmp_short_eval_move(const void* a, const void* b) {
-  est_eval_move_t a_s = *(est_eval_move_t*) a;
-  est_eval_move_t b_s = *(est_eval_move_t*) b;
+  move_eval_pair_t a_s = *(move_eval_pair_t*) a;
+  move_eval_pair_t b_s = *(move_eval_pair_t*) b;
 
-  return (a_s.est_eval > b_s.est_eval) - (a_s.est_eval < b_s.est_eval);
+  return (a_s.eval > b_s.eval) - (a_s.eval < b_s.eval);
 }
 
 bool check_for_killer_move(move_t move, move_t* killer_moves) {
@@ -35,7 +30,7 @@ bool check_for_killer_move(move_t move, move_t* killer_moves) {
 }
 
 void order_moves(board_state_t* state, ai_cache_t* cache, move_t *moves, size_t length, bool descending, move_t* killer_moves) {
-  est_eval_move_t eval_moves[256];
+  move_eval_pair_t eval_moves[256];
 
   // Copy moves to new buffer to be sorted.
   for (size_t i=0; i<length; i++) {
@@ -63,14 +58,14 @@ void order_moves(board_state_t* state, ai_cache_t* cache, move_t *moves, size_t 
     }
 
     // Negate the evaluation score to create the effect of reversing the output.
-    eval_moves[i] = (est_eval_move_t){
-      .est_eval = descending ? -estimate_evaluation : estimate_evaluation,
+    eval_moves[i] = (move_eval_pair_t){
+      .eval = descending ? -estimate_evaluation : estimate_evaluation,
       .move = move,
     };
   }
 
   // Sort the moves according to their short evaluations.
-  qsort(eval_moves, length, sizeof(est_eval_move_t), cmp_short_eval_move);
+  qsort(eval_moves, length, sizeof(move_eval_pair_t), cmp_short_eval_move);
 
   // Rewrite the sorted moves.
   for (size_t i=0; i<length; i++) {

@@ -127,21 +127,25 @@ evaluate(board_state_t *state,
        evaluate_count);
   pp_f("measure: cut %d branches.\n",
        ab_branch_cut_count);
-  pp_f("measure: found %d (%d %%) different game ends.\n",
-       game_end_count,
-       game_end_count * 100 / evaluate_count);
-  pp_f("measure: found total %d (%d %%) leaves.\n",
-       leaf_count,
-       leaf_count * 100 / evaluate_count);
+  if (evaluate_count != 0){
+    pp_f("measure: found %d (%d %%) different game ends.\n",
+         game_end_count,
+         game_end_count * 100 / evaluate_count);
+    pp_f("measure: found total %d (%d %%) leaves.\n",
+         leaf_count,
+         leaf_count * 100 / evaluate_count);
+  }
 
   pp_f("measure: in total, used %d (%d %%) transposition tables entries.\n",
        tt_saved_count,
        tt_saved_count * 100 / AI_HASHMAP_SIZE);
   if (tt_saved_count != 0) {
-    pp_f("measure: remembered %d (%d %% per call, %d %% per entry) times.\n",
-         tt_remember_count,
-         tt_remember_count * 100 / evaluate_count,
-         tt_remember_count * 100 / tt_saved_count);
+    if (evaluate_count != 0) {
+      pp_f("measure: remembered %d (%d %% per call, %d %% per entry) times.\n",
+           tt_remember_count,
+           tt_remember_count * 100 / evaluate_count,
+           tt_remember_count * 100 / tt_saved_count);
+    }
     pp_f("measure: overwritten the same board %u (%u %%) times.\n",
          tt_overwritten_count,
          tt_overwritten_count * 100 / tt_saved_count);

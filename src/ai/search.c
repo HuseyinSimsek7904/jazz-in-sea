@@ -16,19 +16,11 @@ _evaluate(board_state_t* state,
           history_t* history,
           ai_cache_t* cache,
           size_t max_depth,
-          move_t* best_moves,
-          size_t* best_moves_length,
           eval_t alpha,
           eval_t beta,
-          bool starting_move,
           move_t* killer_moves) {
 
   if (cache->cancel_search) {
-    if (starting_move) {
-      pp_f("[canceled search]\n");
-    }
-
-    *best_moves_length = 0;
     return EVAL_INVALID;
   }
 
@@ -95,23 +87,10 @@ _evaluate(board_state_t* state,
     return 0;
   }
 
-  // If this move is the first move and if there are only one possible moves, return the only move.
-  // No need to search recursively.
-  if (starting_move && moves_length == 1) {
-#ifdef MEASURE_EVAL_COUNT
-    leaf_count++;
-#endif
-    best_moves[0] = moves[0];
-    *best_moves_length = 1;
-    return EVAL_INVALID;
-  }
-
   // Order moves for better pruning.
   order_moves(state, cache, moves, moves_length, state->turn, killer_moves);
 
-  eval_t best_evaluation = EVAL_INVALID;
-  *best_moves_length = 0;
-
+  eval_t best_evaluation = state->turn ? EVAL_BLACK_MATES : EVAL_WHITE_MATES;
   move_t new_killer_moves[256] = { INV_MOVE };
 
   // Loop through all of the available moves except the first, and recursively get the next moves.
@@ -119,7 +98,6 @@ _evaluate(board_state_t* state,
     move_t move = moves[i];
     size_t new_depth = max_depth - 1;
     eval_t evaluation;
-    size_t new_moves_length;
 
     // Since capture moves are important and should be searched better,
     // we extend the search depth for these moves.
@@ -142,11 +120,8 @@ _evaluate(board_state_t* state,
                              history,
                              cache,
                              new_depth - 1,
-                             NULL,
-                             &new_moves_length,
                              alpha,
                              beta,
-                             false,
                              new_killer_moves);
 
       // If the shallow search returned a great move, do a full search.
@@ -158,28 +133,14 @@ _evaluate(board_state_t* state,
                              history,
                              cache,
                              new_depth,
-                             NULL,
-                             &new_moves_length,
                              alpha,
                              beta,
-                             false,
                              new_killer_moves);
     }
 
     undo_last_move(state, history);
 
-    // Print evaluation.
-    if (starting_move) {
-      io_debug();
-      pp_f("debug: for move ");
-      pp_move(move);
-      pp_f(" -- ");
-      pp_eval(evaluation, state->board, history);
-      pp_f("\n");
-    }
-
     if (evaluation == EVAL_INVALID) {
-      *best_moves_length = 0;
       return EVAL_INVALID;
     }
 
@@ -192,24 +153,12 @@ _evaluate(board_state_t* state,
     assert(_test_old_state.status == state->status);
 #endif
 
-    // If this move is not the first move, compare this move with the best move.
-    if (*best_moves_length) {
-      // Compare this move and the old best move.
-      if (evaluation == best_evaluation) {
-        // If this move is equally as good as the best move, add this move to the list.
-        if (starting_move) best_moves[(*best_moves_length)++] = move;
-        continue;
-      }
-
-      if ((evaluation > best_evaluation) ^ state->turn) {
-        // If this move is worse than the found moves, continue.
-        continue;
-      }
+    // If this move is not better than the found moves, continue.
+    if (state->turn ? evaluation <= best_evaluation : evaluation >= best_evaluation) {
+      continue;
     }
 
     best_evaluation = evaluation;
-    *best_moves_length = 1;
-    if (starting_move) *best_moves = move;
 
     // Update the limit variables alpha and beta.
     if (state->turn) {
