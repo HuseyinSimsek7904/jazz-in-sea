@@ -57,7 +57,22 @@ eval_t get_short_move_evaluation(board_state_t* state, ai_cache_t* cache, move_t
 
 // Generate a full evaluation score for the current board.
 int get_board_evaluation(board_state_t* state, ai_cache_t* cache) {
+  // Check if there are any centered pieces for both pieces.
+  bool white_centered = (get_piece_color(get_piece(state->board, 0x33)) == MOD_WHITE ||
+                         get_piece_color(get_piece(state->board, 0x34)) == MOD_WHITE ||
+                         get_piece_color(get_piece(state->board, 0x43)) == MOD_WHITE ||
+                         get_piece_color(get_piece(state->board, 0x44)) == MOD_WHITE);
+  bool black_centered = (get_piece_color(get_piece(state->board, 0x33)) == MOD_BLACK ||
+                         get_piece_color(get_piece(state->board, 0x34)) == MOD_BLACK ||
+                         get_piece_color(get_piece(state->board, 0x43)) == MOD_BLACK ||
+                         get_piece_color(get_piece(state->board, 0x44)) == MOD_BLACK);
+
+  // If players have centered pieces, add centered advantage score.
   int eval = 0;
+  if (white_centered) eval += cache->centered_adv;
+  if (black_centered) eval -= cache->centered_adv;
+
+  // Iterate through all squares and sum up the advantage of each piece.
   for (int row=0; row<8; row++) {
     for (int col=0; col<8; col++) {
       pos_t pos = to_position(row, col);
@@ -69,11 +84,23 @@ int get_board_evaluation(board_state_t* state, ai_cache_t* cache) {
 
       switch (get_piece_type(piece)) {
       case MOD_PAWN:
-        piece_eval = state->islands[pos] ? cache->pawn_island_adv_table[pos] : cache->pawn_adv_table[pos];
+        if (white_centered) {
+          piece_eval = (state->islands[pos] ? cache->pawn_island_adv_table : cache->pawn_adv_table)[pos];
+        } else {
+          assert(!state->islands[pos]);
+          piece_eval = cache->pawn_adv_table[pos];
+        }
         break;
+
       case MOD_KNIGHT:
-        piece_eval = state->islands[pos] ? cache->knight_island_adv_table[pos] : cache->knight_adv_table[pos];
+        if (white_centered) {
+          piece_eval = (state->islands[pos] ? cache->knight_island_adv_table : cache->knight_adv_table)[pos];
+        } else {
+          assert(!state->islands[pos]);
+          piece_eval = cache->knight_adv_table[pos];
+        }
         break;
+
       default:
         assert(false);
         return 0;

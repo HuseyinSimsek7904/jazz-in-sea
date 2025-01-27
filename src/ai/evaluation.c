@@ -35,18 +35,32 @@ const int TOPLEFT_PAWN_ADV_TABLE[4][4] = {
   {-320, -270, -220,  -20},
 };
 
-const int TOPLEFT_PAWN_ISLAND_ADV_TABLE[4][4] = {
-  {-150, -100,  -50,    0},
-  {-100,  -50,    0,   50},
-  { -50,    0,   50,  100},
-  {   0,   50,  100,  120},
-};
-
 const int TOPLEFT_KNIGHT_ADV_TABLE[4][4] = {
   { 400,  450,  500,  600},
   { 450,  500,  550,  660},
   { 500,  550,  670,  650},
   { 600,  670,  650,  670}
+};
+
+const int TOPLEFT_PAWN_CENTERED_ADV_TABLE[4][4] = {
+  {-570, -520, -470, -370},
+  {-520, -470, -420, -320},
+  {-470, -420, -370, -270},
+  {-370, -320, -270,  -70},
+};
+
+const int TOPLEFT_KNIGHT_CENTERED_ADV_TABLE[4][4] = {
+  { 420,  470,  520,  620},
+  { 470,  520,  570,  680},
+  { 520,  570,  690,  670},
+  { 620,  690,  670,  690}
+};
+
+const int TOPLEFT_PAWN_ISLAND_ADV_TABLE[4][4] = {
+  {-150, -100,  -50,    0},
+  {-100,  -50,    0,   50},
+  { -50,    0,   50,  100},
+  {   0,   50,  100,  120},
 };
 
 const int TOPLEFT_KNIGHT_ISLAND_ADV_TABLE[4][4] = {
@@ -79,8 +93,10 @@ evaluate(board_state_t *state,
   ai_cache_t cache;
   setup_cache(&cache,
               TOPLEFT_PAWN_ADV_TABLE,
-              TOPLEFT_PAWN_ISLAND_ADV_TABLE,
               TOPLEFT_KNIGHT_ADV_TABLE,
+              TOPLEFT_PAWN_CENTERED_ADV_TABLE,
+              TOPLEFT_KNIGHT_CENTERED_ADV_TABLE,
+              TOPLEFT_PAWN_ISLAND_ADV_TABLE,
               TOPLEFT_KNIGHT_ISLAND_ADV_TABLE);
 
 

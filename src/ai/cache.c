@@ -3,8 +3,10 @@
 
 void setup_cache(ai_cache_t* cache,
                  const int topleft_pawn[4][4],
-                 const int topleft_pawn_island[4][4],
                  const int topleft_knight[4][4],
+                 const int topleft_pawn_centered[4][4],
+                 const int topleft_knight_centered[4][4],
+                 const int topleft_pawn_island[4][4],
                  const int topleft_knight_island[4][4]) {
 
   cache->cancel_search = false;
@@ -22,12 +24,18 @@ void setup_cache(ai_cache_t* cache,
 
       cache->pawn_adv_table[pos] = topleft_pawn[topleft_row][topleft_col];
       cache->knight_adv_table[pos] = topleft_knight[topleft_row][topleft_col];
+
+      cache->pawn_centered_adv_table[pos] = topleft_pawn[topleft_row][topleft_col];
+      cache->knight_centered_adv_table[pos] = topleft_knight[topleft_row][topleft_col];
+
       cache->pawn_island_adv_table[pos] = topleft_pawn_island[topleft_row][topleft_col];
       cache->knight_island_adv_table[pos] = topleft_knight_island[topleft_row][topleft_col];
     }
   }
 
   // For now, load constant values.
+  cache->centered_adv = 200;
+
   cache->est_evaluation_pos = 1;
   cache->est_evaluation_old = 10;
   cache->est_evaluation_killer = 50;
