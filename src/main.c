@@ -21,16 +21,16 @@ void print_help_message(const char* executable) {
   io_info();
   pp_f("\n"
        "                -- Jazz in Sea -- \n"
-       "  An AI attempt for the board game Cez written in C\n"
+       "  An open source Cez engine written completely in C\n"
        "\n"
-       "usage: %s [OPTION]... [COMMAND]...\n"
+       "Usage: %s [OPTION]... [COMMAND]...\n"
        "\n"
-       "Start interactive terminal or run commands.\n"
+       "Run commands and start interactive mode.\n"
        "\n"
        "    -h          Show this message\n"
-       "    -r          Derandomize the output\n"
+       "    -r          Set the random seed to 0\n"
        "    -s          Do not print 'info' messages\n"
-       "    -n          Do not accept commands via stdin, only command line\n"
+       "    -n          Do not accept commands via stdin (do not start interactive mode), only command line\n"
        "    -i PATH     Dump 'info' messages to PATH, if PATH is '%' then to stderr\n"
        "    -d PATH     Dump 'debug' messages to PATH, if PATH is '%' then to stderr\n",
        executable);
