@@ -11,6 +11,6 @@ typedef struct {
   eval_t eval;
 } move_eval_pair_t;
 
-void order_moves(board_state_t*, ai_cache_t*, move_t*, size_t, bool, move_t*);
+void order_moves(board_state_t*, ai_cache_t*, move_t*, bool, move_t*);
 
 #endif

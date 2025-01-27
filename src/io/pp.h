@@ -23,7 +23,7 @@ bool string_to_move(const char*, board_t, move_t*);
 
 void fprint_position(FILE*, pos_t);
 void fprint_move(FILE *, move_t);
-void fprint_moves(FILE*, move_t *, size_t);
+void fprint_moves(FILE*, move_t *);
 
 void fprint_board(FILE*, board_t, bool);
 void fprint_islands(FILE *, board_state_t *, bool);
@@ -54,8 +54,8 @@ static inline void pp_move(move_t move) {
   fprint_move(global_options.current_file, move);
 }
 
-static inline void pp_moves(move_t* moves, size_t size) {
-  fprint_moves(global_options.current_file, moves, size);
+static inline void pp_moves(move_t* moves) {
+  fprint_moves(global_options.current_file, moves);
 }
 
 static inline void pp_islands(board_state_t* state, bool color) {

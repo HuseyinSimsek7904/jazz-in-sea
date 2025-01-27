@@ -6,6 +6,6 @@
 
 #include <stddef.h>
 
-size_t generate_moves(board_state_t*, move_t[256]);
+void generate_moves(board_state_t*, move_t[256]);
 
 #endif

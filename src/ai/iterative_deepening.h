@@ -14,7 +14,6 @@ typedef struct {
   ai_cache_t* cache;
   size_t max_depth;
   move_t* best_moves;
-  size_t* best_moves_length;
   eval_t* evaluation;
 } _id_routine_args_t;
 

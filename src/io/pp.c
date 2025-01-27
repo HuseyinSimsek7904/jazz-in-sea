@@ -247,19 +247,15 @@ void fprint_eval(FILE* file, eval_t eval, history_t* history) {
   }
 }
 
-void fprint_moves(FILE* file, move_t* moves, size_t length) {
+void fprint_moves(FILE* file, move_t* moves) {
   fprintf(file, "{ ");
 
-  if (length) {
-    fprint_move(file, moves[0]);
-  }
-
-  for (int i=1; i<length; i++) {
-    fprintf(file, " ");
+  for (int i=0; is_valid_move(moves[i]); i++) {
     fprint_move(file, moves[i]);
+    fprintf(file, " ");
   }
 
-  fprintf(file, " }");
+  fprintf(file, "}");
 }
 
 int generate_argv(char* buffer, char* arg_buffer, char** argv, const size_t arg_buffer_size, const size_t argv_size) {

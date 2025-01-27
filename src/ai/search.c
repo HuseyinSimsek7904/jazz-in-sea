@@ -80,21 +80,21 @@ _evaluate(board_state_t* state,
   }
 
   move_t moves[256];
-  int moves_length = generate_moves(state, moves);
+  generate_moves(state, moves);
 
   // Check for draw by no moves.
-  if (!moves_length) {
+  if (!is_valid_move(moves[0])) {
     return 0;
   }
 
   // Order moves for better pruning.
-  order_moves(state, cache, moves, moves_length, state->turn, killer_moves);
+  order_moves(state, cache, moves, state->turn, killer_moves);
 
   eval_t best_evaluation = state->turn ? EVAL_BLACK_MATES : EVAL_WHITE_MATES;
   move_t new_killer_moves[256] = { INV_MOVE };
 
   // Loop through all of the available moves except the first, and recursively get the next moves.
-  for (int i=0; i<moves_length; i++) {
+  for (int i=0; is_valid_move(moves[i]); i++) {
     move_t move = moves[i];
     size_t new_depth = max_depth - 1;
     eval_t evaluation;

@@ -61,8 +61,7 @@ evaluate(board_state_t *state,
          history_t *history,
          size_t max_depth,
          struct timespec max_time,
-         move_t *best_moves,
-         size_t *best_moves_length) {
+         move_t *best_moves) {
 
   // Reset the measuring variables.
 #ifdef MEASURE_EVAL_COUNT
@@ -97,7 +96,6 @@ evaluate(board_state_t *state,
     .cache = &cache,
     .history = history,
     .best_moves = best_moves,
-    .best_moves_length = best_moves_length,
     .evaluation = &evaluation,
     .max_depth = max_depth,
   };

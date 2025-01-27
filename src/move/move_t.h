@@ -4,6 +4,7 @@
 #include "board/board_t.h"
 #include "board/piece_t.h"
 #include "board/pos_t.h"
+#include <stdlib.h>
 
 // Direction units.
 // These macros are defined using the perspective of the white player.
@@ -42,5 +43,12 @@ static inline bool is_valid_move(move_t move) {
 
 // Returns if the move is a capture move.
 static inline bool is_capture(move_t move) { return is_valid_pos(move.capture); }
+
+// Get a randomly selected move from a INV_MOVE terminated array of moves.
+static inline move_t random_move(move_t* moves) {
+  size_t length = 0;
+  while (is_valid_move(moves[length])) length++;
+  return moves[rand() % length];
+}
 
 #endif

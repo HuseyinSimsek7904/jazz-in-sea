@@ -17,6 +17,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-eval_t evaluate(board_state_t*, history_t*, size_t, struct timespec, move_t*, size_t*);
+eval_t evaluate(board_state_t*, history_t*, size_t, struct timespec, move_t*);
 
 #endif

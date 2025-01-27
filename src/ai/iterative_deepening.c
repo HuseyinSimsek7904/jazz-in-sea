@@ -15,7 +15,6 @@ void* _id_routine(void* r_args) {
   history_t* history = args->history;
   ai_cache_t* cache = args->cache;
   move_t* best_moves = args->best_moves;
-  size_t* best_moves_length = args->best_moves_length;
   size_t max_depth = args->max_depth;
   eval_t* evaluation = args->evaluation;
 
@@ -26,25 +25,25 @@ void* _id_routine(void* r_args) {
 
   move_t moves[256];
   eval_t evals[256];
-  size_t moves_length = generate_moves(state, moves);
+  generate_moves(state, moves);
 
   // If there are no moves available, return draw by no moves.
-  if (moves_length == 0) {
-    *best_moves_length = 0;
+  if (!is_valid_move(moves[0])) {
+    best_moves[0] = INV_MOVE;
     *evaluation = EVAL_INVALID;
     return NULL;
   }
 
   // If there is only one move available, return that only move.
-  if (moves_length == 1) {
+  if (!is_valid_move(moves[1])) {
     best_moves[0] = moves[0];
-    *best_moves_length = 1;
+    best_moves[1] = INV_MOVE;
     *evaluation = EVAL_INVALID;
     return NULL;
   }
 
   // Reset all of the evals.
-  for (size_t i=0; i<moves_length; i++) {
+  for (size_t i=0; i<is_valid_move(moves[i]); i++) {
     evals[i] = EVAL_INVALID;
   }
 
@@ -52,10 +51,10 @@ void* _id_routine(void* r_args) {
 
   // Iterate depths from 1 to max_depth.
   for (size_t depth=1; depth<=max_depth; depth++) {
-    order_moves(state, cache, moves, moves_length, state->turn, killer_moves);
+    order_moves(state, cache, moves, state->turn, killer_moves);
 
     // Iterate all moves.
-    for (size_t i=0; i<moves_length; i++) {
+    for (size_t i=0; is_valid_move(moves[i]); i++) {
       // TODO: Implement ignoring absolute evaluations.
       /* // Ignore moves that are already known to be mates. */
       /* if (evals[i] != EVAL_INVALID && is_mate(evals[i])) */
@@ -85,7 +84,7 @@ void* _id_routine(void* r_args) {
     // Print the move evaluation scores.
     io_debug();
     pp_f("depth=%u, { ", depth);
-    for (size_t i=0; i<moves_length; i++) {
+    for (size_t i=0; is_valid_move(moves[i]); i++) {
       pp_move(moves[i]);
       pp_f(": ");
       pp_eval(evals[i], state->board, history);
@@ -95,17 +94,17 @@ void* _id_routine(void* r_args) {
 
     // Select the best moves.
     *evaluation = state->turn ? EVAL_BLACK_MATES : EVAL_WHITE_MATES;
-    *best_moves_length = 0;
-
-    for (size_t i=0; i<moves_length; i++) {
+    size_t length = 0;
+    for (size_t i=0; is_valid_move(moves[i]); i++) {
       if (evals[i] == *evaluation) {
-        best_moves[(*best_moves_length)++] = moves[i];
+        best_moves[length++] = moves[i];
       } else if ((evals[i] < *evaluation) ^ state->turn) {
-        *best_moves_length = 1;
+        length = 1;
         best_moves[0] = moves[i];
         *evaluation = evals[i];
       }
     }
+    best_moves[length] = INV_MOVE;
 
     if (is_mate(*evaluation)) {
       io_debug();

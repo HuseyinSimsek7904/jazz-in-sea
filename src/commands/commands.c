@@ -42,9 +42,8 @@ void make_automove() {
   pp_f("automove...\n");
 
   move_t best_moves[256];
-  size_t best_moves_length;
-  evaluate(&game_state, &game_history, global_options.ai_depth, global_options.ai_time, best_moves, &best_moves_length);
-  do_move(&game_state, &game_history, best_moves[rand() % best_moves_length]);
+  evaluate(&game_state, &game_history, global_options.ai_depth, global_options.ai_time, best_moves);
+  do_move(&game_state, &game_history, random_move(best_moves));
 
   io_info();
   pp_f("done automove\n");
@@ -209,13 +208,12 @@ command_define(makemove,
   }
 
   move_t moves[256];
-  size_t moves_length = generate_moves(&game_state, moves);
+  generate_moves(&game_state, moves);
 
-  for (int i=0; i<moves_length; i++) {
+  for (int i=0; is_valid_move(moves[i]); i++) {
     if (compare_move(moves[i], move)) {
       do_move(&game_state, &game_history, move);
-      moves_length = generate_moves(&game_state, moves);
-
+      generate_moves(&game_state, moves);
       make_automove();
       return true;
     }
@@ -260,10 +258,10 @@ command_define(allmoves,
                "Print the available moves on the current board.\n") {
 
   move_t moves[256];
-  size_t length = generate_moves(&game_state, moves);
+  generate_moves(&game_state, moves);
 
   io_basic();
-  pp_moves(moves, length);
+  pp_moves(moves);
   pp_f("\n");
   return true;
 }
@@ -329,9 +327,8 @@ command_define(playai,
   pp_f("playing...\n");
 
   move_t best_moves[256];
-  size_t best_moves_length;
-  evaluate(&game_state, &game_history, global_options.ai_depth, global_options.ai_time, best_moves, &best_moves_length);
-  do_move(&game_state, &game_history, best_moves[rand() % best_moves_length]);
+  evaluate(&game_state, &game_history, global_options.ai_depth, global_options.ai_time, best_moves);
+  do_move(&game_state, &game_history, random_move(best_moves));
 
   io_info();
   pp_f("done\n");
@@ -387,9 +384,7 @@ command_define(evaluate,
   pp_f("evaluating...\n");
 
   move_t best_moves[256];
-  size_t best_moves_length;
-  eval_t eval = evaluate(&game_state, &game_history, global_options.ai_depth,
-                         global_options.ai_time, best_moves, &best_moves_length);
+  eval_t eval = evaluate(&game_state, &game_history, global_options.ai_depth, global_options.ai_time, best_moves);
 
   io_info();
   pp_f("evaluating done\n");
@@ -397,12 +392,14 @@ command_define(evaluate,
   switch (evaluation_type) {
   case LIST:
     io_basic();
-    pp_moves(best_moves, best_moves_length);
+    pp_moves(best_moves);
     pp_f("\n");
     break;
   case RANDOM_MOVE:
     io_basic();
-    pp_move(best_moves[rand() % best_moves_length]);
+    size_t length = 0;
+    while (is_valid_move(best_moves[length])) length++;
+    pp_move(best_moves[rand() % length]);
     pp_f("\n");
     break;
   case EVAL_TEXT:
@@ -412,7 +409,7 @@ command_define(evaluate,
     break;
   case FULL:
     io_basic();
-    pp_moves(best_moves, best_moves_length);
+    pp_moves(best_moves);
     pp_f(" -> ");
     pp_eval(eval, game_state.board, &game_history);
     pp_f("\n");
@@ -533,8 +530,8 @@ static inline size_t count_branches(size_t depth) {
   // Count all of the nodes.
   size_t branches = 0;
   move_t moves[256];
-  size_t length = generate_moves(&game_state, moves);
-  for (size_t i=0; i<length; i++) {
+  generate_moves(&game_state, moves);
+  for (size_t i=0; i<is_valid_move(moves[i]); i++) {
     do_move(&game_state, &game_history, moves[i]);
     branches += count_branches(depth - 1);
     undo_last_move(&game_state, &game_history);
@@ -688,9 +685,8 @@ command_define(test,
             if (game_state.turn) {
               // If it is our turn to play, generate a random best move.
               move_t best_moves[256];
-              size_t best_moves_length;
-              evaluate(&game_state, &game_history, global_options.ai_depth, global_options.ai_time, best_moves, &best_moves_length);
-              move = best_moves[rand() % best_moves_length];
+              evaluate(&game_state, &game_history, global_options.ai_depth, global_options.ai_time, best_moves);
+              move = random_move(best_moves);
 
             } else {
               // If it is the child's turn to play, ask for a move.

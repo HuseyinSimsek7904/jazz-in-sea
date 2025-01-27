@@ -1,10 +1,11 @@
 #include "move/generation.h"
+#include "move/move_t.h"
 
 #include <stddef.h>
 
 // Generate all possible moves on the board, and place them on the moves array.
 // Returns the number of moves.
-size_t generate_moves(board_state_t* state, move_t moves[256]) {
+void generate_moves(board_state_t* state, move_t moves[256]) {
   char piece_color = MOD_BLACK;
   char opposite_color = MOD_WHITE;
 
@@ -76,5 +77,5 @@ size_t generate_moves(board_state_t* state, move_t moves[256]) {
     }
   }
 
-  return length;
+  moves[length] = INV_MOVE;
 }

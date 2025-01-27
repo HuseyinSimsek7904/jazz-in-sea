@@ -29,11 +29,12 @@ bool check_for_killer_move(move_t move, move_t* killer_moves) {
   return false;
 }
 
-void order_moves(board_state_t* state, ai_cache_t* cache, move_t *moves, size_t length, bool descending, move_t* killer_moves) {
+void order_moves(board_state_t* state, ai_cache_t* cache, move_t *moves, bool descending, move_t* killer_moves) {
   move_eval_pair_t eval_moves[256];
 
   // Copy moves to new buffer to be sorted.
-  for (size_t i=0; i<length; i++) {
+  size_t i;
+  for (i=0; is_valid_move(moves[i]); i++) {
     move_t move = moves[i];
 
     piece_t piece = get_piece(state->board, move.from);
@@ -65,10 +66,11 @@ void order_moves(board_state_t* state, ai_cache_t* cache, move_t *moves, size_t 
   }
 
   // Sort the moves according to their short evaluations.
-  qsort(eval_moves, length, sizeof(move_eval_pair_t), cmp_short_eval_move);
+  // i is equal to the length of the array.
+  qsort(eval_moves, i, sizeof(move_eval_pair_t), cmp_short_eval_move);
 
   // Rewrite the sorted moves.
-  for (size_t i=0; i<length; i++) {
+  for (size_t i=0; is_valid_move(moves[i]); i++) {
     moves[i] = eval_moves[i].move;
   }
 }
