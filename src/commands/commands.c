@@ -758,13 +758,13 @@ command_define(help,
                "Get information about commands",
                "Usage: help [COMMAND]\n"
                "\n"
-               "Print this message or get information about COMMAND.\n") {
+               "List commands or get information about COMMAND.\n") {
 
   io_basic();
   if (argc == 1) {
     pp_f("For more information on a command, use 'help COMMAND'\n\n");
     for (size_t i=0; command_entries[i].function != NULL; i++) {
-      const int message_x = 16;
+      const int message_x = 14;
       command_entry_t command = command_entries[i];
       pp_f("  %s", command.name);
       for (int i=0; i<message_x - strlen(command.name); i++) {
