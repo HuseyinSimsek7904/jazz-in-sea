@@ -54,6 +54,9 @@ void* _id_routine(void* r_args) {
   for (size_t depth=1; depth<=max_depth; depth++) {
     order_moves(state, cache, moves, state->turn, killer_moves);
 
+    eval_t alpha = EVAL_BLACK_MATES;
+    eval_t beta = EVAL_WHITE_MATES;
+
     // Iterate all moves.
     for (size_t i=0; is_valid_move(moves[i]); i++) {
       // TODO: Implement ignoring absolute evaluations.
@@ -71,8 +74,8 @@ void* _id_routine(void* r_args) {
                                    cache,
                                    depth - 1,
                                    old_evaluation,
-                                   EVAL_BLACK_MATES,
-                                   EVAL_WHITE_MATES,
+                                   alpha,
+                                   beta,
                                    killer_moves);
 
       undo_last_move(state, history);
@@ -84,6 +87,17 @@ void* _id_routine(void* r_args) {
       }
 
       evals[i] = move_eval;
+
+      // Update alpha and beta bounds.
+      if (state->turn) {
+        if (move_eval > alpha) {
+          alpha = move_eval;
+        }
+      } else {
+        if (move_eval < beta) {
+          beta = move_eval;
+        }
+      }
     }
 
     // Print the move evaluation scores.
