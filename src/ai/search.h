@@ -14,6 +14,7 @@ eval_t _evaluate(board_state_t *,
                  history_t *,
                  ai_cache_t *,
                  size_t,
+                 int,
                  eval_t,
                  eval_t,
                  move_t*);

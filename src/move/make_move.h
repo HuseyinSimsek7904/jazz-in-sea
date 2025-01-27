@@ -7,7 +7,7 @@
 bool place_piece(board_state_t*, history_t*, pos_t, piece_t);
 bool remove_piece(board_state_t*, history_t*, pos_t);
 
-void do_move(board_state_t*, history_t*, move_t);
-void undo_last_move(board_state_t*, history_t*);
+bool do_move(board_state_t*, history_t*, move_t);
+bool undo_last_move(board_state_t*, history_t*);
 
 #endif

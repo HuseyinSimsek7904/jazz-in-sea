@@ -1,5 +1,6 @@
 #include "ai/cache.h"
 #include "ai/eval_t.h"
+#include "ai/position_evaluation.h"
 #include "ai/search.h"
 #include "ai/iterative_deepening.h"
 #include "ai/move_ordering.h"
@@ -62,10 +63,14 @@ void* _id_routine(void* r_args) {
 
       do_move(state, history, moves[i]);
 
+      // Since this is done at max 16 times, no need to do delta evaluation.
+      int old_evaluation = get_board_evaluation(state, cache);
+
       eval_t move_eval = _evaluate(state,
                                    history,
                                    cache,
                                    depth - 1,
+                                   old_evaluation,
                                    EVAL_BLACK_MATES,
                                    EVAL_WHITE_MATES,
                                    killer_moves);

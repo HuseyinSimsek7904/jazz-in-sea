@@ -16,6 +16,7 @@ _evaluate(board_state_t* state,
           history_t* history,
           ai_cache_t* cache,
           size_t max_depth,
+          int old_evaluation,
           eval_t alpha,
           eval_t beta,
           move_t* killer_moves) {
@@ -76,7 +77,7 @@ _evaluate(board_state_t* state,
     leaf_count++;
 #endif
 
-    return get_board_evaluation(state, cache);
+    return old_evaluation;
   }
 
   move_t moves[256];
@@ -110,7 +111,10 @@ _evaluate(board_state_t* state,
     state_cache_t _test_old_state = *state;
 #endif
 
-    do_move(state, history, move);
+    bool update_islands_table = do_move(state, history, move);
+
+    // Get the new evaluation value after the move.
+    int eval_after_move = new_evaluation(state, cache, move, old_evaluation, update_islands_table);
 
     // Since we already know that after move ordering, late moves are probably bad.
     // Because of that, do a shallower search on them. If they are too good, do a full search.
@@ -120,6 +124,7 @@ _evaluate(board_state_t* state,
                              history,
                              cache,
                              new_depth - 1,
+                             eval_after_move,
                              alpha,
                              beta,
                              new_killer_moves);
@@ -133,6 +138,7 @@ _evaluate(board_state_t* state,
                              history,
                              cache,
                              new_depth,
+                             eval_after_move,
                              alpha,
                              beta,
                              new_killer_moves);

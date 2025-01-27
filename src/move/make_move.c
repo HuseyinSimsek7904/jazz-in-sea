@@ -106,7 +106,7 @@ bool place_piece(board_state_t* state, history_t* history, pos_t pos, piece_t pi
 // Make a move on the state->board and update the state of the state->board.
 // Both the state->board and move objects are assumed to be valid, so no checks are
 // performed.
-void do_move(board_state_t* state, history_t* history, move_t move) {
+bool do_move(board_state_t* state, history_t* history, move_t move) {
   // Add the move and the old state->board to the history.
   history->history[history->size++] = (history_item_t) {
     .move = move,
@@ -157,10 +157,12 @@ void do_move(board_state_t* state, history_t* history, move_t move) {
   }
 
   generate_board_status(state, history);
+
+  return update_islands_table;
 }
 
 // Undo a move on the state->board and update the state of the state->board.
-void undo_last_move(board_state_t* state, history_t* history) {
+bool undo_last_move(board_state_t* state, history_t* history) {
   // There must be at least one move in the history.
   assert(history->size > 0);
 
@@ -202,4 +204,6 @@ void undo_last_move(board_state_t* state, history_t* history) {
   }
 
   generate_board_status(state, history);
+
+  return update_islands_table;
 }

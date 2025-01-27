@@ -1,9 +1,13 @@
 #include "ai/position_evaluation.h"
 #include "ai/cache.h"
+#include "board/piece_t.h"
 #include "io/pp.h"
+#include "move/move_t.h"
 #include "state/board_state_t.h"
 #include "board/pos_t.h"
 #include "board/board_t.h"
+#include <assert.h>
+#include <stdbool.h>
 
 // Generate a short "guessed" evaluation score for a move for move ordering.
 // Ignore whether or not pieces are in islands.
@@ -80,4 +84,46 @@ int get_board_evaluation(board_state_t* state, ai_cache_t* cache) {
     }
   }
   return eval;
+}
+
+// Get the new evaluation after a move.
+int new_evaluation(board_state_t* state, ai_cache_t* cache, move_t move, int old_evaluation, bool update_islands_table) {
+  if (update_islands_table)
+    return get_board_evaluation(state, cache);
+
+  // Must use move.to as this function must be called after a call to do_move.
+  piece_t piece = get_piece(state->board, move.to);
+
+  // No need to think about the islands cases, as we know that the islands table was not updated.
+  // This means neither the piece itself, or the piece it captured was not and is not inside an island.
+  int delta = 0;
+  switch (get_piece_type(piece)) {
+  case MOD_PAWN:
+    delta += cache->pawn_adv_table[move.to] - cache->pawn_adv_table[move.from];
+    break;
+  case MOD_KNIGHT:
+    delta += cache->knight_adv_table[move.to] - cache->knight_adv_table[move.from];
+    break;
+  default:
+    assert(false);
+    return 0;
+  }
+
+  if (is_capture(move)) {
+    switch (get_piece_type(move.capture_piece)) {
+    case MOD_PAWN:
+      delta += cache->pawn_adv_table[move.capture];
+      break;
+    case MOD_KNIGHT:
+      delta += cache->knight_adv_table[move.capture];
+      break;
+    default:
+      assert(false);
+      return 0;
+    }
+  }
+
+  if (get_piece_color(piece) == MOD_BLACK) delta = -delta;
+
+  return old_evaluation + delta;
 }

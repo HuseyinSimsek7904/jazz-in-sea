@@ -7,5 +7,6 @@
 
 eval_t get_short_move_evaluation(board_state_t* state, ai_cache_t* cache, move_t move);
 int get_board_evaluation(board_state_t *state, ai_cache_t *cache);
+int new_evaluation(board_state_t* state, ai_cache_t* cache, move_t move, int old_evaluation, bool update_islands_table);
 
 #endif
