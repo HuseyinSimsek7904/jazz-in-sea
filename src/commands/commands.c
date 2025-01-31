@@ -541,7 +541,7 @@ static inline size_t count_branches(size_t depth) {
   size_t branches = 0;
   move_t moves[256];
   generate_moves(&game_state, moves);
-  for (size_t i=0; i<is_valid_move(moves[i]); i++) {
+  for (size_t i=0; is_valid_move(moves[i]); i++) {
     do_move(&game_state, &game_history, moves[i]);
     branches += count_branches(depth - 1);
     undo_last_move(&game_state, &game_history);
