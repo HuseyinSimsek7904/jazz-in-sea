@@ -1,9 +1,11 @@
 #!/bin/sh
 
+EXECUTABLE=./bin/jazzinsea
+
 echo "testing with valgrind..."
 
 >&2 echo -en "\e[1;31m"
-valgrind --quiet --error-exitcode=1 ./build/main -sn "aidepth 3" "evaluate" > /dev/null
+valgrind --quiet --error-exitcode=1 $EXECUTABLE -sn "aidepth 3" "evaluate" > /dev/null
 exit=$?
 >&2 echo -en "\e[0m"
 

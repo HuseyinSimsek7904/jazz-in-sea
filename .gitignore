@@ -1,6 +1,5 @@
-*.o
-build/
-src/main
+obj/
+bin/
 .cache
 compile_commands.json
 .gdb_history

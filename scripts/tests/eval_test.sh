@@ -1,5 +1,7 @@
 #!/bin/sh
 
+EXECUTABLE=./bin/jazzinsea
+
 eval_check() {
     path="board_fen/$1"
     depth="$2"
@@ -7,11 +9,11 @@ eval_check() {
 
     echo -e "[    ] testing for '$1', fen: '$(cat $path)' with depth $depth -> '$eval'"
 
-    got=$(./build/main -sn \
-                       "loadfen -f '$path'" \
-                       "aidepth $depth" \
-                       "evaluate -e" \
-                       2>&1)
+    got=$($EXECUTABLE -sn \
+                      "loadfen -f '$path'" \
+                      "aidepth $depth" \
+                      "evaluate -e" \
+                      2>&1)
     exit=$?
 
     if [ "$exit" != 0 ]; then

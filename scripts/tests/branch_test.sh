@@ -1,5 +1,7 @@
 #!/bin/sh
 
+EXECUTABLE=./bin/jazzinsea
+
 branch_check() {
     path="board_fen/$1"
     name=$1[@]
@@ -16,10 +18,10 @@ branch_check() {
 
     for i in $(seq 0 $[ $total - 1 ]); do
         expect="${branches[i]}"
-        got=$(./build/main -sn \
-                           "loadfen -f '$path'" \
-                           "test -l $i" \
-                           2>&1)
+        got=$($EXECUTABLE -sn \
+                          "loadfen -f '$path'" \
+                          "test -l $i" \
+                          2>&1)
         exit=$?
 
         if [ "$exit" != 0 ]; then

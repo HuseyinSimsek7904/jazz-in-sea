@@ -1,11 +1,20 @@
-SRC-DIR		?= ./src
-BUILD-DIR	?= ./build
-TESTS-DIR	?= ./scripts/tests
+SRCDIR		?= ./src
+OBJDIR		?= ./obj
+BINDIR		?= ./bin
+SCRIPTDIR	?= ./scripts
+TESTDIR		?= $(SCRIPTDIR)/tests
+
+EXECUTABLE	?= $(BINDIR)/jazzinsea
+
+SOURCES		:= $(shell find $(SRCDIR) -name '*.c')
+OBJECTS		:= $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
+OBJDIRS		:= $(sort $(dir $(OBJECTS)))
+DEPENDS		:= $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.d, $(SOURCES))
 
 # TEST_EVAL_STATE	Test if the state object is the same before and
 #			after call to '_evaluate'.
 
-DEBUG-MACROS	?=	\
+DEBUGMACROS	?=	\
 -UTEST_EVAL_STATE	\
 
 # MEASURE_EVAL_COUNT	Count the number of calls to the _evaluate function.
@@ -15,63 +24,48 @@ CMACROS		?=	\
 -DMEASURE_EVAL_COUNT	\
 -DMEASURE_EVAL_TIME	\
 
-LDLIBS		:=		\
-src/commands/commands.o		\
-src/commands/globals.o		\
-src/state/history.o		\
-src/state/state_generation.o	\
-src/state/status.o		\
-src/state/hash_operations.o	\
-src/io/pp.o			\
-src/io/fen.o			\
-src/ai/cache.o			\
-src/ai/move_ordering.o		\
-src/ai/position_evaluation.o	\
-src/ai/transposition_table.o	\
-src/ai/measure_count.o		\
-src/ai/evaluation.o		\
-src/ai/search.o			\
-src/ai/iterative_deepening.o	\
-src/move/make_move.o		\
-src/move/generation.o		\
+CC		:= gcc
+CFLAGS		:= -Wall -Werror
+CPPFLAGS	:= -I src/ $(CMACROS)
 
-OBJ		:=	\
-$(SRC-DIR)/main.o	\
-$(LDLIBS)		\
+.PHONY: all debug build \
+	clean gen-bear tests
 
-CC		:= @gcc
-CFLAGS		:= -Wall -Werror $(CMACROS)
-CPPFLAGS	:= -I src/
+all: build
 
-.PHONY: gdb debug build \
-	compile setup-dir install \
-	clean \
-	gen-bear tests
+debug: CFLAGS += -g
+debug: CPPFLAGS += $(DEBUGMACROS)
+debug: $(OBJDIRS) $(EXECUTABLE)
 
-gdb: CFLAGS += -g $(DEBUG_MACROS)
-gdb: compile install
+build: CFLAGS += -O3
+build: CPPFLAGS += -DNDEBUG
+build: $(OBJDIRS) $(EXECUTABLE)
 
-debug: CFLAGS += -O3 $(DEBUG_MACROS)
-debug: compile install
+# Header dependencies
+-include $(DEPENDS)
 
-build: CFLAGS += -O3 -DNDEBUG
-build: compile install
+# Binary files
+$(BINDIR):
+	mkdir -p $(BINDIR)
 
-compile: $(OBJ) $(SRC-DIR)/main
+$(EXECUTABLE): $(OBJECTS) | $(BINDIR)
+	$(CC) $(CFLAGS) $(CPPFLAGS) $^ -o $@
 
-setup-dir:
-	@mkdir -p $(BUILD-DIR)
+# Object files
+$(OBJDIRS):
+	mkdir -p $@
 
-install: setup-dir
-	@cp -f $(SRC-DIR)/main $(BUILD-DIR)/main
+$(OBJDIR)/%.o: $(SRCDIR)/%.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -MMD -MP -c $< -o $@
 
+# Miscellaneous
 clean:
-	@rm -f $(SRC-DIR)/main $(OBJ)
+	rm -rf $(OBJDIR) $(BINDIR)
 
 gen-bear: clean
-	@bear -- make
+	bear -- make
 
 tests:
-	@for path in $$(ls $(TESTS-DIR)); do	\
-		$(TESTS-DIR)/$$path || :;	\
+	@for path in $$(ls $(TESTDIR)); do	\
+		$(TESTDIR)/$$path || :;	\
 	done					\
