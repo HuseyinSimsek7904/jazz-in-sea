@@ -1,11 +1,17 @@
 /*
 This file is part of JazzInSea.
 
-JazzInSea is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+JazzInSea is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
 
-JazzInSea is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+JazzInSea is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License along with JazzInSea. If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License along with
+JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "state/history.h"
@@ -14,7 +20,7 @@ You should have received a copy of the GNU General Public License along with Jaz
 // Check if this move hash was repeated before REPETITION times.
 bool check_for_repetition(history_t *history, hash_t hash, size_t repetition) {
   int repetition_count = 0;
-  for (size_t i=0; i<history->size; i++) {
+  for (size_t i = 0; i < history->size; i++) {
     history_item_t item = history->history[i];
     if (item.hash == hash) {
       if (++repetition_count >= repetition) {

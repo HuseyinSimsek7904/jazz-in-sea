@@ -1,18 +1,24 @@
 /*
 This file is part of JazzInSea.
 
-JazzInSea is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+JazzInSea is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
 
-JazzInSea is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+JazzInSea is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License along with JazzInSea. If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License along with
+JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include "io/fen.h"
 #include "board/board_t.h"
 #include "board/piece_t.h"
 #include "board/pos_t.h"
 #include "state/state_generation.h"
-#include "io/fen.h"
 
 #include <assert.h>
 #include <stdbool.h>
@@ -59,8 +65,10 @@ static inline char _piece_to_char(piece_t piece) {
 static inline char _player_to_char(bool player) { return player ? 'w' : 'b'; }
 static inline bool _char_to_player(char c) {
   switch (c) {
-  case 'w': return true;
-  case 'b': return false;
+  case 'w':
+    return true;
+  case 'b':
+    return false;
   default:
     assert(false);
     return false;
@@ -68,13 +76,15 @@ static inline bool _char_to_player(char c) {
 }
 
 // Load and initialize a board and its state cache from FEN string.
-bool load_fen_string(const char* fen, board_state_t* state, history_t* history) {
+bool load_fen_string(const char *fen, board_state_t *state,
+                     history_t *history) {
   int row = 0, col = 0;
 
   for (; *fen != ' '; fen++) {
     switch (*fen) {
     case '/':
-      if (col != 8 || row >= 8) return false;
+      if (col != 8 || row >= 8)
+        return false;
 
       // Skip to next row.
       row++;
@@ -83,18 +93,22 @@ bool load_fen_string(const char* fen, board_state_t* state, history_t* history) 
 
     case '1' ... '8':;
       // Add spaces.
-      // Technically, 8/62/8/... is not a valid sentence as there should not be digits right next to each other.
-      // However checking this seems unnecessary.
+      // Technically, 8/62/8/... is not a valid sentence as there should not be
+      // digits right next to each other. However checking this seems
+      // unnecessary.
       int spaces = *fen - '0';
-      if (col + spaces > 8) return false;
-      while (spaces--) set_piece(state->board, to_position(row, col++), EMPTY);
+      if (col + spaces > 8)
+        return false;
+      while (spaces--)
+        set_piece(state->board, to_position(row, col++), EMPTY);
       break;
 
     case FEN_WHITE_PAWN:
     case FEN_WHITE_KNIGHT:
     case FEN_BLACK_PAWN:
     case FEN_BLACK_KNIGHT:
-      if (row > 7 || col > 7) return false;
+      if (row > 7 || col > 7)
+        return false;
 
       // Add the corresponding piece.
       set_piece(state->board, to_position(row, col++), _char_to_piece(*fen));
@@ -106,7 +120,8 @@ bool load_fen_string(const char* fen, board_state_t* state, history_t* history) 
   }
 
   // Check if we reached the end of the board.
-  if (row != 7 || col != 8) return false;
+  if (row != 7 || col != 8)
+    return false;
 
   // Get the current player information.
   fen++;
@@ -122,9 +137,10 @@ bool load_fen_string(const char* fen, board_state_t* state, history_t* history) 
   }
 
   // Check if we reached the end of the string.
-  if (*fen != '\0') return false;
+  if (*fen != '\0')
+    return false;
 
-#if defined (TEST_BOARD_INIT) && ! NDEBUG
+#if defined(TEST_BOARD_INIT) && !NDEBUG
   board->initialized = true;
 #endif
 
@@ -139,9 +155,9 @@ bool load_fen_string(const char* fen, board_state_t* state, history_t* history) 
 
 // Save a board to FEN string.
 // fen must be an array of chars at least 75 bytes long. Just use 256 bytes.
-char* get_fen_string(char* fen, board_state_t* state) {
-  for (int row=0; row<8; row++) {
-    for (int col=0; col<8; col++) {
+char *get_fen_string(char *fen, board_state_t *state) {
+  for (int row = 0; row < 8; row++) {
+    for (int col = 0; col < 8; col++) {
       piece_t piece = get_piece(state->board, to_position(row, col));
 
       if (piece == EMPTY) {
@@ -167,14 +183,14 @@ char* get_fen_string(char* fen, board_state_t* state) {
   return fen;
 }
 
-
 #define MAX_BUFFER 0x1000
 
 // Load a board from a FEN file.
-bool load_fen_from_path(const char *path, board_state_t* state, history_t *history) {
+bool load_fen_from_path(const char *path, board_state_t *state,
+                        history_t *history) {
   char buffer[MAX_BUFFER];
 
-  FILE* file = fopen(path, "r");
+  FILE *file = fopen(path, "r");
   if (!file)
     return false;
 
@@ -187,12 +203,12 @@ bool load_fen_from_path(const char *path, board_state_t* state, history_t *histo
 }
 
 // Save a board to a FEN file.
-bool save_fen_to_path(const char* path, board_state_t* state) {
+bool save_fen_to_path(const char *path, board_state_t *state) {
   char buffer[256];
 
   get_fen_string(buffer, state);
 
-  FILE* file = fopen(path, "w");
+  FILE *file = fopen(path, "w");
   if (!file)
     return false;
 

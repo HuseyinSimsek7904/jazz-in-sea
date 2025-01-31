@@ -1,22 +1,29 @@
 /*
 This file is part of JazzInSea.
 
-JazzInSea is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+JazzInSea is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
 
-JazzInSea is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+JazzInSea is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License along with JazzInSea. If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License along with
+JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include "move/make_move.h"
 #include "state/hash_operations.h"
 #include "state/state_generation.h"
 #include "state/status.h"
-#include "move/make_move.h"
 
 // Remove a piece on the board.
 // Returns the removed piece.
 // NOTE: Does not alter the state cache.
-static inline piece_t _remove_piece(board_state_t* state, pos_t from, bool* update_islands_table) {
+static inline piece_t _remove_piece(board_state_t *state, pos_t from,
+                                    bool *update_islands_table) {
   // If the piece was moved from an island, table should be updated.
   if (!*update_islands_table && state->islands[from])
     *update_islands_table = true;
@@ -33,24 +40,23 @@ static inline piece_t _remove_piece(board_state_t* state, pos_t from, bool* upda
 
 // Place a piece to a position.
 // NOTE: Does not alter the state cache.
-static inline void _place_piece(board_state_t* state, pos_t to, piece_t piece, bool* update_islands_table) {
+static inline void _place_piece(board_state_t *state, pos_t to, piece_t piece,
+                                bool *update_islands_table) {
   // Set the destination position.
   set_piece(state->board, to, piece);
 
   if (!*update_islands_table &&
-      (to == 0x33 ||
-       to == 0x34 ||
-       to == 0x43 ||
-       to == 0x44))
+      (to == 0x33 || to == 0x34 || to == 0x43 || to == 0x44))
     *update_islands_table = true;
 
   // Check for all of neighbors of the new position.
   if (!*update_islands_table) {
-    for (int i=0; i<4; i++) {
+    for (int i = 0; i < 4; i++) {
       pos_t new_pos = to + deltas[i];
 
       if (is_valid_pos(new_pos) &&
-          get_piece_color(get_piece(state->board, new_pos)) == get_piece_color(piece) &&
+          get_piece_color(get_piece(state->board, new_pos)) ==
+              get_piece_color(piece) &&
           state->islands[new_pos]) {
 
         *update_islands_table = true;
@@ -62,7 +68,7 @@ static inline void _place_piece(board_state_t* state, pos_t to, piece_t piece, b
 
 // Remove a piece from the board.
 // Clears the history.
-bool remove_piece(board_state_t* state, history_t* history, pos_t pos) {
+bool remove_piece(board_state_t *state, history_t *history, pos_t pos) {
   bool update_islands_table = false;
   piece_t piece = _remove_piece(state, pos, &update_islands_table);
 
@@ -87,7 +93,8 @@ bool remove_piece(board_state_t* state, history_t* history, pos_t pos) {
 
 // Place a piece on the board.
 // Clears the history.
-bool place_piece(board_state_t* state, history_t* history, pos_t pos, piece_t piece) {
+bool place_piece(board_state_t *state, history_t *history, pos_t pos,
+                 piece_t piece) {
   state->hash ^= get_hash_for_piece(state, piece, pos);
   char color = get_piece_color(piece);
 
@@ -114,13 +121,13 @@ bool place_piece(board_state_t* state, history_t* history, pos_t pos, piece_t pi
 }
 
 // Make a move on the state->board and update the state of the state->board.
-// Both the state->board and move objects are assumed to be valid, so no checks are
-// performed.
-bool do_move(board_state_t* state, history_t* history, move_t move) {
+// Both the state->board and move objects are assumed to be valid, so no checks
+// are performed.
+bool do_move(board_state_t *state, history_t *history, move_t move) {
   // Add the move and the old state->board to the history.
-  history->history[history->size++] = (history_item_t) {
-    .move = move,
-    .hash = state->hash,
+  history->history[history->size++] = (history_item_t){
+      .move = move,
+      .hash = state->hash,
   };
 
   // There must not be any piece on the position where we are moving the piece.
@@ -140,12 +147,12 @@ bool do_move(board_state_t* state, history_t* history, move_t move) {
   // If the move is a capture move, remove the piece.
   // There must be a piece where we are going to capture of type capture_piece.
   if (is_capture(move)) {
-    // Wtf is this!?
-    #ifndef NDEBUG
+// Wtf is this!?
+#ifndef NDEBUG
     piece_t remove_piece =
-    #endif
+#endif
 
-    _remove_piece(state, move.capture, &update_islands_table);
+        _remove_piece(state, move.capture, &update_islands_table);
     assert(move.capture_piece == remove_piece);
 
     char capture_color = get_piece_color(move.capture_piece);
@@ -155,7 +162,8 @@ bool do_move(board_state_t* state, history_t* history, move_t move) {
       state->white_count--;
     else if (capture_color == MOD_BLACK)
       state->black_count--;
-    else assert(false);
+    else
+      assert(false);
   }
 
   // Update the turn.
@@ -172,7 +180,7 @@ bool do_move(board_state_t* state, history_t* history, move_t move) {
 }
 
 // Undo a move on the state->board and update the state of the state->board.
-bool undo_last_move(board_state_t* state, history_t* history) {
+bool undo_last_move(board_state_t *state, history_t *history) {
   // There must be at least one move in the history.
   assert(history->size > 0);
 
@@ -193,7 +201,8 @@ bool undo_last_move(board_state_t* state, history_t* history) {
   // If the move is a capture move, add the piece.
   // There must be no piece where we are going to add the piece.
   if (is_capture(move)) {
-    _place_piece(state, move.capture, move.capture_piece, &update_islands_table);
+    _place_piece(state, move.capture, move.capture_piece,
+                 &update_islands_table);
 
     char capture_color = get_piece_color(move.capture_piece);
 
@@ -202,7 +211,8 @@ bool undo_last_move(board_state_t* state, history_t* history) {
       state->white_count++;
     } else if (capture_color == MOD_BLACK) {
       state->black_count++;
-    } else assert(false);
+    } else
+      assert(false);
   }
 
   // Update the turn.

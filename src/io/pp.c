@@ -1,11 +1,17 @@
 /*
 This file is part of JazzInSea.
 
-JazzInSea is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+JazzInSea is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
 
-JazzInSea is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+JazzInSea is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License along with JazzInSea. If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License along with
+JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include <assert.h>
@@ -13,12 +19,12 @@ You should have received a copy of the GNU General Public License along with Jaz
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "ai/search.h"
 #include "board/board_t.h"
 #include "board/piece_t.h"
 #include "board/pos_t.h"
-#include "move/move_t.h"
-#include "ai/search.h"
 #include "io/pp.h"
+#include "move/move_t.h"
 
 // Try to convert a char to a piece.
 piece_t char_to_piece(char c) {
@@ -33,54 +39,67 @@ piece_t char_to_piece(char c) {
     return BLACK_KNIGHT;
   default:
     return 0;
-      }
+  }
 }
 
 // Try to convert a string to a position.
-bool string_to_position(const char* s, pos_t* pos) {
+bool string_to_position(const char *s, pos_t *pos) {
   char col_name = *s++;
-  if (col_name < 'a' || col_name > 'h') return false;
+  if (col_name < 'a' || col_name > 'h')
+    return false;
 
   char row_name = *s++;
-  if (row_name < '1' || row_name > '8') return false;
+  if (row_name < '1' || row_name > '8')
+    return false;
 
-  if (*s != '\0') return false;
+  if (*s != '\0')
+    return false;
 
   *pos = to_position(row_name - '1', col_name - 'a');
   return true;
 }
 
-// Given the delta multiplier of a move's capture position, return the move's regular delta multiplier.
+// Given the delta multiplier of a move's capture position, return the move's
+// regular delta multiplier.
 int _capture_delta_to_regular_delta(int dist) {
   switch (dist) {
-  case -3: return -2;
-  case -2: return -1;
-  case  2: return  1;
-  case  3: return  2;
+  case -3:
+    return -2;
+  case -2:
+    return -1;
+  case 2:
+    return 1;
+  case 3:
+    return 2;
   default:
     assert(false);
-    return  0;
+    return 0;
   }
 }
 
 // Try to convert a string to a move.
-bool string_to_move(const char* s, board_t board, move_t* move) {
+bool string_to_move(const char *s, board_t board, move_t *move) {
   char row_name = *s++;
-  if (row_name < 'a' || row_name > 'h') return false;
+  if (row_name < 'a' || row_name > 'h')
+    return false;
 
   char col_name = *s++;
-  if (col_name < '1' || col_name > '8') return false;
+  if (col_name < '1' || col_name > '8')
+    return false;
 
   char move_type = *s++;
-  if (move_type != '>' && move_type != 'x') return false;
+  if (move_type != '>' && move_type != 'x')
+    return false;
 
   char to_name = *s++;
-  if ((to_name < '1' || to_name > '9') && (to_name <'a' && to_name > 'h')) return false;
+  if ((to_name < '1' || to_name > '9') && (to_name < 'a' && to_name > 'h'))
+    return false;
 
-  if (*s != '\0') return false;
+  if (*s != '\0')
+    return false;
 
   int from_column = row_name - 'a';
-  int from_row    = col_name - '1';
+  int from_row = col_name - '1';
   int dist;
 
   move->from = to_position(from_row, from_column);
@@ -99,11 +118,14 @@ bool string_to_move(const char* s, board_t board, move_t* move) {
   }
 
   if (move_type == 'x') {
-    if (abs(dist) != 2 && abs(dist) != 3) return false;
-    move->capture = move->from + _capture_delta_to_regular_delta(dist) * (move->to - move->from) / dist;
+    if (abs(dist) != 2 && abs(dist) != 3)
+      return false;
+    move->capture = move->from + _capture_delta_to_regular_delta(dist) *
+                                     (move->to - move->from) / dist;
     move->capture_piece = get_piece(board, move->capture);
   } else {
-    if (abs(dist) != 1 && abs(dist) != 2) return false;
+    if (abs(dist) != 1 && abs(dist) != 2)
+      return false;
     move->capture = INV_POSITION;
   }
 
@@ -128,7 +150,7 @@ char row_name(int row) { return '1' + row; }
 
 // Print a position.
 // The notation is: <column-name><row-number>
-void fprint_position(FILE* file, pos_t pos) {
+void fprint_position(FILE *file, pos_t pos) {
   fprintf(file, "%c%c", col_name(to_col(pos)), row_name(to_row(pos)));
 }
 
@@ -137,7 +159,7 @@ void fprint_position(FILE* file, pos_t pos) {
 // The notation for capture moves is: <from_position> x <to_row_or_col_name>
 // If the piece moved horizontally, <to_row_or_col_name> is the to column name.
 // If the piece moved vertically, <to_row_or_col_name> is the to row name.
-void fprint_move(FILE* file, move_t move) {
+void fprint_move(FILE *file, move_t move) {
   // Check if the move is valid.
   if (!is_valid_move(move)) {
     fprintf(file, "<invalid move>");
@@ -176,7 +198,7 @@ const char CLI_ISLANDS_EMPTY = '.';
 const char CLI_ISLANDS_NO = '+';
 const char CLI_ISLANDS_YES = '#';
 
-void fprint_board(FILE* file, board_t board, bool player) {
+void fprint_board(FILE *file, board_t board, bool player) {
   fprintf(file, "%s", player ? CLI_TOP_ROW_INV : CLI_TOP_ROW);
 
   for (int prow = 0; prow < 8; prow++) {
@@ -193,7 +215,8 @@ void fprint_board(FILE* file, board_t board, bool player) {
       switch (piece) {
       case EMPTY:
         if (is_center(position)) {
-          character = (col + row) % 2 ? CLI_WHITE_CELL_CENTER : CLI_BLACK_CELL_CENTER;
+          character =
+              (col + row) % 2 ? CLI_WHITE_CELL_CENTER : CLI_BLACK_CELL_CENTER;
         } else {
           character = (col + row) % 2 ? CLI_WHITE_CELL : CLI_BLACK_CELL;
         }
@@ -222,11 +245,11 @@ void fprint_board(FILE* file, board_t board, bool player) {
   }
 }
 
-void fprint_islands(FILE* file, board_state_t* state, bool player) {
-  for (int prow=0; prow<8; prow++) {
+void fprint_islands(FILE *file, board_state_t *state, bool player) {
+  for (int prow = 0; prow < 8; prow++) {
     int row = perspective_row(prow, player);
 
-    for (int pcol=0; pcol<8; pcol++) {
+    for (int pcol = 0; pcol < 8; pcol++) {
       int col = perspective_col(pcol, player);
       pos_t pos = to_position(row, col);
       char c;
@@ -241,7 +264,7 @@ void fprint_islands(FILE* file, board_state_t* state, bool player) {
   }
 }
 
-void fprint_eval(FILE* file, eval_t eval, history_t* history) {
+void fprint_eval(FILE *file, eval_t eval, history_t *history) {
   if (eval == EVAL_INVALID) {
     fprintf(file, "NA");
   } else if (is_mate(eval)) {
@@ -257,10 +280,10 @@ void fprint_eval(FILE* file, eval_t eval, history_t* history) {
   }
 }
 
-void fprint_moves(FILE* file, move_t* moves) {
+void fprint_moves(FILE *file, move_t *moves) {
   fprintf(file, "{ ");
 
-  for (int i=0; is_valid_move(moves[i]); i++) {
+  for (int i = 0; is_valid_move(moves[i]); i++) {
     fprint_move(file, moves[i]);
     fprintf(file, " ");
   }
@@ -268,10 +291,11 @@ void fprint_moves(FILE* file, move_t* moves) {
   fprintf(file, "}");
 }
 
-int generate_argv(char* buffer, char* arg_buffer, char** argv, const size_t arg_buffer_size, const size_t argv_size) {
+int generate_argv(char *buffer, char *arg_buffer, char **argv,
+                  const size_t arg_buffer_size, const size_t argv_size) {
   int argc = 0;
-  char* buffer_ptr = buffer;
-  char* arg_buffer_ptr = arg_buffer;
+  char *buffer_ptr = buffer;
+  char *arg_buffer_ptr = arg_buffer;
 
   while (true) {
     // Ignore the whitespaces.
@@ -281,10 +305,11 @@ int generate_argv(char* buffer, char* arg_buffer, char** argv, const size_t arg_
     } while (is_whitespace(c));
 
     // If reached the end of the string, finish parsing.
-    if (c == '\0') break;
+    if (c == '\0')
+      break;
 
     char quote = '\0';
-    if (c == '\'' || c == '"'){
+    if (c == '\'' || c == '"') {
       quote = c;
       c = *buffer_ptr++;
     }
@@ -313,7 +338,8 @@ int generate_argv(char* buffer, char* arg_buffer, char** argv, const size_t arg_
           return -1;
         }
 
-        // After all of the buffers are filled, add a null ptr to the arg_ptr_buffer.
+        // After all of the buffers are filled, add a null ptr to the
+        // arg_ptr_buffer.
         if (argc > argv_size) {
           io_error();
           pp_f("error: argv overflow\n");

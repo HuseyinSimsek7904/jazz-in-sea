@@ -1,11 +1,17 @@
 /*
 This file is part of JazzInSea.
 
-JazzInSea is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+JazzInSea is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
 
-JazzInSea is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+JazzInSea is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License along with JazzInSea. If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License along with
+JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "ai/search.h"
@@ -21,15 +27,9 @@ You should have received a copy of the GNU General Public License along with Jaz
 #include <stdio.h>
 
 // Find the best continuing moves available and their evaluation value.
-eval_t
-_evaluate(board_state_t* state,
-          history_t* history,
-          ai_cache_t* cache,
-          size_t max_depth,
-          int old_evaluation,
-          eval_t alpha,
-          eval_t beta,
-          move_t* killer_moves) {
+eval_t _evaluate(board_state_t *state, history_t *history, ai_cache_t *cache,
+                 size_t max_depth, int old_evaluation, eval_t alpha,
+                 eval_t beta, move_t *killer_moves) {
 
   if (cache->cancel_search) {
     return EVAL_INVALID;
@@ -43,7 +43,8 @@ _evaluate(board_state_t* state,
   // Check for the board state.
   // If the game should not continue, return the evaluation.
   // No need to memorize, as it will take equally as long.
-  // No need to add to the transposition table though, as it will take equally as long.
+  // No need to add to the transposition table though, as it will take equally
+  // as long.
   switch (state->status & 0x30) {
   case 0x10:
 #ifdef MEASURE_EVAL_COUNT
@@ -64,12 +65,9 @@ _evaluate(board_state_t* state,
 
   // Check if this board was previously calcuated.
   {
-    eval_t possible_eval = try_find_tt(cache,
-                                       state->hash,
-                                       history->size,
-                                       max_depth > 1 ? max_depth : 1,
-                                       alpha,
-                                       beta);
+    eval_t possible_eval =
+        try_find_tt(cache, state->hash, history->size,
+                    max_depth > 1 ? max_depth : 1, alpha, beta);
 
     if (possible_eval != EVAL_INVALID) {
 #ifdef MEASURE_EVAL_COUNT
@@ -81,7 +79,8 @@ _evaluate(board_state_t* state,
 
   // Check if we reached the end of the best_line buffer.
   // If so, just return the evaluation.
-  // No need to add to transposition table as finding a depth 0 branch is almost useless.
+  // No need to add to transposition table as finding a depth 0 branch is almost
+  // useless.
   if (!max_depth) {
 #ifdef MEASURE_EVAL_COUNT
     leaf_count++;
@@ -102,10 +101,11 @@ _evaluate(board_state_t* state,
   order_moves(state, cache, moves, state->turn, killer_moves);
 
   eval_t best_evaluation = state->turn ? EVAL_BLACK_MATES : EVAL_WHITE_MATES;
-  move_t new_killer_moves[256] = { INV_MOVE };
+  move_t new_killer_moves[256] = {INV_MOVE};
 
-  // Loop through all of the available moves except the first, and recursively get the next moves.
-  for (int i=0; is_valid_move(moves[i]); i++) {
+  // Loop through all of the available moves except the first, and recursively
+  // get the next moves.
+  for (int i = 0; is_valid_move(moves[i]); i++) {
     move_t move = moves[i];
     size_t new_depth = max_depth - 1;
     eval_t evaluation;
@@ -115,7 +115,7 @@ _evaluate(board_state_t* state,
     if (is_capture(move))
       new_depth += cache->exchange_deepening;
 
-    // Test if the board state changes after making and unmaking moves.
+      // Test if the board state changes after making and unmaking moves.
 #if defined(TEST_EVAL_STATE) && !defined(NDEBUG)
     board_t _test_old_board = *board;
     state_cache_t _test_old_state = *state;
@@ -124,34 +124,25 @@ _evaluate(board_state_t* state,
     bool update_islands_table = do_move(state, history, move);
 
     // Get the new evaluation value after the move.
-    int eval_after_move = new_evaluation(state, cache, move, old_evaluation, update_islands_table);
+    int eval_after_move = new_evaluation(state, cache, move, old_evaluation,
+                                         update_islands_table);
 
-    // Since we already know that after move ordering, late moves are probably bad.
-    // Because of that, do a shallower search on them. If they are too good, do a full search.
+    // Since we already know that after move ordering, late moves are probably
+    // bad. Because of that, do a shallower search on them. If they are too
+    // good, do a full search.
     bool full_search = true;
-    if (i >= cache->late_move_reduction && new_depth >= cache->late_move_min_depth) {
-      evaluation = _evaluate(state,
-                             history,
-                             cache,
-                             new_depth - 1,
-                             eval_after_move,
-                             alpha,
-                             beta,
-                             new_killer_moves);
+    if (i >= cache->late_move_reduction &&
+        new_depth >= cache->late_move_min_depth) {
+      evaluation = _evaluate(state, history, cache, new_depth - 1,
+                             eval_after_move, alpha, beta, new_killer_moves);
 
       // If the shallow search returned a great move, do a full search.
       full_search = (evaluation < best_evaluation) ^ state->turn;
     }
 
     if (full_search) {
-      evaluation = _evaluate(state,
-                             history,
-                             cache,
-                             new_depth,
-                             eval_after_move,
-                             alpha,
-                             beta,
-                             new_killer_moves);
+      evaluation = _evaluate(state, history, cache, new_depth, eval_after_move,
+                             alpha, beta, new_killer_moves);
     }
 
     undo_last_move(state, history);
@@ -161,7 +152,8 @@ _evaluate(board_state_t* state,
     }
 
 #ifdef TEST_EVAL_STATE
-    assert(_test_old_state.hash == state->hash && compare(board, (board_t *)&_test_old_board));
+    assert(_test_old_state.hash == state->hash &&
+           compare(board, (board_t *)&_test_old_board));
     assert(_test_old_state.white_count == state->white_count);
     assert(_test_old_state.white_island_count == state->white_island_count);
     assert(_test_old_state.black_count == state->black_count);
@@ -170,7 +162,8 @@ _evaluate(board_state_t* state,
 #endif
 
     // If this move is not better than the found moves, continue.
-    if (state->turn ? evaluation <= best_evaluation : evaluation >= best_evaluation) {
+    if (state->turn ? evaluation <= best_evaluation
+                    : evaluation >= best_evaluation) {
       continue;
     }
 
@@ -184,12 +177,14 @@ _evaluate(board_state_t* state,
 #endif
 
         // Add this move to killer moves.
-        int i=0;
-        while (is_valid_move(killer_moves[i])) i++;
+        int i = 0;
+        while (is_valid_move(killer_moves[i]))
+          i++;
         killer_moves[i] = move;
         killer_moves[i + 1] = INV_MOVE;
 
-        // try_add_tt(cache, state->hash, history->size, max_depth, best_evaluation, LOWER);
+        // try_add_tt(cache, state->hash, history->size, max_depth,
+        // best_evaluation, LOWER);
         return best_evaluation;
       }
 
@@ -203,12 +198,14 @@ _evaluate(board_state_t* state,
 #endif
 
         // Add this move to killer moves.
-        int i=0;
-        while (is_valid_move(killer_moves[i])) i++;
+        int i = 0;
+        while (is_valid_move(killer_moves[i]))
+          i++;
         killer_moves[i] = move;
         killer_moves[i + 1] = INV_MOVE;
 
-        // try_add_tt(cache, state->hash, history->size, max_depth, best_evaluation, UPPER);
+        // try_add_tt(cache, state->hash, history->size, max_depth,
+        // best_evaluation, UPPER);
         return best_evaluation;
       }
 
@@ -217,7 +214,8 @@ _evaluate(board_state_t* state,
     }
   }
 
-  try_add_tt(cache, state->hash, history->size, max_depth, best_evaluation, EXACT);
+  try_add_tt(cache, state->hash, history->size, max_depth, best_evaluation,
+             EXACT);
 
   return best_evaluation;
 }

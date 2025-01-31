@@ -1,21 +1,27 @@
 /*
 This file is part of JazzInSea.
 
-JazzInSea is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+JazzInSea is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
 
-JazzInSea is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+JazzInSea is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License along with JazzInSea. If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License along with
+JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "ai/eval_t.h"
+#include "ai/evaluation.h"
 #include "board/status_t.h"
 #include "commands/globals.h"
-#include "io/pp.h"
 #include "io/fen.h"
-#include "move/make_move.h"
+#include "io/pp.h"
 #include "move/generation.h"
-#include "ai/evaluation.h"
+#include "move/make_move.h"
 #include "move/move_t.h"
 
 #include <bits/types/siginfo_t.h>
@@ -32,7 +38,8 @@ You should have received a copy of the GNU General Public License along with Jaz
 
 void make_automove() {
   // Check if the current player should be automoved.
-  if (game_state.turn ? !global_options.white_automove : !global_options.black_automove)
+  if (game_state.turn ? !global_options.white_automove
+                      : !global_options.black_automove)
     return;
 
   // Check if the game ended.
@@ -52,7 +59,8 @@ void make_automove() {
   pp_f("automove...\n");
 
   move_t best_moves[256];
-  evaluate(&game_state, &game_history, global_options.ai_depth, global_options.ai_time, best_moves);
+  evaluate(&game_state, &game_history, global_options.ai_depth,
+           global_options.ai_time, best_moves);
   do_move(&game_state, &game_history, random_move(best_moves));
 
   io_info();
@@ -62,13 +70,12 @@ void make_automove() {
   make_automove();
 }
 
-#define command_define(name, simple, full)              \
-  const char* command_ ## name ## _simple = simple;     \
-  const char* command_ ## name ## _full = full;         \
-  bool command_ ## name(int argc, char** argv)          \
+#define command_define(name, simple, full)                                     \
+  const char *command_##name##_simple = simple;                                \
+  const char *command_##name##_full = full;                                    \
+  bool command_##name(int argc, char **argv)
 
-command_define(loadfen,
-               "Load a board position using FEN",
+command_define(loadfen, "Load a board position using FEN",
                "Usage: loadfen FEN\n"
                "   or: loadfen PATH -f\n"
                "\n"
@@ -114,8 +121,7 @@ command_define(loadfen,
   }
 }
 
-command_define(savefen,
-               "Print the board position FEN",
+command_define(savefen, "Print the board position FEN",
                "Usage: savefen [OPTION]...\n"
                "\n"
                "Print the current board configuration.\n"
@@ -151,8 +157,7 @@ command_define(savefen,
   }
 }
 
-command_define(show,
-               "Print the current board position",
+command_define(show, "Print the current board position",
                "Usage: show [OPTION]...\n"
                "\n"
                "Print the current board position.\n"
@@ -178,7 +183,7 @@ command_define(show,
     }
   }
 
- end_of_parsing:
+end_of_parsing:
   switch (show_type) {
   case BOARD:
     io_basic();
@@ -198,8 +203,7 @@ command_define(show,
   return false;
 }
 
-command_define(makemove,
-               "Make a move",
+command_define(makemove, "Make a move",
                "Usage: makemove MOVE\n"
                "\n"
                "Try to make MOVE if it is a valid move.\n") {
@@ -220,7 +224,7 @@ command_define(makemove,
   move_t moves[256];
   generate_moves(&game_state, moves);
 
-  for (int i=0; is_valid_move(moves[i]); i++) {
+  for (int i = 0; is_valid_move(moves[i]); i++) {
     if (compare_move(moves[i], move)) {
       do_move(&game_state, &game_history, move);
       generate_moves(&game_state, moves);
@@ -234,8 +238,7 @@ command_define(makemove,
   return false;
 }
 
-command_define(undomove,
-               "Undo the last move in history",
+command_define(undomove, "Undo the last move in history",
                "Usage: undomove\n"
                "\n"
                "Undo the last move in history, if there exists one.\n") {
@@ -250,8 +253,7 @@ command_define(undomove,
   return true;
 }
 
-command_define(status,
-               "Print the current board status",
+command_define(status, "Print the current board status",
                "Usage: status\n"
                "\n"
                "Print the current board status.\n") {
@@ -261,8 +263,7 @@ command_define(status,
   return true;
 }
 
-command_define(allmoves,
-               "Print the available moves on the current board",
+command_define(allmoves, "Print the available moves on the current board",
                "Usage: allmoves\n"
                "\n"
                "Print the available moves on the current board.\n") {
@@ -276,15 +277,17 @@ command_define(allmoves,
   return true;
 }
 
-command_define(automove,
-               "Set or unset the automove flag",
-               "Usage: automove [OPTION]..."
-               "\n"
-               "Set the automove flag for both players. When a players automove flag is on and it is their move to play, the AI automatically generates and plays a random move.\n"
-               "\n"
-               "  -d            Unset the flags instead of setting them\n"
-               "  -w            Set or unset only the white players automove flag\n"
-               "  -b            Set or unset only the black players automove flag\n") {
+command_define(
+    automove, "Set or unset the automove flag",
+    "Usage: automove [OPTION]..."
+    "\n"
+    "Set the automove flag for both players. When a players automove flag is "
+    "on and it is their move to play, the AI automatically generates and plays "
+    "a random move.\n"
+    "\n"
+    "  -d            Unset the flags instead of setting them\n"
+    "  -w            Set or unset only the white players automove flag\n"
+    "  -b            Set or unset only the black players automove flag\n") {
   bool set = true;
   enum { WHITE, BLACK, BOTH } color = BOTH;
 
@@ -308,7 +311,7 @@ command_define(automove,
     }
   }
 
- end_of_parsing:
+end_of_parsing:
   if (color == WHITE || color == BOTH)
     global_options.white_automove = set;
 
@@ -319,8 +322,7 @@ command_define(automove,
   return true;
 }
 
-command_define(playai,
-               "Make a random move generated by AI",
+command_define(playai, "Make a random move generated by AI",
                "Usage: playai\n"
                "\n"
                "Make a random move generated by AI.\n") {
@@ -337,7 +339,8 @@ command_define(playai,
   pp_f("playing...\n");
 
   move_t best_moves[256];
-  evaluate(&game_state, &game_history, global_options.ai_depth, global_options.ai_time, best_moves);
+  evaluate(&game_state, &game_history, global_options.ai_depth,
+           global_options.ai_time, best_moves);
   do_move(&game_state, &game_history, random_move(best_moves));
 
   io_info();
@@ -347,16 +350,15 @@ command_define(playai,
   return true;
 }
 
-command_define(evaluate,
-               "Evaluate the board and print evaluation information",
-               "Usage: evaluate [OPTION]...\n"
-               "\n"
-               "Evaluate the board and print the best moves and the evaluation score.\n"
-               "\n"
-               "  -r            Select and print one of the best moves\n"
-               "  -l            Print the list of generated moves only\n"
-               "  -e            Print the evaluation score only\n"
-               ) {
+command_define(
+    evaluate, "Evaluate the board and print evaluation information",
+    "Usage: evaluate [OPTION]...\n"
+    "\n"
+    "Evaluate the board and print the best moves and the evaluation score.\n"
+    "\n"
+    "  -r            Select and print one of the best moves\n"
+    "  -l            Print the list of generated moves only\n"
+    "  -e            Print the evaluation score only\n") {
 
   enum { LIST, RANDOM_MOVE, EVAL_TEXT, FULL } evaluation_type = FULL;
 
@@ -381,7 +383,7 @@ command_define(evaluate,
     }
   }
 
- end_of_parsing:
+end_of_parsing:
   // Check if the game ended.
   if (game_state.status != NORMAL) {
     io_error();
@@ -394,7 +396,8 @@ command_define(evaluate,
   pp_f("evaluating...\n");
 
   move_t best_moves[256];
-  eval_t eval = evaluate(&game_state, &game_history, global_options.ai_depth, global_options.ai_time, best_moves);
+  eval_t eval = evaluate(&game_state, &game_history, global_options.ai_depth,
+                         global_options.ai_time, best_moves);
 
   io_info();
   pp_f("evaluating done\n");
@@ -408,7 +411,8 @@ command_define(evaluate,
   case RANDOM_MOVE:
     io_basic();
     size_t length = 0;
-    while (is_valid_move(best_moves[length])) length++;
+    while (is_valid_move(best_moves[length]))
+      length++;
     pp_move(best_moves[rand() % length]);
     pp_f("\n");
     break;
@@ -429,8 +433,7 @@ command_define(evaluate,
   return true;
 }
 
-command_define(placeat,
-               "Place a piece at a position",
+command_define(placeat, "Place a piece at a position",
                "Usage: placeat POS PIECE\n"
                "\n"
                "Place PIECE at POS.\n") {
@@ -459,8 +462,7 @@ command_define(placeat,
   return true;
 }
 
-command_define(removeat,
-               "Remove the piece at a position",
+command_define(removeat, "Remove the piece at a position",
                "Usage: removeat POS\n"
                "\n"
                "Remove the piece at POS.\n") {
@@ -482,11 +484,11 @@ command_define(removeat,
   return true;
 }
 
-command_define(aidepth,
-               "Set the maximum allowed search depth of the AI",
+command_define(aidepth, "Set the maximum allowed search depth of the AI",
                "Usage: aidepth [DEPTH]\n"
                "\n"
-               "Set the search depth of the AI to DEPTH if DEPTH is given. Otherwise print.\n") {
+               "Set the search depth of the AI to DEPTH if DEPTH is given. "
+               "Otherwise print.\n") {
 
   switch (argc) {
   case 1:
@@ -503,25 +505,25 @@ command_define(aidepth,
   }
 }
 
-command_define(aitime,
-               "Set the maximum allowed search time of the AI",
+command_define(aitime, "Set the maximum allowed search time of the AI",
                "Usage: aidepth [TIME]\n"
                "\n"
-               "Set the search depth of the AI to TIME if TIME is given. Otherwise print.\n"
+               "Set the search depth of the AI to TIME if TIME is given. "
+               "Otherwise print.\n"
                "TIME is in milliseconds.\n") {
 
   switch (argc) {
   case 1:
     io_basic();
-    pp_f("%zu\n", global_options.ai_time.tv_sec * 1000 + global_options.ai_time.tv_nsec / 1000000);
+    pp_f("%zu\n", global_options.ai_time.tv_sec * 1000 +
+                      global_options.ai_time.tv_nsec / 1000000);
     return true;
-  case 2:
-    {
-      long milliseconds = atoi(argv[1]);
-      global_options.ai_time.tv_sec = milliseconds / 1000;
-      global_options.ai_time.tv_nsec = (milliseconds % 1000) * 1000000;
-      return true;
-    }
+  case 2: {
+    long milliseconds = atoi(argv[1]);
+    global_options.ai_time.tv_sec = milliseconds / 1000;
+    global_options.ai_time.tv_nsec = (milliseconds % 1000) * 1000000;
+    return true;
+  }
   default:
     io_error();
     pp_f("command 'aidepth' expects 0 or 1 argument.\n");
@@ -530,7 +532,8 @@ command_define(aitime,
 }
 
 static inline size_t count_branches(size_t depth) {
-  if (!depth) return 1;
+  if (!depth)
+    return 1;
 
   // Check if reached a end of game node.
   if (game_state.status != NORMAL) {
@@ -541,7 +544,7 @@ static inline size_t count_branches(size_t depth) {
   size_t branches = 0;
   move_t moves[256];
   generate_moves(&game_state, moves);
-  for (size_t i=0; is_valid_move(moves[i]); i++) {
+  for (size_t i = 0; is_valid_move(moves[i]); i++) {
     do_move(&game_state, &game_history, moves[i]);
     branches += count_branches(depth - 1);
     undo_last_move(&game_state, &game_history);
@@ -550,7 +553,7 @@ static inline size_t count_branches(size_t depth) {
   return branches;
 }
 
-bool wait_for_child_resp(pid_t pid, char buffer[256], FILE* child_stdout) {
+bool wait_for_child_resp(pid_t pid, char buffer[256], FILE *child_stdout) {
   fgets(buffer, 256, child_stdout);
 
   // This command does not accept very long outputs return error.
@@ -564,14 +567,15 @@ bool wait_for_child_resp(pid_t pid, char buffer[256], FILE* child_stdout) {
   return status && WIFEXITED(status);
 }
 
-command_define(test,
-               "Run a test command",
-               "Usage: test [OPTION]...\n"
-               "\n"
-               "Run a test command.\n"
-               "\n"
-               "  -l DEPTH      Count the number of reachable leaves in DEPTH ply.\n"
-               "  -f EXEC       Play a game against another AI process with the same time and depth limits.\n ") {
+command_define(
+    test, "Run a test command",
+    "Usage: test [OPTION]...\n"
+    "\n"
+    "Run a test command.\n"
+    "\n"
+    "  -l DEPTH      Count the number of reachable leaves in DEPTH ply.\n"
+    "  -f EXEC       Play a game against another AI process with the same time "
+    "and depth limits.\n ") {
 
   optind = 0;
   while (true) {
@@ -580,178 +584,184 @@ command_define(test,
     case '?':
       return false;
 
-    case 'f':
-      {
-        int child_stdin_fd[2];
-        int child_stdout_fd[2];
-        int child_stderr_fd[2];
+    case 'f': {
+      int child_stdin_fd[2];
+      int child_stdout_fd[2];
+      int child_stderr_fd[2];
 
-        // Create pipe for stdin, stdout and stderr.
-        if (pipe(child_stdin_fd) < 0) {
-          io_error();
-          pp_f("error: could not create pipe\n");
-          return false;
-        }
+      // Create pipe for stdin, stdout and stderr.
+      if (pipe(child_stdin_fd) < 0) {
+        io_error();
+        pp_f("error: could not create pipe\n");
+        return false;
+      }
 
-        if (pipe(child_stdout_fd) < 0) {
-          io_error();
-          pp_f("error: could not create pipe\n");
-          return false;
-        }
+      if (pipe(child_stdout_fd) < 0) {
+        io_error();
+        pp_f("error: could not create pipe\n");
+        return false;
+      }
 
-        if (pipe(child_stderr_fd) < 0) {
+      if (pipe(child_stderr_fd) < 0) {
+        io_info();
+        pp_f("error: could not create pipe\n");
+        return false;
+      }
+
+      pid_t pid = fork();
+      switch (pid) {
+      case -1:
+        io_error();
+        pp_f("error: could not fork child\n");
+        return false;
+
+      case 0: {
+        // Child reads from the command pipe and writes to the return pipe.
+        close(child_stdin_fd[1]);
+        close(child_stdout_fd[0]);
+        close(child_stderr_fd[0]);
+
+        // Duplicate the pipes into the standard streams.
+        dup2(child_stdin_fd[0], fileno(stdin));
+        dup2(child_stdout_fd[1], fileno(stdout));
+        dup2(child_stderr_fd[1], fileno(stderr));
+
+        // Create the command strings using sprintf.
+        char fen_buffer[256];
+        get_fen_string(fen_buffer, &game_state);
+        char loadfen_command[512];
+        sprintf(loadfen_command, "loadfen '%s'", fen_buffer);
+
+        char aitime_command[512];
+        sprintf(aitime_command, "aitime %ld",
+                global_options.ai_time.tv_sec * 1000 +
+                    global_options.ai_time.tv_nsec / 1000000);
+
+        char aidepth_command[512];
+        sprintf(aidepth_command, "aidepth %zu", global_options.ai_depth);
+
+        // Create the process.
+        char *argv[] = {optarg, loadfen_command, aitime_command,
+                        aidepth_command, NULL};
+
+        execv(optarg, argv);
+
+        io_error();
+        pp_f("error: execv returned\n");
+
+        close(child_stdin_fd[0]);
+        close(child_stdout_fd[1]);
+        close(child_stderr_fd[1]);
+        exit(1);
+      }
+
+      default:
+        // Parent writes to the pipe and reads from the return pipe.
+        close(child_stdin_fd[0]);
+        close(child_stdout_fd[1]);
+        close(child_stderr_fd[1]);
+
+        FILE *child_stdin = fdopen(child_stdin_fd[1], "a");
+        FILE *child_stdout = fdopen(child_stdout_fd[0], "r");
+        FILE *child_stderr = fdopen(child_stderr_fd[0], "r");
+
+        char buffer[256];
+
+        while (true) {
+          // Before making any move, ask the child what the status is.
+          // If it is different than ours, there is a problem.
           io_info();
-          pp_f("error: could not create pipe\n");
-          return false;
-        }
+          pp_board(game_state.board, false);
+          pp_f("%s to move\n", game_state.turn ? "white" : "black");
 
-        pid_t pid = fork();
-        switch (pid) {
-        case -1:
-          io_error();
-          pp_f("error: could not fork child\n");
-          return false;
+          fprintf(child_stdin, "status\n");
+          fflush(child_stdin);
 
-        case 0:
-          {
-            // Child reads from the command pipe and writes to the return pipe.
-            close(child_stdin_fd[1]);
-            close(child_stdout_fd[0]);
-            close(child_stderr_fd[0]);
+          if (wait_for_child_resp(pid, buffer, child_stdout))
+            break;
 
-            // Duplicate the pipes into the standard streams.
-            dup2(child_stdin_fd[0], fileno(stdin));
-            dup2(child_stdout_fd[1], fileno(stdout));
-            dup2(child_stderr_fd[1], fileno(stderr));
+          // Hacky way to remove the newline character at the end of the buffer.
+          buffer[strlen(buffer) - 1] = '\0';
 
-            // Create the command strings using sprintf.
-            char fen_buffer[256];
-            get_fen_string(fen_buffer, &game_state);
-            char loadfen_command[512];
-            sprintf(loadfen_command, "loadfen '%s'", fen_buffer);
-
-            char aitime_command[512];
-            sprintf(aitime_command, "aitime %ld", global_options.ai_time.tv_sec * 1000 + global_options.ai_time.tv_nsec / 1000000);
-
-            char aidepth_command[512];
-            sprintf(aidepth_command, "aidepth %zu", global_options.ai_depth);
-
-            // Create the process.
-            char* argv[] = { optarg, loadfen_command, aitime_command, aidepth_command, NULL };
-
-            execv(optarg, argv);
-
+          // If the status was different than expected report error.
+          if (strcmp(board_status_text(game_state.status), buffer)) {
             io_error();
-            pp_f("error: execv returned\n");
-
-            close(child_stdin_fd[0]);
-            close(child_stdout_fd[1]);
-            close(child_stderr_fd[1]);
-            exit(1);
+            pp_f("error: status from child does not match\n");
+            break;
           }
 
-        default:
-          // Parent writes to the pipe and reads from the return pipe.
-          close(child_stdin_fd[0]);
-          close(child_stdout_fd[1]);
-          close(child_stderr_fd[1]);
-
-          FILE* child_stdin = fdopen(child_stdin_fd[1], "a");
-          FILE* child_stdout = fdopen(child_stdout_fd[0], "r");
-          FILE* child_stderr = fdopen(child_stderr_fd[0], "r");
-
-          char buffer[256];
-
-          while (true) {
-            // Before making any move, ask the child what the status is.
-            // If it is different than ours, there is a problem.
+          if (game_state.status != NORMAL) {
             io_info();
-            pp_board(game_state.board, false);
-            pp_f("%s to move\n", game_state.turn ? "white" : "black");
+            pp_f("game ended\n");
+            pp_f("%s\n", board_status_text(game_state.status));
+            break;
+          }
 
-            fprintf(child_stdin, "status\n");
+          move_t move;
+          if (game_state.turn) {
+            // If it is our turn to play, generate a random best move.
+            move_t best_moves[256];
+            evaluate(&game_state, &game_history, global_options.ai_depth,
+                     global_options.ai_time, best_moves);
+            move = random_move(best_moves);
+
+          } else {
+            // If it is the child's turn to play, ask for a move.
+            fprintf(child_stdin, "evaluate -r\n");
             fflush(child_stdin);
+            if (wait_for_child_resp(pid, buffer, child_stdout))
+              break;
 
-            if (wait_for_child_resp(pid, buffer, child_stdout)) break;
-
-            // Hacky way to remove the newline character at the end of the buffer.
+            // Remove the newline character after the move.
             buffer[strlen(buffer) - 1] = '\0';
 
-            // If the status was different than expected report error.
-            if (strcmp(board_status_text(game_state.status), buffer)) {
+            // If the move was invalid report error.
+            if (!string_to_move(buffer, game_state.board, &move)) {
               io_error();
-              pp_f("error: status from child does not match\n");
+              pp_f("error: invalid move from child, '%s'\n", buffer);
               break;
             }
-
-            if (game_state.status != NORMAL) {
-              io_info();
-              pp_f("game ended\n");
-              pp_f("%s\n", board_status_text(game_state.status));
-              break;
-            }
-
-            move_t move;
-            if (game_state.turn) {
-              // If it is our turn to play, generate a random best move.
-              move_t best_moves[256];
-              evaluate(&game_state, &game_history, global_options.ai_depth, global_options.ai_time, best_moves);
-              move = random_move(best_moves);
-
-            } else {
-              // If it is the child's turn to play, ask for a move.
-              fprintf(child_stdin, "evaluate -r\n");
-              fflush(child_stdin);
-              if (wait_for_child_resp(pid, buffer, child_stdout)) break;
-
-              // Remove the newline character after the move.
-              buffer[strlen(buffer) - 1] = '\0';
-
-              // If the move was invalid report error.
-              if (!string_to_move(buffer, game_state.board, &move)) {
-                io_error();
-                pp_f("error: invalid move from child, '%s'\n", buffer);
-                break;
-              }
-            }
-
-            io_info();
-            pp_f("playing move: ");
-            pp_move(move);
-            pp_f("\n");
-
-            // Make move and ask the child to make the move on their board as well.
-            do_move(&game_state, &game_history, move);
-            fprintf(child_stdin, "makemove ");
-            fprint_move(child_stdin, move);
-            fprintf(child_stdin, "\n");
-            fflush(child_stdin);
           }
 
-          int status;
-          waitpid(pid, &status, WNOHANG);
-          if (WIFEXITED(status)) {
-            pp_f("process exited with exit code %u\n", WEXITSTATUS(status));
-          } else {
-            kill(pid, SIGKILL);
-            pp_f("killed process\n");
-          }
-
-          char buffer_stderr[256];
-          io_debug();
-          pp_f("error output from process:\n");
-          while (true) {
-            if (!fgets(buffer_stderr, 256, child_stderr)) break;
-            pp_f("%s", buffer_stderr);
-          }
+          io_info();
+          pp_f("playing move: ");
+          pp_move(move);
           pp_f("\n");
 
-          fclose(child_stdin);
-          fclose(child_stdout);
-          fclose(child_stderr);
-          return true;
+          // Make move and ask the child to make the move on their board as
+          // well.
+          do_move(&game_state, &game_history, move);
+          fprintf(child_stdin, "makemove ");
+          fprint_move(child_stdin, move);
+          fprintf(child_stdin, "\n");
+          fflush(child_stdin);
         }
+
+        int status;
+        waitpid(pid, &status, WNOHANG);
+        if (WIFEXITED(status)) {
+          pp_f("process exited with exit code %u\n", WEXITSTATUS(status));
+        } else {
+          kill(pid, SIGKILL);
+          pp_f("killed process\n");
+        }
+
+        char buffer_stderr[256];
+        io_debug();
+        pp_f("error output from process:\n");
+        while (true) {
+          if (!fgets(buffer_stderr, 256, child_stderr))
+            break;
+          pp_f("%s", buffer_stderr);
+        }
+        pp_f("\n");
+
+        fclose(child_stdin);
+        fclose(child_stdout);
+        fclose(child_stderr);
+        return true;
       }
+    }
 
     case 'l':
       io_basic();
@@ -764,8 +774,7 @@ command_define(test,
   }
 }
 
-command_define(help,
-               "Get information about commands",
+command_define(help, "Get information about commands",
                "Usage: help [COMMAND]\n"
                "\n"
                "List commands or get information about COMMAND.\n") {
@@ -773,11 +782,11 @@ command_define(help,
   io_basic();
   if (argc == 1) {
     pp_f("For more information on a command, use 'help COMMAND'\n\n");
-    for (size_t i=0; command_entries[i].function != NULL; i++) {
+    for (size_t i = 0; command_entries[i].function != NULL; i++) {
       const int message_x = 14;
       command_entry_t command = command_entries[i];
       pp_f("  %s", command.name);
-      for (int i=0; i<message_x - strlen(command.name); i++) {
+      for (int i = 0; i < message_x - strlen(command.name); i++) {
         pp_f(" ");
       }
       pp_f("%s\n", *command.simple_description);
@@ -787,7 +796,8 @@ command_define(help,
   }
 
   // Check for the command name in the command entries.
-  for (size_t command_id=0; command_entries[command_id].name != NULL; command_id++) {
+  for (size_t command_id = 0; command_entries[command_id].name != NULL;
+       command_id++) {
     if (!strcmp(argv[1], command_entries[command_id].name)) {
       pp_f("\n%s\n", *command_entries[command_id].full_description);
       return true;
@@ -799,30 +809,25 @@ command_define(help,
   return false;
 }
 
-#define command_entry(_name)                                    \
-  (command_entry_t) {                                           \
-    .name = #_name,                                             \
-      .function = command_ ## _name,                            \
-      .simple_description = &command_ ## _name ## _simple,      \
-      .full_description = &command_ ## _name ## _full,          \
-      },                                                        \
+#define command_entry(_name)                                                   \
+  (command_entry_t){                                                           \
+      .name = #_name,                                                          \
+      .function = command_##_name,                                             \
+      .simple_description = &command_##_name##_simple,                         \
+      .full_description = &command_##_name##_full,                             \
+  },
 
 command_entry_t command_entries[] = {
-  command_entry(help)
-  command_entry(show)
-  command_entry(loadfen)
-  command_entry(savefen)
-  command_entry(makemove)
-  command_entry(undomove)
-  command_entry(automove)
-  command_entry(status)
-  command_entry(allmoves)
-  command_entry(placeat)
-  command_entry(removeat)
-  command_entry(aidepth)
-  command_entry(aitime)
-  command_entry(playai)
-  command_entry(evaluate)
-  command_entry(test)
-  { NULL, NULL, NULL, NULL, },
+    command_entry(help) command_entry(show) command_entry(loadfen)
+        command_entry(savefen) command_entry(makemove) command_entry(undomove)
+            command_entry(automove) command_entry(status)
+                command_entry(allmoves) command_entry(placeat)
+                    command_entry(removeat) command_entry(aidepth)
+                        command_entry(aitime) command_entry(playai)
+                            command_entry(evaluate) command_entry(test){
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                            },
 };
