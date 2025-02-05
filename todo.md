@@ -48,12 +48,12 @@
 - [x] #47  (feat) implement the `aidepth` command
 - [x] #48  (chore) generate the advantage tables that use position indeces
 - [x] #49  (chore) update the hash value of the board every move instead of calculating it from scratch every time it is needed
-- [ ] #50  (fix) `placeat` and `removeat` commands do not update the status of the board
+- [x] #50  (fix) `placeat` and `removeat` commands do not update the status of the board
 - [x] #51  (feat) turn `ai_cache_t.memorized` to a linked list
-- [ ] #52  (chore) evaluate should not generate the moves and instead should only return the evaluation information. The ai cache can then be checked to determine the best moves
-- [ ] #53  (feat) implement delta evaluation with proper test functions
-- [ ] #54  (feat) implement time management for the api
+- [x] #52  (chore) evaluate should not generate the moves and instead should only return the evaluation information. The ai cache can then be checked to determine the best moves
+- [x] #53  (feat) implement delta evaluation with proper test functions
+- [x] #54  (feat) implement time management for the api
 - [x] #55  (feat) implement time management for the ai
 - [ ] #56  (feat) implement a notation for game history
-- [ ] #57  (feat) implement move ordering
+- [x] #57  (feat) implement move ordering
 - [ ] #58  (chore) disable getopt error messages and write our own
