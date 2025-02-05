@@ -1,10 +1,13 @@
+# Project directory layout
 SRCDIR		?= ./src
-OBJDIR		?= ./obj
-BINDIR		?= ./bin
 SCRIPTDIR	?= ./scripts
 TESTDIR		?= $(SCRIPTDIR)/tests
 
+# Output directories
+OBJDIR		?= ./obj
+BINDIR		?= ./bin
 EXECUTABLE	?= $(BINDIR)/jazzinsea
+PREFIX		?= /usr/local
 
 SOURCES		:= $(shell find $(SRCDIR) -name '*.c')
 OBJECTS		:= $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
@@ -44,23 +47,29 @@ build: $(OBJDIRS) $(EXECUTABLE)
 # Header dependencies
 -include $(DEPENDS)
 
-# Binary files
+# Building
 $(BINDIR):
 	mkdir -p $(BINDIR)
 
 $(EXECUTABLE): $(OBJECTS) | $(BINDIR)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ -o $@
 
-# Object files
 $(OBJDIRS):
 	mkdir -p $@
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -MMD -MP -c $< -o $@
 
+install: $(EXECUTABLE)
+	install $(BINDIR)/jazzinsea $(DESTDIR)$(PREFIX)/bin/jazzinsea
+
+uninstall:
+	rm -f $(DESTDIR)$(PREFIX)/bin/jazzinsea
+
 # Miscellaneous
 clean:
-	rm -rf $(OBJDIR) $(BINDIR)
+	rm -rf $(OBJDIR)
+	rm -rf $(BINDIR)
 
 gen-bear: clean
 	bear -- make

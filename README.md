@@ -8,9 +8,23 @@ An open source Cez engine written completely in C.
 
 This software is licensed under the GPLv3.
 
-## Building from source
+## Installing from source
 
-Just clone the repo and run `make build`. This will create the executable _main_ under the directory _build_.
+First build the binary,
+
+    $ make build
+
+To build with debug information available, use this instead:
+
+    $ make debug
+
+Now install the binary,
+
+    # make install
+
+To uninstall,
+
+    # make uninstall
 
 ## Usage
 
