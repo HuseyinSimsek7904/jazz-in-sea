@@ -26,8 +26,10 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 
 #include <bits/types/siginfo_t.h>
 #include <getopt.h>
+#include <inttypes.h>
 #include <signal.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -576,14 +578,47 @@ command_define(
     "\n"
     "  -l DEPTH      Count the number of reachable leaves in DEPTH ply.\n"
     "  -f EXEC       Play a game against another AI process with the same time "
-    "and depth limits.\n ") {
+    "and depth limits.\n "
+    "  -n            Generate the n-tables and print the arrays.\n") {
 
   optind = 0;
   while (true) {
-    int c = getopt(argc, argv, "l:f:");
+    int c = getopt(argc, argv, "l:f:n");
     switch (c) {
     case '?':
       return false;
+
+    case 'n': {
+      io_basic();
+      pp_f("uint64_t n_table[4][64] = {\n");
+
+      for (int delta = 0; delta < 4; delta++) {
+        pp_f("  { ");
+        for (int row = 0; row < 8; row++) {
+          for (int col = 0; col < 8; col++) {
+            uint64_t entry = 0;
+
+            if (row - delta >= 0)
+              entry |= 1ull << (((row - delta) << 3) + col);
+
+            if (row + delta < 8)
+              entry |= 1ull << (((row + delta) << 3) + col);
+
+            if (col - delta >= 0)
+              entry |= 1ull << ((row << 3) + col - delta);
+
+            if (col + delta < 8)
+              entry |= 1ull << ((row << 3) + col + delta);
+
+            pp_f("0x%.16" PRIx64 ", ", entry);
+          }
+        }
+        pp_f("},\n");
+      }
+
+      pp_f("};\n");
+      break;
+    }
 
     case 'f': {
       int child_stdin_fd[2];
