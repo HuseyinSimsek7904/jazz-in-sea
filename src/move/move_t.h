@@ -22,8 +22,6 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 #include "board/pos_t.h"
 #include <stdlib.h>
 
-// Direction units.
-// These macros are defined using the perspective of the white player.
 typedef struct {
   // The position from where the piece moved.
   pos_t from;
