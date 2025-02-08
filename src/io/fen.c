@@ -212,7 +212,7 @@ bool save_fen_to_path(const char *path, board_state_t *state) {
   if (!file)
     return false;
 
-  fprintf(file, "%s\n", buffer);
+  fprintf(file, "%s", buffer);
 
   fclose(file);
 
