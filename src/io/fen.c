@@ -18,6 +18,7 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 #include "board/board_t.h"
 #include "board/piece_t.h"
 #include "board/pos_t.h"
+#include "state/board_state_t.h"
 #include "state/state_generation.h"
 
 #include <assert.h>
@@ -111,7 +112,10 @@ bool load_fen_string(const char *fen, board_state_t *state,
         return false;
 
       // Add the corresponding piece.
-      state->board[to_position(row, col++)] = _char_to_piece(*fen);
+      piece_t piece = _char_to_piece(*fen);
+      pos_t position = to_position(row, col++);
+      state->board[position] = piece;
+      state->pieces_bb[piece - 4] |= 1ull << position;
       break;
 
     default:

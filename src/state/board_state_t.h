@@ -41,6 +41,10 @@ typedef struct {
   unsigned int white_island_count;
   unsigned int black_island_count;
 
+  // Piece bitboard tables.
+  // For non empty pieces, (piece - 4) returns the index in this bitboard.
+  uint64_t pieces_bb[4];
+
   // Islands bitboard table.
   uint64_t islands_bb;
 

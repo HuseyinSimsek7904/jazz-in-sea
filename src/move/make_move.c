@@ -16,6 +16,7 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 
 #include "move/make_move.h"
 #include "board/bb_tables.h"
+#include "board/pos_t.h"
 #include "io/pp.h"
 #include "state/hash_operations.h"
 #include "state/state_generation.h"
@@ -36,6 +37,7 @@ static inline piece_t _remove_piece(board_state_t *state, pos_t from,
 
   // Clear the origin position.
   state->board[from] = EMPTY;
+  state->pieces_bb[piece - 4] &= ~(1ull << from);
 
   // Return the removed piece.
   return piece;
@@ -47,9 +49,9 @@ static inline void _place_piece(board_state_t *state, pos_t to, piece_t piece,
                                 bool *update_islands_table) {
   // Set the destination position.
   state->board[to] = piece;
+  state->pieces_bb[piece - 4] |= 1ull << to;
 
-  if (!*update_islands_table &&
-      (to == 033 || to == 034 || to == 043 || to == 044))
+  if (!*update_islands_table && is_center(to))
     *update_islands_table = true;
 
   // Check for all the N1 neighbors of the new position.
