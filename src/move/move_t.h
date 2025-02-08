@@ -32,7 +32,7 @@ typedef struct {
   pos_t to;
 
   // The position of the piece that the moving piece captured.
-  // INV_POSITION if no capture.
+  // POSITION_INV if no capture.
   pos_t capture;
 
   // The type of the piece that the moving piece captured.
@@ -40,8 +40,8 @@ typedef struct {
   piece_t capture_piece;
 } move_t;
 
-#define INV_MOVE                                                               \
-  (move_t) { .from = INV_POSITION }
+#define MOVE_INV                                                               \
+  (move_t) { .from = POSITION_INV }
 
 // Check if two moves are the same.
 static inline bool compare_move(move_t move1, move_t move2) {
@@ -66,7 +66,7 @@ static inline bool is_capture(move_t move) {
   return is_valid_pos(move.capture);
 }
 
-// Get a randomly selected move from a INV_MOVE terminated array of moves.
+// Get a randomly selected move from a MOVE_INV terminated array of moves.
 static inline move_t random_move(move_t *moves) {
   size_t length = 0;
   while (is_valid_move(moves[length]))

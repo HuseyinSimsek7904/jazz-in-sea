@@ -47,7 +47,7 @@ void *_id_routine(void *r_args) {
 
   // If there are no moves available, return draw by no moves.
   if (!is_valid_move(moves[0])) {
-    best_moves[0] = INV_MOVE;
+    best_moves[0] = MOVE_INV;
     *evaluation = EVAL_INVALID;
     return NULL;
   }
@@ -55,7 +55,7 @@ void *_id_routine(void *r_args) {
   // If there is only one move available, return that only move.
   if (!is_valid_move(moves[1])) {
     best_moves[0] = moves[0];
-    best_moves[1] = INV_MOVE;
+    best_moves[1] = MOVE_INV;
     *evaluation = EVAL_INVALID;
     return NULL;
   }
@@ -65,7 +65,7 @@ void *_id_routine(void *r_args) {
     evals[i] = EVAL_INVALID;
   }
 
-  move_t killer_moves[256] = {INV_MOVE};
+  move_t killer_moves[256] = {MOVE_INV};
 
   // Iterate depths from 1 to max_depth.
   for (size_t depth = 1; depth <= max_depth; depth++) {
@@ -134,7 +134,7 @@ void *_id_routine(void *r_args) {
         *evaluation = evals[i];
       }
     }
-    best_moves[length] = INV_MOVE;
+    best_moves[length] = MOVE_INV;
 
     if (is_mate(*evaluation)) {
       io_debug();

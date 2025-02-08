@@ -126,7 +126,7 @@ bool string_to_move(const char *s, board_t board, move_t *move) {
   } else {
     if (abs(dist) != 1 && abs(dist) != 2)
       return false;
-    move->capture = INV_POSITION;
+    move->capture = POSITION_INV;
   }
 
   return true;

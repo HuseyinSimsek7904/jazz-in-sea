@@ -101,7 +101,7 @@ eval_t _evaluate(board_state_t *state, history_t *history, ai_cache_t *cache,
   order_moves(state, cache, moves, state->turn, killer_moves);
 
   eval_t best_evaluation = state->turn ? EVAL_BLACK_MATES : EVAL_WHITE_MATES;
-  move_t new_killer_moves[256] = {INV_MOVE};
+  move_t new_killer_moves[256] = {MOVE_INV};
 
   // Loop through all of the available moves except the first, and recursively
   // get the next moves.
@@ -181,7 +181,7 @@ eval_t _evaluate(board_state_t *state, history_t *history, ai_cache_t *cache,
         while (is_valid_move(killer_moves[i]))
           i++;
         killer_moves[i] = move;
-        killer_moves[i + 1] = INV_MOVE;
+        killer_moves[i + 1] = MOVE_INV;
 
         // try_add_tt(cache, state->hash, history->size, max_depth,
         // best_evaluation, LOWER);
@@ -202,7 +202,7 @@ eval_t _evaluate(board_state_t *state, history_t *history, ai_cache_t *cache,
         while (is_valid_move(killer_moves[i]))
           i++;
         killer_moves[i] = move;
-        killer_moves[i + 1] = INV_MOVE;
+        killer_moves[i + 1] = MOVE_INV;
 
         // try_add_tt(cache, state->hash, history->size, max_depth,
         // best_evaluation, UPPER);

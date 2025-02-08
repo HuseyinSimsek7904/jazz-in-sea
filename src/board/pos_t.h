@@ -28,7 +28,7 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 
 static const int deltas[] = {RIGHT, DOWN, LEFT, UP};
 
-#define INV_POSITION 0x88
+#define POSITION_INV 0x88
 
 // -- The pos_t type --
 typedef u_int8_t pos_t;

@@ -69,7 +69,7 @@ void generate_moves(board_state_t *state, move_t moves[256]) {
           moves[length++] = (move_t){
               .from = position,
               .to = first_pos,
-              .capture = INV_POSITION,
+              .capture = POSITION_INV,
           };
 
         } else if (get_piece_color(first_piece) == opposite_color) {
@@ -99,5 +99,5 @@ void generate_moves(board_state_t *state, move_t moves[256]) {
     }
   }
 
-  moves[length] = INV_MOVE;
+  moves[length] = MOVE_INV;
 }
