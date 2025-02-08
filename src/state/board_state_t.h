@@ -21,6 +21,8 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 #include "board/piece_t.h"
 #include "board/status_t.h"
 
+#include <stdint.h>
+
 typedef struct {
   // The current board.
   piece_t board[64];
@@ -39,8 +41,8 @@ typedef struct {
   unsigned int white_island_count;
   unsigned int black_island_count;
 
-  // Islands table.
-  bool islands[64];
+  // Islands bitboard table.
+  uint64_t islands_bb;
 
   // Square hashes table used to generate a hash value for boards.
   hash_t hash_tables[4][64];

@@ -112,22 +112,22 @@ int get_board_evaluation(board_state_t *state, ai_cache_t *cache) {
     switch (get_piece_type(piece)) {
     case MOD_PAWN:
       if (centered) {
-        piece_eval = (state->islands[position]
+        piece_eval = ((state->islands_bb & (1ull << position))
                           ? cache->pawn_island_adv_table
                           : cache->pawn_centered_adv_table)[position];
       } else {
-        assert(!state->islands[position]);
+        assert(!(state->islands_bb & (1ull << position)));
         piece_eval = cache->pawn_adv_table[position];
       }
       break;
 
     case MOD_KNIGHT:
       if (centered) {
-        piece_eval = (state->islands[position]
+        piece_eval = ((state->islands_bb & (1ull << position))
                           ? cache->knight_island_adv_table
                           : cache->knight_centered_adv_table)[position];
       } else {
-        assert(!state->islands[position]);
+        assert(!(state->islands_bb & (1ull << position)));
         piece_eval = cache->knight_adv_table[position];
       }
       break;

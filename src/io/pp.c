@@ -240,12 +240,12 @@ void fprint_islands(FILE *file, board_state_t *state) {
     fprintf(file, "%c", row_name(row));
 
     for (int col = 0; col < 8; col++) {
-      pos_t pos = to_position(row, col);
+      pos_t position = to_position(row, col);
       char c;
-      if (state->board[pos] == EMPTY) {
+      if (state->board[position] == EMPTY) {
         c = CLI_ISLANDS_EMPTY;
       } else {
-        c = state->islands[pos] ? CLI_ISLANDS_YES : CLI_ISLANDS_NO;
+        c = (state->islands_bb & (1ull << position)) ? CLI_ISLANDS_YES : CLI_ISLANDS_NO;
       }
       fprintf(file, "%c", c);
     }

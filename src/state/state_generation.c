@@ -34,10 +34,10 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 void _generate_islands_pos(board_state_t *state, pos_t position, char color) {
   if (get_piece_color(state->board[position]) != color)
     return;
-  if (state->islands[position])
+  if (state->islands_bb & (1ull << position))
     return;
 
-  state->islands[position] = true;
+  state->islands_bb |= 1ull << position;
 
   if (color == MOD_WHITE)
     state->white_island_count++;
@@ -60,10 +60,7 @@ void generate_islands(board_state_t *state) {
   // Count the number of island pieces.
   state->white_island_count = 0;
   state->black_island_count = 0;
-
-  for (pos_t position = 0; position < 64; position++) {
-    state->islands[position] = false;
-  }
+  state->islands_bb = 0;
 
   // Generates state->islands on the center squares for both colors.
   _generate_islands_pos(state, 033, MOD_WHITE);

@@ -28,7 +28,7 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 static inline piece_t _remove_piece(board_state_t *state, pos_t from,
                                     bool *update_islands_table) {
   // If the piece was moved from an island, table should be updated.
-  if (!*update_islands_table && state->islands[from])
+  if (!*update_islands_table && (state->islands_bb & (1ull << from)))
     *update_islands_table = true;
 
   // Take the piece from the origin position.
@@ -60,7 +60,7 @@ static inline void _place_piece(board_state_t *state, pos_t to, piece_t piece,
       n1 &= ~(1ull << new_pos);
 
       if (get_piece_color(state->board[new_pos]) == get_piece_color(piece) &&
-          state->islands[new_pos]) {
+          (state->islands_bb & (1ull << new_pos))) {
 
         *update_islands_table = true;
         break;
