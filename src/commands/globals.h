@@ -22,6 +22,7 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 #include "state/history.h"
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <time.h>
 
@@ -30,6 +31,7 @@ typedef struct {
 
   struct timespec ai_time;
   size_t ai_depth;
+  size_t ai_tt_size;
 
   bool white_automove;
   bool black_automove;

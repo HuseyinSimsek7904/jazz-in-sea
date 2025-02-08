@@ -23,7 +23,7 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 // Return the transposition entry for a board hash.
 tt_entry_t *get_entry_tt(ai_cache_t *cache, hash_t hash) {
 
-  return &(*cache->transposition_table)[hash % AI_HASHMAP_SIZE];
+  return &cache->transposition_table[hash % cache->tt_size];
 }
 
 // Add the board to the transposition table.

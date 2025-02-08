@@ -32,7 +32,7 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <time.h>
 
-eval_t evaluate(board_state_t *, history_t *, size_t, struct timespec,
+eval_t evaluate(board_state_t *, history_t *, size_t, struct timespec, size_t,
                 move_t *);
 
 #endif

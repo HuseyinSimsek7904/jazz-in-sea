@@ -26,6 +26,7 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 #include "board/board_t.h"
 #include "board/piece_t.h"
 #include "board/pos_t.h"
+#include "commands/commands.h"
 #include "commands/globals.h"
 #include "io/fen.h"
 #include "io/pp.h"
@@ -144,21 +145,22 @@ void execute_command(int command_argc, char **command_argv) {
 void initialize(int argc, char **argv) {
   srand(time(NULL));
 
-  global_options.executable = argv[0];
+  global_options = (options_t){
+      .executable = argv[0],
+      .accept_stdin = true,
 
-  global_options.accept_stdin = true;
+      .ai_tt_size = 0x20000,
+      .ai_depth = 256,
+      .ai_time.tv_nsec = 0,
+      .ai_time.tv_sec = 2,
 
-  global_options.ai_depth = 256;
-  global_options.ai_time.tv_nsec = 0;
-  global_options.ai_time.tv_sec = 2;
-
-  global_options.white_automove = false;
-  global_options.black_automove = false;
-
-  global_options.file_basic = stdout;
-  global_options.file_error = stderr;
-  global_options.file_info = stderr;
-  global_options.file_debug = fopen("/dev/null", "w");
+      .white_automove = false,
+      .black_automove = false,
+      .file_basic = stdout,
+      .file_error = stderr,
+      .file_info = stderr,
+      .file_debug = fopen("/dev/null", "w"),
+  };
 
   parse_command_line_args(argc, argv);
 

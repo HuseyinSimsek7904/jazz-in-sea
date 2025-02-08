@@ -81,7 +81,7 @@ const int TOPLEFT_KNIGHT_ISLAND_ADV_TABLE[4][4] = {{400, 450, 500, 600},
                                                    {600, 670, 650, 700}};
 
 eval_t evaluate(board_state_t *state, history_t *history, size_t max_depth,
-                struct timespec max_time, move_t *best_moves) {
+                struct timespec max_time, size_t tt_size, move_t *best_moves) {
 
   // Reset the measuring variables.
 #ifdef MEASURE_EVAL_COUNT
@@ -149,7 +149,7 @@ eval_t evaluate(board_state_t *state, history_t *history, size_t max_depth,
   }
 
   pp_f("measure: in total, used %d (%d %%) transposition tables entries.\n",
-       tt_saved_count, tt_saved_count * 100 / AI_HASHMAP_SIZE);
+       tt_saved_count, tt_saved_count * 100 / cache.tt_size);
   if (tt_saved_count != 0) {
     if (evaluate_count != 0) {
       pp_f("measure: remembered %d (%d %% per call, %d %% per entry) times.\n",

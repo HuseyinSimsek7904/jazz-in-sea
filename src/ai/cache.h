@@ -19,8 +19,7 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 
 #include "ai/eval_t.h"
 #include "board/hash_t.h"
-
-#define AI_HASHMAP_SIZE 0x20000
+#include <stddef.h>
 
 typedef enum { EXACT, LOWER, UPPER } node_type_t;
 
@@ -58,7 +57,8 @@ typedef struct {
   int late_move_min_depth;
   int exchange_deepening;
 
-  tt_entry_t (*transposition_table)[AI_HASHMAP_SIZE];
+  size_t tt_size;
+  tt_entry_t *transposition_table;
 } ai_cache_t;
 
 void setup_cache(ai_cache_t *cache, const int[4][4], const int[4][4],

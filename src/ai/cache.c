@@ -65,11 +65,13 @@ void setup_cache(ai_cache_t *cache, const int topleft_pawn[4][4],
   cache->late_move_min_depth = 3;
   cache->exchange_deepening = 2;
 
-  cache->transposition_table = malloc(sizeof(tt_entry_t) * AI_HASHMAP_SIZE);
+  cache->tt_size = 0x200000;
+
+  cache->transposition_table = malloc(sizeof(tt_entry_t) * cache->tt_size);
 
   // Depth < 0 on a memorized item indicates not set.
-  for (size_t i = 0; i < AI_HASHMAP_SIZE; i++) {
-    (*cache->transposition_table)[i] = (tt_entry_t){.eval = EVAL_INVALID};
+  for (size_t i = 0; i < cache->tt_size; i++) {
+    cache->transposition_table[i] = (tt_entry_t){.eval = EVAL_INVALID};
   }
 }
 
