@@ -37,19 +37,19 @@ void setup_cache(ai_cache_t *cache, const int topleft_pawn[4][4],
       if (col >= 4)
         topleft_col = 7 - col;
 
-      pos_t pos = to_position(row, col);
+      pos_t position = to_position(row, col);
 
-      cache->pawn_adv_table[pos] = topleft_pawn[topleft_row][topleft_col];
-      cache->knight_adv_table[pos] = topleft_knight[topleft_row][topleft_col];
+      cache->pawn_adv_table[position] = topleft_pawn[topleft_row][topleft_col];
+      cache->knight_adv_table[position] = topleft_knight[topleft_row][topleft_col];
 
-      cache->pawn_centered_adv_table[pos] =
+      cache->pawn_centered_adv_table[position] =
           topleft_pawn[topleft_row][topleft_col];
-      cache->knight_centered_adv_table[pos] =
+      cache->knight_centered_adv_table[position] =
           topleft_knight[topleft_row][topleft_col];
 
-      cache->pawn_island_adv_table[pos] =
+      cache->pawn_island_adv_table[position] =
           topleft_pawn_island[topleft_row][topleft_col];
-      cache->knight_island_adv_table[pos] =
+      cache->knight_island_adv_table[position] =
           topleft_knight_island[topleft_row][topleft_col];
     }
   }
