@@ -26,6 +26,7 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 #include "move/move_t.h"
 
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdio.h>
 
 static inline bool is_whitespace(char c) {
@@ -44,7 +45,7 @@ void fprint_move(FILE *, move_t);
 void fprint_moves(FILE *, move_t *);
 
 void fprint_board(FILE *, board_t);
-void fprint_islands(FILE *, board_state_t *);
+void fprint_bitboard(FILE *, uint64_t bitboard);
 
 void fprint_eval(FILE *, eval_t, history_t *);
 
@@ -84,8 +85,8 @@ static inline void pp_moves(move_t *moves) {
   fprint_moves(global_options.current_file, moves);
 }
 
-static inline void pp_islands(board_state_t *state) {
-  fprint_islands(global_options.current_file, state);
+static inline void pp_bitboard(uint64_t bitboard) {
+  fprint_bitboard(global_options.current_file, bitboard);
 }
 
 static inline void pp_position(pos_t pos) {

@@ -16,6 +16,7 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 
 #include <assert.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -186,8 +187,8 @@ const char CLI_BLACK_PAWN = 'p';
 const char CLI_BLACK_KNIGHT = 'n';
 const char CLI_ERROR = 'E';
 const char CLI_ISLANDS_EMPTY = '.';
-const char CLI_ISLANDS_NO = '+';
-const char CLI_ISLANDS_YES = '#';
+const char CLI_BITBOARD_NO = ' ';
+const char CLI_BITBOARD_YES = '#';
 
 void fprint_board(FILE *file, board_t board) {
   fprintf(file, "%s", CLI_TOP_ROW);
@@ -233,7 +234,7 @@ void fprint_board(FILE *file, board_t board) {
   }
 }
 
-void fprint_islands(FILE *file, board_state_t *state) {
+void fprint_bitboard(FILE *file, uint64_t bitboard) {
   fprintf(file, "%s", CLI_TOP_ROW);
 
   for (int row = 8; row-- > 0;) {
@@ -241,13 +242,9 @@ void fprint_islands(FILE *file, board_state_t *state) {
 
     for (int col = 0; col < 8; col++) {
       pos_t position = to_position(row, col);
-      char c;
-      if (state->board[position] == EMPTY) {
-        c = CLI_ISLANDS_EMPTY;
-      } else {
-        c = (state->islands_bb & (1ull << position)) ? CLI_ISLANDS_YES : CLI_ISLANDS_NO;
-      }
-      fprintf(file, "%c", c);
+      fprintf(file, "%c",
+              (bitboard & (1ull << position)) ? CLI_BITBOARD_YES
+                                              : CLI_BITBOARD_NO);
     }
     fprintf(file, "\n");
   }

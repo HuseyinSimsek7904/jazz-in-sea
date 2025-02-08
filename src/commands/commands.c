@@ -166,12 +166,15 @@ command_define(show, "Print the current board position",
                "Print the current board position.\n"
                "\n"
                "  -h            Print the hash value of the board instead\n"
-               "  -i            Print the island table instead\n") {
-  enum { BOARD, HASH, ISLANDS } show_type = BOARD;
+               "  -i            Print the island bitboard table instead\n"
+               "  -[PNpn]       Print the piece bitboard table instead\n") {
+
+  enum { BOARD, HASH, BITBOARD } show_type = BOARD;
+  uint64_t bitboard = 0;
 
   optind = 0;
   while (true) {
-    int c = getopt(argc, argv, "bhi");
+    int c = getopt(argc, argv, "bhiPNpn");
     switch (c) {
     case '?':
       return false;
@@ -181,7 +184,24 @@ command_define(show, "Print the current board position",
       show_type = HASH;
       break;
     case 'i':
-      show_type = ISLANDS;
+      show_type = BITBOARD;
+      bitboard = game_state.islands_bb;
+      break;
+    case 'P':
+      show_type = BITBOARD;
+      bitboard = game_state.pieces_bb[0];
+      break;
+    case 'N':
+      show_type = BITBOARD;
+      bitboard = game_state.pieces_bb[1];
+      break;
+    case 'p':
+      show_type = BITBOARD;
+      bitboard = game_state.pieces_bb[2];
+      break;
+    case 'n':
+      show_type = BITBOARD;
+      bitboard = game_state.pieces_bb[3];
       break;
     }
   }
@@ -196,9 +216,9 @@ end_of_parsing:
     io_basic();
     pp_f("%lx\n", game_state.hash);
     return true;
-  case ISLANDS:
+  case BITBOARD:
     io_basic();
-    pp_islands(&game_state);
+    pp_bitboard(bitboard);
     return true;
   }
 
@@ -885,24 +905,33 @@ command_define(help, "Get information about commands",
 }
 
 #define command_entry(_name)                                                   \
-  (command_entry_t){                                                           \
-      .name = #_name,                                                          \
-      .function = command_##_name,                                             \
-      .simple_description = &command_##_name##_simple,                         \
-      .full_description = &command_##_name##_full,                             \
-  },
+  (command_entry_t) {                                                          \
+    .name = #_name, .function = command_##_name,                               \
+    .simple_description = &command_##_name##_simple,                           \
+    .full_description = &command_##_name##_full,                               \
+  }
 
 command_entry_t command_entries[] = {
-    command_entry(help) command_entry(show) command_entry(loadfen)
-        command_entry(savefen) command_entry(makemove) command_entry(undomove)
-            command_entry(automove) command_entry(status)
-                command_entry(allmoves) command_entry(placeat)
-                    command_entry(removeat) command_entry(aidepth)
-                        command_entry(aitime) command_entry(playai)
-                            command_entry(evaluate) command_entry(test){
-                                NULL,
-                                NULL,
-                                NULL,
-                                NULL,
-                            },
+    command_entry(help),
+    command_entry(show),
+    command_entry(loadfen),
+    command_entry(savefen),
+    command_entry(makemove),
+    command_entry(undomove),
+    command_entry(automove),
+    command_entry(status),
+    command_entry(allmoves),
+    command_entry(placeat),
+    command_entry(removeat),
+    command_entry(aidepth),
+    command_entry(aitime),
+    command_entry(playai),
+    command_entry(evaluate),
+    command_entry(test),
+    {
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+    },
 };
