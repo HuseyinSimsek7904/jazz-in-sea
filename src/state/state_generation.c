@@ -31,7 +31,7 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 void _generate_islands_pos(board_state_t *state, pos_t position, char color) {
   if (!is_valid_pos(position))
     return;
-  if (get_piece_color(get_piece(state->board, position)) != color)
+  if (get_piece_color(state->board[position]) != color)
     return;
   if (state->islands[position])
     return;
@@ -102,7 +102,7 @@ void generate_state_cache(board_state_t *state, history_t *history) {
   for (int row = 0; row < 8; row++) {
     for (int col = 0; col < 8; col++) {
       char piece_color =
-          get_piece_color(get_piece(state->board, to_position(row, col)));
+          get_piece_color(state->board[to_position(row, col)]);
 
       if (piece_color == MOD_WHITE)
         state->white_count++;

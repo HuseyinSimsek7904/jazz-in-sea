@@ -54,7 +54,7 @@ void order_moves(board_state_t *state, ai_cache_t *cache, move_t *moves,
   for (i = 0; is_valid_move(moves[i]); i++) {
     move_t move = moves[i];
 
-    piece_t piece = get_piece(state->board, move.from);
+    piece_t piece = state->board[move.from];
     tt_entry_t *entry = get_entry_tt(
         cache, state->hash ^ get_hash_for_move(state, piece, move));
 

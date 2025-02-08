@@ -36,7 +36,7 @@ void generate_moves(board_state_t *state, move_t moves[256]) {
   for (int row = 0; row < 8; row++) {
     for (int col = 0; col < 8; col++) {
       unsigned int position = to_position(row, col);
-      piece_t piece = get_piece(state->board, position);
+      piece_t piece = state->board[position];
 
       // Check if the color of the piece is the color of the player.
       if (get_piece_color(piece) != piece_color)
@@ -56,7 +56,7 @@ void generate_moves(board_state_t *state, move_t moves[256]) {
         if (!is_valid_pos(first_pos))
           continue;
 
-        piece_t first_piece = get_piece(state->board, first_pos);
+        piece_t first_piece = state->board[first_pos];
 
         if (first_piece == MOD_EMPTY) {
           // The destination position is empty.
@@ -80,7 +80,7 @@ void generate_moves(board_state_t *state, move_t moves[256]) {
             continue;
 
           // Check if the destination position is empty.
-          if (get_piece(state->board, second_pos) != EMPTY)
+          if (state->board[second_pos] != EMPTY)
             continue;
 
           // If we have not found any captures yet, clear all previous moves.

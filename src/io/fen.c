@@ -100,7 +100,7 @@ bool load_fen_string(const char *fen, board_state_t *state,
       if (col + spaces > 8)
         return false;
       while (spaces--)
-        set_piece(state->board, to_position(row, col++), EMPTY);
+        state->board[to_position(row, col++)] = EMPTY;
       break;
 
     case FEN_WHITE_PAWN:
@@ -111,7 +111,7 @@ bool load_fen_string(const char *fen, board_state_t *state,
         return false;
 
       // Add the corresponding piece.
-      set_piece(state->board, to_position(row, col++), _char_to_piece(*fen));
+      state->board[to_position(row, col++)] = _char_to_piece(*fen);
       break;
 
     default:
@@ -158,7 +158,7 @@ bool load_fen_string(const char *fen, board_state_t *state,
 char *get_fen_string(char *fen, board_state_t *state) {
   for (int row = 0; row < 8; row++) {
     for (int col = 0; col < 8; col++) {
-      piece_t piece = get_piece(state->board, to_position(row, col));
+      piece_t piece = state->board[to_position(row, col)];
 
       if (piece == EMPTY) {
         if (*(fen - 1) >= '1' && *(fen - 1) <= '8') {

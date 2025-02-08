@@ -122,7 +122,7 @@ bool string_to_move(const char *s, board_t board, move_t *move) {
       return false;
     move->capture = move->from + _capture_delta_to_regular_delta(dist) *
                                      (move->to - move->from) / dist;
-    move->capture_piece = get_piece(board, move->capture);
+    move->capture_piece = board[move->capture];
   } else {
     if (abs(dist) != 1 && abs(dist) != 2)
       return false;
@@ -209,7 +209,7 @@ void fprint_board(FILE *file, board_t board, bool player) {
       int col = perspective_col(pcol, player);
 
       pos_t position = to_position(row, col);
-      piece_t piece = get_piece(board, position);
+      piece_t piece = board[position];
 
       char character;
       switch (piece) {
@@ -253,7 +253,7 @@ void fprint_islands(FILE *file, board_state_t *state, bool player) {
       int col = perspective_col(pcol, player);
       pos_t pos = to_position(row, col);
       char c;
-      if (get_piece(state->board, pos) == EMPTY) {
+      if (state->board[pos] == EMPTY) {
         c = CLI_ISLANDS_EMPTY;
       } else {
         c = state->islands[pos] ? CLI_ISLANDS_YES : CLI_ISLANDS_NO;

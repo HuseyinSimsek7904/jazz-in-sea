@@ -29,10 +29,10 @@ static inline piece_t _remove_piece(board_state_t *state, pos_t from,
     *update_islands_table = true;
 
   // Take the piece from the origin position.
-  piece_t piece = get_piece(state->board, from);
+  piece_t piece = state->board[from];
 
   // Clear the origin position.
-  set_piece(state->board, from, EMPTY);
+  state->board[from] = EMPTY;
 
   // Return the removed piece.
   return piece;
@@ -43,7 +43,7 @@ static inline piece_t _remove_piece(board_state_t *state, pos_t from,
 static inline void _place_piece(board_state_t *state, pos_t to, piece_t piece,
                                 bool *update_islands_table) {
   // Set the destination position.
-  set_piece(state->board, to, piece);
+  state->board[to] = piece;
 
   if (!*update_islands_table &&
       (to == 0x33 || to == 0x34 || to == 0x43 || to == 0x44))
@@ -55,8 +55,7 @@ static inline void _place_piece(board_state_t *state, pos_t to, piece_t piece,
       pos_t new_pos = to + deltas[i];
 
       if (is_valid_pos(new_pos) &&
-          get_piece_color(get_piece(state->board, new_pos)) ==
-              get_piece_color(piece) &&
+          get_piece_color(state->board[new_pos]) == get_piece_color(piece) &&
           state->islands[new_pos]) {
 
         *update_islands_table = true;
@@ -105,7 +104,7 @@ bool place_piece(board_state_t *state, history_t *history, pos_t pos,
   else
     return false;
 
-  if (get_piece(state->board, pos) != EMPTY)
+  if (state->board[pos] != EMPTY)
     return false;
 
   bool update_islands_table = false;
@@ -131,7 +130,7 @@ bool do_move(board_state_t *state, history_t *history, move_t move) {
   };
 
   // There must not be any piece on the position where we are moving the piece.
-  assert(get_piece(state->board, move.to) == EMPTY);
+  assert(state->board[move.to] == EMPTY);
 
   bool update_islands_table = false;
 

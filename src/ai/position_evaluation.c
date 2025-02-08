@@ -29,7 +29,7 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 // Ignore whether or not pieces are in islands.
 eval_t get_short_move_evaluation(board_state_t *state, ai_cache_t *cache,
                                  move_t move) {
-  piece_t piece = get_piece(state->board, move.from);
+  piece_t piece = state->board[move.from];
   eval_t evaluation;
 
   switch (get_piece_type(piece)) {
@@ -78,15 +78,15 @@ eval_t get_short_move_evaluation(board_state_t *state, ai_cache_t *cache,
 int get_board_evaluation(board_state_t *state, ai_cache_t *cache) {
   // Check if there are any centered pieces for both pieces.
   bool white_centered =
-      (get_piece_color(get_piece(state->board, 0x33)) == MOD_WHITE ||
-       get_piece_color(get_piece(state->board, 0x34)) == MOD_WHITE ||
-       get_piece_color(get_piece(state->board, 0x43)) == MOD_WHITE ||
-       get_piece_color(get_piece(state->board, 0x44)) == MOD_WHITE);
+      (get_piece_color(state->board[0x33]) == MOD_WHITE ||
+       get_piece_color(state->board[0x34]) == MOD_WHITE ||
+       get_piece_color(state->board[0x43]) == MOD_WHITE ||
+       get_piece_color(state->board[0x44]) == MOD_WHITE);
   bool black_centered =
-      (get_piece_color(get_piece(state->board, 0x33)) == MOD_BLACK ||
-       get_piece_color(get_piece(state->board, 0x34)) == MOD_BLACK ||
-       get_piece_color(get_piece(state->board, 0x43)) == MOD_BLACK ||
-       get_piece_color(get_piece(state->board, 0x44)) == MOD_BLACK);
+      (get_piece_color(state->board[0x33]) == MOD_BLACK ||
+       get_piece_color(state->board[0x34]) == MOD_BLACK ||
+       get_piece_color(state->board[0x43]) == MOD_BLACK ||
+       get_piece_color(state->board[0x44]) == MOD_BLACK);
 
   // If players have centered pieces, add centered advantage score.
   int eval = 0;
@@ -99,7 +99,7 @@ int get_board_evaluation(board_state_t *state, ai_cache_t *cache) {
   for (int row = 0; row < 8; row++) {
     for (int col = 0; col < 8; col++) {
       pos_t pos = to_position(row, col);
-      piece_t piece = get_piece(state->board, pos);
+      piece_t piece = state->board[pos];
       char piece_color = get_piece_color(piece);
       int piece_eval;
 
@@ -147,7 +147,7 @@ int new_evaluation(board_state_t *state, ai_cache_t *cache, move_t move,
     return get_board_evaluation(state, cache);
 
   // Must use move.to as this function must be called after a call to do_move.
-  piece_t piece = get_piece(state->board, move.to);
+  piece_t piece = state->board[move.to];
 
   // No need to think about the islands cases, as we know that the islands table
   // was not updated. This means neither the piece itself, or the piece it
