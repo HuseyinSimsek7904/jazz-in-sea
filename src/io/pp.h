@@ -43,8 +43,8 @@ void fprint_position(FILE *, pos_t);
 void fprint_move(FILE *, move_t);
 void fprint_moves(FILE *, move_t *);
 
-void fprint_board(FILE *, board_t, bool);
-void fprint_islands(FILE *, board_state_t *, bool);
+void fprint_board(FILE *, board_t);
+void fprint_islands(FILE *, board_state_t *);
 
 void fprint_eval(FILE *, eval_t, history_t *);
 
@@ -72,8 +72,8 @@ static inline void pp_f(const char *format, ...) {
   pp_f_va(format, args);
 }
 
-static inline void pp_board(board_t board, bool color) {
-  fprint_board(global_options.current_file, board, color);
+static inline void pp_board(board_t board) {
+  fprint_board(global_options.current_file, board);
 }
 
 static inline void pp_move(move_t move) {
@@ -84,8 +84,8 @@ static inline void pp_moves(move_t *moves) {
   fprint_moves(global_options.current_file, moves);
 }
 
-static inline void pp_islands(board_state_t *state, bool color) {
-  fprint_islands(global_options.current_file, state, color);
+static inline void pp_islands(board_state_t *state) {
+  fprint_islands(global_options.current_file, state);
 }
 
 static inline void pp_position(pos_t pos) {

@@ -132,14 +132,6 @@ bool string_to_move(const char *s, board_t board, move_t *move) {
   return true;
 }
 
-// Convert from regular row to perspective row or vice verca.
-// Perspective row means the row that the player sees.
-int perspective_row(int row, bool player) { return player ? row : 7 - row; }
-
-// Convert from regular column to perspective column or vice versa.
-// Perspective col means the column that the player sees.
-int perspective_col(int col, bool player) { return player ? 7 - col : col; }
-
 // Get the column name from a column number.
 // aka 0->a, 1->b ...  7->h
 char col_name(int col) { return 'a' + col; }
@@ -183,7 +175,6 @@ void fprint_move(FILE *file, move_t move) {
 }
 
 const char *CLI_TOP_ROW = " abcdefgh\n";
-const char *CLI_TOP_ROW_INV = " hgfedcba\n";
 
 const char CLI_WHITE_CELL = '_';
 const char CLI_BLACK_CELL = ' ';
@@ -198,16 +189,13 @@ const char CLI_ISLANDS_EMPTY = '.';
 const char CLI_ISLANDS_NO = '+';
 const char CLI_ISLANDS_YES = '#';
 
-void fprint_board(FILE *file, board_t board, bool player) {
-  fprintf(file, "%s", player ? CLI_TOP_ROW_INV : CLI_TOP_ROW);
+void fprint_board(FILE *file, board_t board) {
+  fprintf(file, "%s", CLI_TOP_ROW);
 
-  for (int prow = 0; prow < 8; prow++) {
-    int row = perspective_row(prow, player);
+  for (int row = 8; row-- > 0;) {
     fprintf(file, "%c", row_name(row));
 
-    for (int pcol = 0; pcol < 8; pcol++) {
-      int col = perspective_col(pcol, player);
-
+    for (int col = 0; col < 8; col++) {
       pos_t position = to_position(row, col);
       piece_t piece = board[position];
 
@@ -245,12 +233,13 @@ void fprint_board(FILE *file, board_t board, bool player) {
   }
 }
 
-void fprint_islands(FILE *file, board_state_t *state, bool player) {
-  for (int prow = 0; prow < 8; prow++) {
-    int row = perspective_row(prow, player);
+void fprint_islands(FILE *file, board_state_t *state) {
+  fprintf(file, "%s", CLI_TOP_ROW);
 
-    for (int pcol = 0; pcol < 8; pcol++) {
-      int col = perspective_col(pcol, player);
+  for (int row = 8; row-- > 0;) {
+    fprintf(file, "%c", row_name(row));
+
+    for (int col = 0; col < 8; col++) {
       pos_t pos = to_position(row, col);
       char c;
       if (state->board[pos] == EMPTY) {

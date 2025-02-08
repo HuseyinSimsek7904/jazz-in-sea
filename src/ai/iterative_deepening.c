@@ -39,7 +39,7 @@ void *_id_routine(void *r_args) {
   io_debug();
   pp_f("debug: calling _evaluate for color %s\n",
        state->turn ? "white" : "black");
-  pp_board(state->board, false);
+  pp_board(state->board);
 
   move_t moves[256];
   eval_t evals[256];

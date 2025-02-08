@@ -65,7 +65,7 @@ void make_automove() {
 
   io_info();
   pp_f("done automove\n");
-  pp_board(game_state.board, false);
+  pp_board(game_state.board);
 
   make_automove();
 }
@@ -115,7 +115,7 @@ command_define(loadfen, "Load a board position using FEN",
         }
       }
       io_info();
-      pp_board(game_state.board, false);
+      pp_board(game_state.board);
       return true;
     }
   }
@@ -187,7 +187,7 @@ end_of_parsing:
   switch (show_type) {
   case BOARD:
     io_basic();
-    pp_board(game_state.board, false);
+    pp_board(game_state.board);
     return true;
   case HASH:
     io_basic();
@@ -195,7 +195,7 @@ end_of_parsing:
     return true;
   case ISLANDS:
     io_basic();
-    pp_islands(&game_state, false);
+    pp_islands(&game_state);
     return true;
   }
 
@@ -396,8 +396,9 @@ end_of_parsing:
   pp_f("evaluating...\n");
 
   move_t best_moves[256];
-  eval_t eval = evaluate(&game_state, &game_history, global_options.ai_depth,
-                         global_options.ai_time, global_options.ai_tt_size, best_moves);
+  eval_t eval =
+      evaluate(&game_state, &game_history, global_options.ai_depth,
+               global_options.ai_time, global_options.ai_tt_size, best_moves);
 
   io_info();
   pp_f("evaluating done\n");
@@ -671,7 +672,7 @@ command_define(
           // Before making any move, ask the child what the status is.
           // If it is different than ours, there is a problem.
           io_info();
-          pp_board(game_state.board, false);
+          pp_board(game_state.board);
           pp_f("%s to move\n", game_state.turn ? "white" : "black");
 
           fprintf(child_stdin, "status\n");
@@ -702,7 +703,8 @@ command_define(
             // If it is our turn to play, generate a random best move.
             move_t best_moves[256];
             evaluate(&game_state, &game_history, global_options.ai_depth,
-                     global_options.ai_time, global_options.ai_tt_size, best_moves);
+                     global_options.ai_time, global_options.ai_tt_size,
+                     best_moves);
             move = random_move(best_moves);
 
           } else {
