@@ -34,6 +34,7 @@ typedef struct {
   size_t size;
 } history_t;
 
+// Check if this move hash was repeated before REPETITION times.
 bool check_for_repetition(history_t *, hash_t, size_t);
 
 #endif

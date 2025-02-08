@@ -15,18 +15,20 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "state/history.h"
+#include "move/move_t.h"
 #include <sys/cdefs.h>
 
-// Check if this move hash was repeated before REPETITION times.
 bool check_for_repetition(history_t *history, hash_t hash, size_t repetition) {
   int repetition_count = 0;
-  for (size_t i = 0; i < history->size; i++) {
+
+  // We only need to check 1 board each 4 boards.
+  size_t i = history->size;
+  while (i >= 4) {
+    i -= 4;
     history_item_t item = history->history[i];
-    if (item.hash == hash) {
-      if (++repetition_count >= repetition) {
-        return true;
-      }
-    }
+
+    if (item.hash == hash && ++repetition_count >= repetition)
+      return true;
   }
 
   return false;
