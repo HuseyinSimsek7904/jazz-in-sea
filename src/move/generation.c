@@ -22,6 +22,12 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 // Generate all possible moves on the board, and place them on the moves array.
 // Returns the number of moves.
 void generate_moves(board_state_t *state, move_t moves[256]) {
+  if (state->status != NORMAL) {
+    assert(false);
+    moves[0] = MOVE_INV;
+    return;
+  }
+
   char piece_color = MOD_BLACK;
   char opposite_color = MOD_WHITE;
 
