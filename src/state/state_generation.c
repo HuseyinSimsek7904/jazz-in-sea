@@ -21,8 +21,8 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "board/bb_tables.h"
 #include "board/board_t.h"
-#include "board/n_table.h"
 #include "board/piece_t.h"
 #include "board/pos_t.h"
 #include "io/pp.h"

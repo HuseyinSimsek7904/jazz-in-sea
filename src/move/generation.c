@@ -16,7 +16,7 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 
 #include "move/generation.h"
 #include "ai/measure_count.h"
-#include "board/n_table.h"
+#include "board/bb_tables.h"
 #include "board/pos_t.h"
 #include "board/status_t.h"
 #include "io/pp.h"

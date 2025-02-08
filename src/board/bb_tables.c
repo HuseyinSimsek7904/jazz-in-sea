@@ -14,7 +14,7 @@ You should have received a copy of the GNU General Public License along with
 JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "board/n_table.h"
+#include "board/bb_tables.h"
 
 #include <stdint.h>
 

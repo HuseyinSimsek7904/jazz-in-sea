@@ -15,7 +15,7 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "move/make_move.h"
-#include "board/n_table.h"
+#include "board/bb_tables.h"
 #include "io/pp.h"
 #include "state/hash_operations.h"
 #include "state/state_generation.h"
