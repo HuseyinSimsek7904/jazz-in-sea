@@ -15,8 +15,12 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "ai/measure_count.h"
+#include <stddef.h>
 
 #ifdef MEASURE_EVAL_COUNT
+size_t position_evaluation_count = 0;
+size_t move_generation_count = 0;
+
 size_t evaluate_count = 0;
 size_t game_end_count = 0;
 size_t leaf_count = 0;

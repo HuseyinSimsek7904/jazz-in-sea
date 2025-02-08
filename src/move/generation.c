@@ -15,6 +15,7 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "move/generation.h"
+#include "ai/measure_count.h"
 #include "board/n_table.h"
 #include "board/pos_t.h"
 #include "board/status_t.h"
@@ -39,6 +40,10 @@ static inline bool sum_inrange(pos_t pos, int delta) {
 // Generate all possible moves on the board, and place them on the moves array.
 // Moves array is terminated by adding a MOVE_INV.
 void generate_moves(board_state_t *state, move_t moves[256]) {
+#ifdef MEASURE_EVAL_COUNT
+  move_generation_count++;
+#endif
+
   if (state->status != NORMAL) {
     assert(false);
     moves[0] = MOVE_INV;

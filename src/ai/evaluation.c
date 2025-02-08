@@ -85,6 +85,8 @@ eval_t evaluate(board_state_t *state, history_t *history, size_t max_depth,
 
   // Reset the measuring variables.
 #ifdef MEASURE_EVAL_COUNT
+  position_evaluation_count = 0;
+
   evaluate_count = 0;
   ab_branch_cut_count = 0;
   game_end_count = 0;
@@ -142,6 +144,11 @@ eval_t evaluate(board_state_t *state, history_t *history, size_t max_depth,
   pp_f("measure: called _evaluate %d times.\n", evaluate_count);
   pp_f("measure: cut %d branches.\n", ab_branch_cut_count);
   if (evaluate_count != 0) {
+    pp_f("measure: called get_board_evaluation %d (%d %%) times.\n",
+         position_evaluation_count,
+         position_evaluation_count * 100 / evaluate_count);
+    pp_f("measure: called generate_moves %d (%d %%) times.\n",
+         move_generation_count, move_generation_count * 100 / evaluate_count);
     pp_f("measure: found %d (%d %%) different game ends.\n", game_end_count,
          game_end_count * 100 / evaluate_count);
     pp_f("measure: found total %d (%d %%) leaves.\n", leaf_count,

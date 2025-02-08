@@ -16,6 +16,7 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 
 #include "ai/position_evaluation.h"
 #include "ai/cache.h"
+#include "ai/measure_count.h"
 #include "board/board_t.h"
 #include "board/piece_t.h"
 #include "board/pos_t.h"
@@ -76,6 +77,10 @@ eval_t get_short_move_evaluation(board_state_t *state, ai_cache_t *cache,
 
 // Generate a full evaluation score for the current board.
 int get_board_evaluation(board_state_t *state, ai_cache_t *cache) {
+#ifdef MEASURE_EVAL_COUNT
+  position_evaluation_count++;
+#endif
+
   // If players have centered pieces, add centered advantage score.
   int eval = 0;
   if (state->white_island_count)

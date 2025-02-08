@@ -20,6 +20,9 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 #include <stddef.h>
 
 #ifdef MEASURE_EVAL_COUNT
+extern size_t position_evaluation_count;
+extern size_t move_generation_count;
+
 extern size_t evaluate_count;
 extern size_t game_end_count;
 extern size_t leaf_count;
