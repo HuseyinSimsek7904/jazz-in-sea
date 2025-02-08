@@ -29,6 +29,7 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 #include <inttypes.h>
 #include <signal.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -556,6 +557,36 @@ static inline size_t count_branches(size_t depth) {
   return branches;
 }
 
+static inline void print_branches(size_t current_ply, size_t max_ply,
+                                  move_t *branch) {
+  if (current_ply >= max_ply) {
+    branch[current_ply] = MOVE_INV;
+    pp_moves(branch);
+    pp_f("\n");
+    return;
+  }
+
+  // Check if reached a end of game node.
+  if (game_state.status != NORMAL) {
+    branch[current_ply] = MOVE_INV;
+    pp_moves(branch);
+    pp_f(" %s\n", board_status_text(game_state.status));
+    return;
+  }
+
+  // Count all of the nodes.
+  move_t moves[256];
+  generate_moves(&game_state, moves);
+  for (size_t i = 0; is_valid_move(moves[i]); i++) {
+    do_move(&game_state, &game_history, moves[i]);
+    branch[current_ply] = moves[i];
+    print_branches(current_ply + 1, max_ply, branch);
+    undo_last_move(&game_state, &game_history);
+  }
+
+  return;
+}
+
 bool wait_for_child_resp(pid_t pid, char buffer[256], FILE *child_stdout) {
   fgets(buffer, 256, child_stdout);
 
@@ -577,13 +608,14 @@ command_define(
     "Run a test command.\n"
     "\n"
     "  -l DEPTH      Count the number of reachable leaves in DEPTH ply.\n"
+    "  -p DEPTH      Print all of the branches reachable in DEPTH ply.\n"
     "  -f EXEC       Play a game against another AI process with the same time "
     "and depth limits.\n "
     "  -n            Generate the n-tables and print the arrays.\n") {
 
   optind = 0;
   while (true) {
-    int c = getopt(argc, argv, "l:f:n");
+    int c = getopt(argc, argv, "l:p:f:n");
     switch (c) {
     case '?':
       return false;
@@ -803,6 +835,12 @@ command_define(
     case 'l':
       io_basic();
       pp_f("%zu\n", count_branches(atoi(optarg)));
+      return true;
+
+    case 'p':
+      io_basic();
+      move_t moves[256];
+      print_branches(0, atoi(optarg), moves);
       return true;
 
     case -1:
