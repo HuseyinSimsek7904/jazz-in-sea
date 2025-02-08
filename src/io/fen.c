@@ -79,6 +79,12 @@ static inline bool _char_to_player(char c) {
 // Load and initialize a board and its state cache from FEN string.
 bool load_fen_string(const char *fen, board_state_t *state,
                      history_t *history) {
+  // Reset all piece bitboards.
+  state->pieces_bb[0] = 0;
+  state->pieces_bb[1] = 0;
+  state->pieces_bb[2] = 0;
+  state->pieces_bb[3] = 0;
+
   int row = 0, col = 0;
 
   for (; *fen != ' '; fen++) {

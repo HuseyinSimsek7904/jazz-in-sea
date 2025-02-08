@@ -27,50 +27,42 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 #include "board/pos_t.h"
 #include "io/pp.h"
 #include "move/move_t.h"
+#include "state/board_state_t.h"
 #include "state/hash_operations.h"
 #include "state/status.h"
 
-// Update the island table using the current piece.
-void _generate_islands_pos(board_state_t *state, pos_t position, char color) {
-  if (get_piece_color(state->board[position]) != color)
-    return;
-  if (state->islands_bb & (1ull << position))
-    return;
+size_t _generate_islands_color(board_state_t *state, uint64_t pieces_bb) {
+  size_t total = 0;
+  uint64_t old_bb = center_squares_bb & pieces_bb;
 
-  state->islands_bb |= 1ull << position;
+  while (old_bb) {
+    state->islands_bb |= old_bb;
 
-  if (color == MOD_WHITE)
-    state->white_island_count++;
-  else
-    state->black_island_count++;
+    uint64_t new_bb = 0;
 
-  uint64_t n1 = n_table[1][position];
-  while (n1) {
-    pos_t neighbor = __builtin_ctzl(n1);
-    n1 &= ~(1ull << neighbor);
-    _generate_islands_pos(state, neighbor, color);
+    while (old_bb) {
+      total++;
+      pos_t position = __builtin_ctzl(old_bb);
+      old_bb &= ~(1ull << position);
+      new_bb |= n_table[1][position] & pieces_bb & ~(state->islands_bb);
+    }
+
+    old_bb = new_bb;
   }
+
+  return total;
 }
 
 // Create the island table.
 // This table can later be used to check if a move caused a piece to change an
 // island.
 void generate_islands(board_state_t *state) {
-
-  // Count the number of island pieces.
-  state->white_island_count = 0;
-  state->black_island_count = 0;
+  // Generate island bitboards for white and black.
   state->islands_bb = 0;
-
-  // Generates state->islands on the center squares for both colors.
-  _generate_islands_pos(state, 033, MOD_WHITE);
-  _generate_islands_pos(state, 034, MOD_WHITE);
-  _generate_islands_pos(state, 043, MOD_WHITE);
-  _generate_islands_pos(state, 044, MOD_WHITE);
-  _generate_islands_pos(state, 033, MOD_BLACK);
-  _generate_islands_pos(state, 034, MOD_BLACK);
-  _generate_islands_pos(state, 043, MOD_BLACK);
-  _generate_islands_pos(state, 044, MOD_BLACK);
+  state->white_island_count =
+      _generate_islands_color(state, state->pieces_bb[0] | state->pieces_bb[1]);
+  state->black_island_count =
+      _generate_islands_color(state, state->pieces_bb[2] | state->pieces_bb[3]);
 
   // Quick check for if the number of island pieces are greater than the total
   // number of pieces.
