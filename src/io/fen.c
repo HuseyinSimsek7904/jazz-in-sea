@@ -156,23 +156,20 @@ bool load_fen_string(const char *fen, board_state_t *state,
 // Save a board to FEN string.
 // fen must be an array of chars at least 75 bytes long. Just use 256 bytes.
 char *get_fen_string(char *fen, board_state_t *state) {
-  for (int row = 0; row < 8; row++) {
-    for (int col = 0; col < 8; col++) {
-      piece_t piece = state->board[to_position(row, col)];
+  for (pos_t position = 0; position < 64; position++) {
+    piece_t piece = state->board[position];
 
-      if (piece == EMPTY) {
-        if (*(fen - 1) >= '1' && *(fen - 1) <= '8') {
-          (*(fen - 1))++;
-        } else {
-          *fen++ = '1';
-        }
-
+    if (piece == EMPTY) {
+      if (*(fen - 1) >= '1' && *(fen - 1) <= '8') {
+        (*(fen - 1))++;
       } else {
-        *fen++ = _piece_to_char(piece);
+        *fen++ = '1';
       }
+    } else {
+      *fen++ = _piece_to_char(piece);
     }
 
-    if (row != 7)
+    if (position % 8 == 7 && position / 8 < 7)
       *fen++ = '/';
   }
 

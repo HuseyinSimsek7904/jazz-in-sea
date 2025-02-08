@@ -34,17 +34,17 @@ typedef struct {
   bool cancel_search;
 
   // Advantage tables used if there are no centered piece for a color.
-  int pawn_adv_table[256];
-  int knight_adv_table[256];
+  int pawn_adv_table[64];
+  int knight_adv_table[64];
 
   // Advantage tables used if there is at least one centered piece for a color.
   // Used for pieces not inside islands.
-  int pawn_centered_adv_table[256];
-  int knight_centered_adv_table[256];
+  int pawn_centered_adv_table[64];
+  int knight_centered_adv_table[64];
 
   // Used for pieces inside islands.
-  int pawn_island_adv_table[256];
-  int knight_island_adv_table[256];
+  int pawn_island_adv_table[64];
+  int knight_island_adv_table[64];
 
   // Added if there is at least one centered piece.
   int centered_adv;

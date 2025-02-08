@@ -77,16 +77,14 @@ eval_t get_short_move_evaluation(board_state_t *state, ai_cache_t *cache,
 // Generate a full evaluation score for the current board.
 int get_board_evaluation(board_state_t *state, ai_cache_t *cache) {
   // Check if there are any centered pieces for both pieces.
-  bool white_centered =
-      (get_piece_color(state->board[0x33]) == MOD_WHITE ||
-       get_piece_color(state->board[0x34]) == MOD_WHITE ||
-       get_piece_color(state->board[0x43]) == MOD_WHITE ||
-       get_piece_color(state->board[0x44]) == MOD_WHITE);
-  bool black_centered =
-      (get_piece_color(state->board[0x33]) == MOD_BLACK ||
-       get_piece_color(state->board[0x34]) == MOD_BLACK ||
-       get_piece_color(state->board[0x43]) == MOD_BLACK ||
-       get_piece_color(state->board[0x44]) == MOD_BLACK);
+  bool white_centered = (get_piece_color(state->board[033]) == MOD_WHITE ||
+                         get_piece_color(state->board[034]) == MOD_WHITE ||
+                         get_piece_color(state->board[043]) == MOD_WHITE ||
+                         get_piece_color(state->board[044]) == MOD_WHITE);
+  bool black_centered = (get_piece_color(state->board[033]) == MOD_BLACK ||
+                         get_piece_color(state->board[034]) == MOD_BLACK ||
+                         get_piece_color(state->board[043]) == MOD_BLACK ||
+                         get_piece_color(state->board[044]) == MOD_BLACK);
 
   // If players have centered pieces, add centered advantage score.
   int eval = 0;
@@ -96,47 +94,59 @@ int get_board_evaluation(board_state_t *state, ai_cache_t *cache) {
     eval -= cache->centered_adv;
 
   // Iterate through all squares and sum up the advantage of each piece.
-  for (int row = 0; row < 8; row++) {
-    for (int col = 0; col < 8; col++) {
-      pos_t pos = to_position(row, col);
-      piece_t piece = state->board[pos];
-      char piece_color = get_piece_color(piece);
-      int piece_eval;
+  for (pos_t position = 0; position < 64; position++) {
+    piece_t piece = state->board[position];
+    char piece_color = get_piece_color(piece);
+    int piece_eval;
+    bool centered;
 
-      if (piece_color == MOD_EMPTY)
-        continue;
-
-      switch (get_piece_type(piece)) {
-      case MOD_PAWN:
-        if (white_centered) {
-          piece_eval = (state->islands[pos] ? cache->pawn_island_adv_table
-                                            : cache->pawn_adv_table)[pos];
-        } else {
-          assert(!state->islands[pos]);
-          piece_eval = cache->pawn_adv_table[pos];
-        }
-        break;
-
-      case MOD_KNIGHT:
-        if (white_centered) {
-          piece_eval = (state->islands[pos] ? cache->knight_island_adv_table
-                                            : cache->knight_adv_table)[pos];
-        } else {
-          assert(!state->islands[pos]);
-          piece_eval = cache->knight_adv_table[pos];
-        }
-        break;
-
-      default:
-        assert(false);
-        return 0;
-      }
-
-      if (piece_color == MOD_BLACK)
-        piece_eval = -piece_eval;
-      eval += piece_eval;
+    switch (piece_color) {
+    case MOD_WHITE:
+      centered = white_centered;
+      break;
+    case MOD_BLACK:
+      centered = black_centered;
+      break;
+    case MOD_EMPTY:
+      continue;
+    default:
+      assert(false);
+      continue;
     }
+
+    switch (get_piece_type(piece)) {
+    case MOD_PAWN:
+      if (centered) {
+        piece_eval = (state->islands[position]
+                          ? cache->pawn_island_adv_table
+                          : cache->pawn_centered_adv_table)[position];
+      } else {
+        assert(!state->islands[position]);
+        piece_eval = cache->pawn_adv_table[position];
+      }
+      break;
+
+    case MOD_KNIGHT:
+      if (centered) {
+        piece_eval = (state->islands[position]
+                          ? cache->knight_island_adv_table
+                          : cache->knight_centered_adv_table)[position];
+      } else {
+        assert(!state->islands[position]);
+        piece_eval = cache->knight_adv_table[position];
+      }
+      break;
+
+    default:
+      assert(false);
+      return 0;
+    }
+
+    if (piece_color == MOD_BLACK)
+      piece_eval = -piece_eval;
+    eval += piece_eval;
   }
+
   return eval;
 }
 

@@ -23,7 +23,7 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 
 typedef struct {
   // The current board.
-  piece_t board[256];
+  piece_t board[64];
 
   // The current color to move.
   bool turn;
@@ -40,10 +40,10 @@ typedef struct {
   unsigned int black_island_count;
 
   // Islands table.
-  bool islands[256];
+  bool islands[64];
 
   // Square hashes table used to generate a hash value for boards.
-  hash_t hash_tables[4][256];
+  hash_t hash_tables[4][64];
   hash_t turn_hash;
 
   // The current hash value.

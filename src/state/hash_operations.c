@@ -24,13 +24,10 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 // Generate the hash value for a board.
 void generate_full_hash(board_state_t *state) {
   state->hash = state->turn ? state->turn_hash : 0;
-  for (int row = 0; row < 8; row++) {
-    for (int col = 0; col < 8; col++) {
-      pos_t pos = to_position(row, col);
-      piece_t piece = state->board[pos];
+  for (pos_t position = 0; position < 64; position++) {
+    piece_t piece = state->board[position];
 
-      if (piece != EMPTY)
-        state->hash ^= get_hash_for_piece(state, piece, pos);
-    }
+    if (piece != EMPTY)
+      state->hash ^= get_hash_for_piece(state, piece, position);
   }
 }

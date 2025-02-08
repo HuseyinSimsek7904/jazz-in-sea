@@ -17,11 +17,14 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 #include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "board/board_t.h"
+#include "board/n_table.h"
 #include "board/piece_t.h"
+#include "board/pos_t.h"
 #include "io/pp.h"
 #include "move/move_t.h"
 #include "state/hash_operations.h"
@@ -29,8 +32,6 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 
 // Update the island table using the current piece.
 void _generate_islands_pos(board_state_t *state, pos_t position, char color) {
-  if (!is_valid_pos(position))
-    return;
   if (get_piece_color(state->board[position]) != color)
     return;
   if (state->islands[position])
@@ -43,8 +44,11 @@ void _generate_islands_pos(board_state_t *state, pos_t position, char color) {
   else
     state->black_island_count++;
 
-  for (int i = 0; i < 4; i++) {
-    _generate_islands_pos(state, position + deltas[i], color);
+  uint64_t n1 = n_table[1][position];
+  while (n1) {
+    pos_t neighbor = __builtin_ctzl(n1);
+    n1 &= ~(1ull << neighbor);
+    _generate_islands_pos(state, neighbor, color);
   }
 }
 
@@ -57,21 +61,19 @@ void generate_islands(board_state_t *state) {
   state->white_island_count = 0;
   state->black_island_count = 0;
 
-  for (int row = 0; row < 8; row++) {
-    for (int col = 0; col < 8; col++) {
-      state->islands[to_position(row, col)] = false;
-    }
+  for (pos_t position = 0; position < 64; position++) {
+    state->islands[position] = false;
   }
 
   // Generates state->islands on the center squares for both colors.
-  _generate_islands_pos(state, 0x33, MOD_WHITE);
-  _generate_islands_pos(state, 0x34, MOD_WHITE);
-  _generate_islands_pos(state, 0x43, MOD_WHITE);
-  _generate_islands_pos(state, 0x44, MOD_WHITE);
-  _generate_islands_pos(state, 0x33, MOD_BLACK);
-  _generate_islands_pos(state, 0x34, MOD_BLACK);
-  _generate_islands_pos(state, 0x43, MOD_BLACK);
-  _generate_islands_pos(state, 0x44, MOD_BLACK);
+  _generate_islands_pos(state, 033, MOD_WHITE);
+  _generate_islands_pos(state, 034, MOD_WHITE);
+  _generate_islands_pos(state, 043, MOD_WHITE);
+  _generate_islands_pos(state, 044, MOD_WHITE);
+  _generate_islands_pos(state, 033, MOD_BLACK);
+  _generate_islands_pos(state, 034, MOD_BLACK);
+  _generate_islands_pos(state, 043, MOD_BLACK);
+  _generate_islands_pos(state, 044, MOD_BLACK);
 
   // Quick check for if the number of island pieces are greater than the total
   // number of pieces.
@@ -83,12 +85,9 @@ void generate_islands(board_state_t *state) {
 static inline void _generate_hash_tables(board_state_t *state) {
   state->turn_hash = (long)rand() << 32 | rand();
 
-  for (int row = 0; row < 8; row++) {
-    for (int col = 0; col < 8; col++) {
-      for (int piece = 0; piece < 4; piece++) {
-        state->hash_tables[piece][to_position(row, col)] =
-            (long)rand() << 32 | rand();
-      }
+  for (pos_t position = 0; position < 64; position++) {
+    for (int piece = 0; piece < 4; piece++) {
+      state->hash_tables[piece][position] = (long)rand() << 32 | rand();
     }
   }
 }
@@ -99,16 +98,13 @@ void generate_state_cache(board_state_t *state, history_t *history) {
   state->white_count = 0;
   state->black_count = 0;
 
-  for (int row = 0; row < 8; row++) {
-    for (int col = 0; col < 8; col++) {
-      char piece_color =
-          get_piece_color(state->board[to_position(row, col)]);
+  for (pos_t position = 0; position < 64; position++) {
+    char piece_color = get_piece_color(state->board[position]);
 
-      if (piece_color == MOD_WHITE)
-        state->white_count++;
-      else if (piece_color == MOD_BLACK)
-        state->black_count++;
-    }
+    if (piece_color == MOD_WHITE)
+      state->white_count++;
+    else if (piece_color == MOD_BLACK)
+      state->black_count++;
   }
 
   // Generate the hash tables.

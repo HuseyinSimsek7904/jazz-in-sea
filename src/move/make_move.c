@@ -15,9 +15,12 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "move/make_move.h"
+#include "board/n_table.h"
+#include "io/pp.h"
 #include "state/hash_operations.h"
 #include "state/state_generation.h"
 #include "state/status.h"
+#include <stdint.h>
 
 // Remove a piece on the board.
 // Returns the removed piece.
@@ -46,16 +49,17 @@ static inline void _place_piece(board_state_t *state, pos_t to, piece_t piece,
   state->board[to] = piece;
 
   if (!*update_islands_table &&
-      (to == 0x33 || to == 0x34 || to == 0x43 || to == 0x44))
+      (to == 033 || to == 034 || to == 043 || to == 044))
     *update_islands_table = true;
 
-  // Check for all of neighbors of the new position.
+  // Check for all the N1 neighbors of the new position.
   if (!*update_islands_table) {
-    for (int i = 0; i < 4; i++) {
-      pos_t new_pos = to + deltas[i];
+    uint64_t n1 = n_table[1][to];
+    while (n1) {
+      pos_t new_pos = __builtin_ctzl(n1);
+      n1 &= ~(1ull << new_pos);
 
-      if (is_valid_pos(new_pos) &&
-          get_piece_color(state->board[new_pos]) == get_piece_color(piece) &&
+      if (get_piece_color(state->board[new_pos]) == get_piece_color(piece) &&
           state->islands[new_pos]) {
 
         *update_islands_table = true;
