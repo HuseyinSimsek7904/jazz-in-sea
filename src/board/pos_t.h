@@ -17,6 +17,7 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 #ifndef _BOARD_POSITION_T_H
 #define _BOARD_POSITION_T_H
 
+#include "board/bb_tables.h"
 #include <stdbool.h>
 #include <sys/types.h>
 
@@ -44,8 +45,7 @@ static inline int to_col(pos_t pos) { return pos & 7; }
 static inline bool is_valid_pos(pos_t pos) { return pos < 64; }
 
 static inline bool is_center(pos_t pos) {
-  int row = to_row(pos), col = to_col(pos);
-  return (col == 3 || col == 4) && (row == 3 || row == 4);
+  return center_squares_bb & (1ull << pos);
 }
 
 #endif

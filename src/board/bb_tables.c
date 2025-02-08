@@ -118,3 +118,6 @@ const uint64_t n_table[4][64] = {
         0x1000008000000000,
     },
 };
+
+// Center squares table.
+const uint64_t center_squares_bb = 0x0000001818000000;

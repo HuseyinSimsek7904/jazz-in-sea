@@ -20,5 +20,6 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 #include <stdint.h>
 
 extern const uint64_t n_table[4][64];
+extern const uint64_t center_squares_bb;
 
 #endif
