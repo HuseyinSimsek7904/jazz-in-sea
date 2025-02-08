@@ -76,21 +76,11 @@ eval_t get_short_move_evaluation(board_state_t *state, ai_cache_t *cache,
 
 // Generate a full evaluation score for the current board.
 int get_board_evaluation(board_state_t *state, ai_cache_t *cache) {
-  // Check if there are any centered pieces for both pieces.
-  bool white_centered = (get_piece_color(state->board[033]) == MOD_WHITE ||
-                         get_piece_color(state->board[034]) == MOD_WHITE ||
-                         get_piece_color(state->board[043]) == MOD_WHITE ||
-                         get_piece_color(state->board[044]) == MOD_WHITE);
-  bool black_centered = (get_piece_color(state->board[033]) == MOD_BLACK ||
-                         get_piece_color(state->board[034]) == MOD_BLACK ||
-                         get_piece_color(state->board[043]) == MOD_BLACK ||
-                         get_piece_color(state->board[044]) == MOD_BLACK);
-
   // If players have centered pieces, add centered advantage score.
   int eval = 0;
-  if (white_centered)
+  if (state->white_island_count)
     eval += cache->centered_adv;
-  if (black_centered)
+  if (state->black_island_count)
     eval -= cache->centered_adv;
 
   // Iterate through all squares and sum up the advantage of each piece.
@@ -102,10 +92,10 @@ int get_board_evaluation(board_state_t *state, ai_cache_t *cache) {
 
     switch (piece_color) {
     case MOD_WHITE:
-      centered = white_centered;
+      centered = (bool) state->white_island_count;
       break;
     case MOD_BLACK:
-      centered = black_centered;
+      centered = (bool) state->black_island_count;
       break;
     case MOD_EMPTY:
       continue;
