@@ -26,6 +26,7 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 #include <assert.h>
 #include <inttypes.h>
 #include <stddef.h>
+#include <stdint.h>
 
 static inline bool sum_inrange(pos_t pos, int delta) {
   int row = to_row(pos);
@@ -50,23 +51,27 @@ void generate_moves(board_state_t *state, move_t moves[256]) {
     return;
   }
 
-  char piece_color = MOD_BLACK;
-  char opposite_color = MOD_WHITE;
-
-  if (state->turn) {
-    piece_color = MOD_WHITE;
-    opposite_color = MOD_BLACK;
-  }
-
   bool capture_available = false;
   size_t length = 0;
 
-  for (pos_t position = 0; position < 64; position++) {
-    piece_t piece = state->board[position];
+  // Get the piece bitboards.
+  uint64_t piece_bb;
+  uint64_t all_pieces_bb = state->pieces_bb[0] | state->pieces_bb[1] |
+                           state->pieces_bb[2] | state->pieces_bb[3];
 
-    // Check if the color of the piece is the color of the player.
-    if (get_piece_color(piece) != piece_color)
-      continue;
+  if (state->turn) {
+    piece_bb = state->pieces_bb[0] | state->pieces_bb[1];
+  } else {
+    piece_bb = state->pieces_bb[2] | state->pieces_bb[3];
+  }
+
+  // Create a bitboard and iterate through the pieces.
+  uint64_t piece_bb_iter = piece_bb;
+  while (piece_bb_iter) {
+    pos_t position = __builtin_ctzl(piece_bb_iter);
+    piece_bb_iter &= ~(1ull << position);
+
+    piece_t piece = state->board[position];
 
     bool is_knight = get_piece_type(piece) == MOD_KNIGHT;
 
@@ -86,23 +91,11 @@ void generate_moves(board_state_t *state, move_t moves[256]) {
         first_pos += delta;
       }
 
-      piece_t first_piece = state->board[first_pos];
+      // If the target square has a friend piece on it, ignore this move.
+      if (piece_bb & (1ull << first_pos))
+        continue;
 
-      if (first_piece == MOD_EMPTY) {
-        // The destination position is empty.
-        // If there are any available captures, no need to try to find a
-        // regular move.
-        if (capture_available)
-          continue;
-
-        // Set the move object.
-        moves[length++] = (move_t){
-            .from = position,
-            .to = first_pos,
-            .capture = POSITION_INV,
-        };
-
-      } else if (get_piece_color(first_piece) == opposite_color) {
+      if (all_pieces_bb & (1ull << first_pos)) {
         // The destination position has a piece of opposite color.
         if (!sum_inrange(first_pos, delta))
           continue;
@@ -123,7 +116,21 @@ void generate_moves(board_state_t *state, move_t moves[256]) {
         moves[length++] = (move_t){.from = position,
                                    .to = second_pos,
                                    .capture = first_pos,
-                                   .capture_piece = first_piece};
+                                   .capture_piece = state->board[first_pos]};
+
+      } else {
+        // The destination position is empty.
+        // If there are any available captures, no need to try to find a
+        // regular move.
+        if (capture_available)
+          continue;
+
+        // Set the move object.
+        moves[length++] = (move_t){
+            .from = position,
+            .to = first_pos,
+            .capture = POSITION_INV,
+        };
       }
     }
   }
