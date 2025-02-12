@@ -16,6 +16,7 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 
 #include "ai/eval_t.h"
 #include "ai/evaluation.h"
+#include "board/pos_t.h"
 #include "board/status_t.h"
 #include "commands/globals.h"
 #include "io/fen.h"
@@ -288,15 +289,42 @@ command_define(status, "Print the current board status",
 
 command_define(allmoves, "Print the available moves on the current board",
                "Usage: allmoves\n"
+               "   or: allmoves POS\n"
                "\n"
-               "Print the available moves on the current board.\n") {
+               "Print available moves on the current board.\n"
+               "If given, only print moves originating from POS.\n"
+               "Otherwise print all.\n") {
 
   move_t moves[256];
   generate_moves(&game_state, moves);
 
+  if (argc == 2) {
+    // If POS is given, parse it.
+    pos_t position;
+    if (!string_to_position(argv[1], &position)) {
+      io_error();
+      pp_f("error: invalid position '%s'\n", argv[1]);
+      return false;
+    }
+
+    // Filter the moves array.
+    size_t length = 0;
+    for (size_t i = 0; is_valid_move(moves[i]); i++) {
+      if (moves[i].from == position)
+        moves[length++] = moves[i];
+    }
+    moves[length] = MOVE_INV;
+
+  } else if (argc > 2) {
+    io_error();
+    pp_f("error: allmoves takes at most 1 arguments\n");
+    return false;
+  }
+
   io_basic();
   pp_moves(moves);
   pp_f("\n");
+
   return true;
 }
 
