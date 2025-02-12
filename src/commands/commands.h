@@ -35,6 +35,7 @@ command_declare(makemove);
 command_declare(undomove);
 command_declare(status);
 command_declare(allmoves);
+command_declare(descmove);
 command_declare(automove);
 command_declare(playai);
 command_declare(evaluate);

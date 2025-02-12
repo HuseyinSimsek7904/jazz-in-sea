@@ -328,9 +328,71 @@ command_define(allmoves, "Print the available moves on the current board",
   return true;
 }
 
+command_define(descmove, "Describe move",
+               "Usage: descmove MOVE [OPTION]...\n"
+               "\n"
+               "Print the 'from', 'to' and 'capture' positions of MOVE.\n"
+               "If no captures were performed, print '-' for 'capture'.\n"
+               "\n"
+               "NOTE: This command does not check if MOVE is an available move \n"
+               "in the current position\n"
+               "\n"
+               "  -i            Print square indexes instead of positions\n") {
+
+  bool index = false;
+  move_t move;
+
+  optind = 0;
+  while (true) {
+    int c = getopt(argc, argv, "i");
+    switch (c) {
+    case -1:
+      goto end_of_parsing;
+    case '?':
+      break;
+    case 'i':
+      index = true;
+      break;
+    }
+  }
+
+end_of_parsing:
+
+  if (optind == argc) {
+    io_error();
+    pp_f("error: descmove requires POS argument\n");
+    return false;
+  }
+
+  if (!string_to_move(argv[optind], game_state.board, &move)) {
+    io_error();
+    pp_f("error: invalid move '%s'\n", argv[optind]);
+    return false;
+  }
+
+  io_basic();
+  if (index) {
+    pp_f("%u %u ", move.from, move.to);
+  } else {
+    pp_position(move.from);
+    pp_f(" ");
+    pp_position(move.to);
+    pp_f(" ");
+  }
+
+  if (!is_capture(move)) {
+    pp_f("-");
+  } else {
+    pp_position(move.capture);
+  }
+  pp_f("\n");
+
+  return true;
+}
+
 command_define(
     automove, "Set or unset the automove flag",
-    "Usage: automove [OPTION]..."
+    "Usage: automove [OPTION]...\n"
     "\n"
     "Set the automove flag for both players. When a players automove flag is "
     "on and it is their move to play, the AI automatically generates and plays "
@@ -339,6 +401,7 @@ command_define(
     "  -d            Unset the flags instead of setting them\n"
     "  -w            Set or unset only the white players automove flag\n"
     "  -b            Set or unset only the black players automove flag\n") {
+
   bool set = true;
   enum { WHITE, BLACK, BOTH } color = BOTH;
 
@@ -949,6 +1012,7 @@ command_entry_t command_entries[] = {
     command_entry(automove),
     command_entry(status),
     command_entry(allmoves),
+    command_entry(descmove),
     command_entry(placeat),
     command_entry(removeat),
     command_entry(aidepth),
