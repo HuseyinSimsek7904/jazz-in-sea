@@ -176,7 +176,7 @@ void initialize(int argc, char **argv) {
     global_options.exit_if_error = true;
   }
 
-  if (!load_fen_from_path("board_fen/starting", &game_state, &game_history)) {
+  if (!load_fen_string("np4PN/pp4PP/8/8/8/8/PP4pp/NP4pn w", &game_state, &game_history)) {
     io_error();
     pp_f("error: could not load starting position\n");
     exit(1);
