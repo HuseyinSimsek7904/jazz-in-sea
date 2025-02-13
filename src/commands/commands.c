@@ -278,13 +278,29 @@ command_define(undomove, "Undo the last move in history",
 }
 
 command_define(status, "Print the current board status",
-               "Usage: status\n"
+               "Usage: status [OPTION]...\n"
                "\n"
-               "Print the current board status.\n") {
+               "Print the current board status text.\n"
+               "\n"
+               "  -i            Print the status index, instead of text description.\n") {
 
-  io_basic();
-  pp_f("%s\n", board_status_text(game_state.status));
-  return true;
+
+  optind = 0;
+  while (true) {
+    int c = getopt(argc, argv, "i");
+    switch (c) {
+    case '?':
+      return false;
+    case -1:
+      io_basic();
+      pp_f("%s\n", board_status_text(game_state.status));
+      return true;
+    case 'i':
+      io_basic();
+      pp_f("%i\n", game_state.status);
+      return true;
+    }
+  }
 }
 
 command_define(allmoves, "Print the available moves on the current board",
