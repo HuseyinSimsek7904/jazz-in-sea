@@ -24,6 +24,7 @@ JazzInSea. If not, see <https://www.gnu.org/licenses/>.
 #include "move/generation.h"
 #include "move/make_move.h"
 #include "move/move_t.h"
+#include "state/history.h"
 
 #include <bits/types/siginfo_t.h>
 #include <getopt.h>
@@ -277,13 +278,13 @@ command_define(undomove, "Undo the last move in history",
   return true;
 }
 
-command_define(status, "Print the current board status",
-               "Usage: status [OPTION]...\n"
-               "\n"
-               "Print the current board status text.\n"
-               "\n"
-               "  -i            Print the status index, instead of text description.\n") {
-
+command_define(
+    status, "Print the current board status",
+    "Usage: status [OPTION]...\n"
+    "\n"
+    "Print the current board status text.\n"
+    "\n"
+    "  -i            Print the status index, instead of text description.\n") {
 
   optind = 0;
   while (true) {
@@ -344,16 +345,17 @@ command_define(allmoves, "Print the available moves on the current board",
   return true;
 }
 
-command_define(descmove, "Describe move",
-               "Usage: descmove MOVE [OPTION]...\n"
-               "\n"
-               "Print the 'from', 'to' and 'capture' positions of MOVE.\n"
-               "If no captures were performed, print '-' for 'capture'.\n"
-               "\n"
-               "NOTE: This command does not check if MOVE is an available move \n"
-               "in the current position\n"
-               "\n"
-               "  -i            Print square indexes instead of positions\n") {
+command_define(
+    descmove, "Describe move",
+    "Usage: descmove MOVE [OPTION]...\n"
+    "\n"
+    "Print the 'from', 'to' and 'capture' positions of MOVE.\n"
+    "If no captures were performed, print '-' for 'capture'.\n"
+    "\n"
+    "NOTE: This command does not check if MOVE is an available move \n"
+    "in the current position\n"
+    "\n"
+    "  -i            Print square indexes instead of positions\n") {
 
   bool index = false;
   move_t move;
@@ -660,6 +662,61 @@ command_define(aitime, "Set the maximum allowed search time of the AI",
     pp_f("command 'aidepth' expects 0 or 1 argument.\n");
     return false;
   }
+}
+
+uint digit_count(uint n) {
+  if (n < 10)
+    return 1;
+  if (n < 100)
+    return 2;
+  if (n < 1000)
+    return 3;
+  if (n < 10000)
+    return 4;
+  if (n < 100000)
+    return 5;
+  if (n < 1000000)
+    return 6;
+  if (n < 10000000)
+    return 7;
+  if (n < 100000000)
+    return 8;
+  if (n < 1000000000)
+    return 9;
+
+  return 10;
+}
+command_define(history, "List played moves",
+               "Usage: history\n"
+               "\n"
+               "List the move history."
+               "The moves are printed in this form:"
+               "  1. b7>6  b2>3\n"
+               "  2. a8>6  a1>3\n") {
+
+  io_basic();
+  pp_f("\n");
+
+  uint width = digit_count(game_history.size);
+
+  int i = 0;
+  while (i < game_history.size) {
+    pp_f("  %*d. ", width, i / 2 + 1);
+    pp_move(game_history.history[i++].move);
+
+    if (i >= game_history.size) {
+      pp_f("\n");
+      break;
+    }
+
+    pp_f("  ");
+    pp_move(game_history.history[i++].move);
+    pp_f("\n");
+  }
+
+  pp_f("\n");
+
+  return true;
 }
 
 static inline size_t count_branches(size_t depth) {
@@ -1034,6 +1091,7 @@ command_entry_t command_entries[] = {
     command_entry(aidepth),
     command_entry(aitime),
     command_entry(playai),
+    command_entry(history),
     command_entry(evaluate),
     command_entry(test),
     {
